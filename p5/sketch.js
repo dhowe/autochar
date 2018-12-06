@@ -1,73 +1,78 @@
-// http://localhost/git/AutoSave/p5/index.html
+// http://localhost/git/Automachar/p5/index.html
 
-var word, charData, wordData, memory = [];
-var memorySize = 10;
-
-// NEXT:
-  // 1. do animation using current substitutions
-  // 2. match on character parts
+// NEXT: enable back-arrow
+var util, word, charData, wordData, memory = [];
+var med = 0,
+  steps = 0,
+  memsize = 10,
+  stepms = 1000,
+  autostep = false;
 
 function preload() {
-
   charData = loadJSON('../chardata.json');
   wordData = loadJSON('../words-trad.json');
 }
 
 function setup() {
-
+  util = new CharUtils(charData, wordData);
   createCanvas(1024, 512);
   textAlign(CENTER);
-  textSize(18);
+  textSize(20);
+  step();
+}
 
-  console.log(Object.keys(charData).length + " chars");
-  console.log(Object.keys(wordData).length + " words");
-
-  word = randWord(charData, wordData);
-  remember(word.literal);
-  console.log("start:", word, word.characters[0].decomposition[0]);
+function draw() {
+  background(240);
   renderWord(word);
-  next = findNext();
-  console.log("next:", next);
+  text(util.def(word.literal), width / 2, height - 10);
+  text("med: "+med, width - 40, 20);
+  if (memory[memory.length-2])
+    text("last: "+memory[memory.length-2], 55, 20);
+  noLoop();
 }
 
-function wordsMatchingDecompAt(word, idx, partialMatches) {
-  var matches = [], oidx = (idx+1)%2;
-  for (var i = 0; i < partialMatches.length; i++) {
-    if (word.literal[oidx] === partialMatches[i][oidx]) {
-      if (word.characters[idx].decomposition[0] === charData[partialMatches[i][idx]].decomposition[0]) {
-        matches.push(partialMatches[i]);
-      }
-    }
+function nextWord() {
+
+  if (typeof word === 'undefined') word = util.randWord();
+  let bests = util.bestEditDist(word.literal, 0, memory);
+
+  if (!bests || !bests.length) {
+    throw Error('Died on ' + word.literal, word);
   }
-  return matches;
+  var literal = bests[random(bests.length) << 0];
+  return util.getWord(literal);
 }
 
-function findNext() {
-  var dbg = 1;
+function step() {
 
-  var keep0 = wordsMatchingCharAt(word.literal, 1, wordData, charData);
-  var keep1 = wordsMatchingCharAt(word.literal, 0, wordData, charData);
-  var matches0 = wordsMatchingDecompAt(word, 0, keep0);
-  var matches1 = wordsMatchingDecompAt(word, 1, keep1);
-
-  var matches = matches0.concat(matches1);
-  dbg&& console.log('--------------\n',matches);
-  for (var i = 0; i < matches.length; i++) {
-    var s = i + ") " + matches[i] + " ";
-    s += (matches[i][0] === word.literal[0]) ? matches[i][0]+charData[matches[i][1]].decomposition[0] : charData[matches[i][0]].decomposition[0]+matches[i][1];
-    dbg&& console.log(s);
-  }
-
-  if (matches.length) return matches[random(matches.length) << 0];
+  let next = nextWord();
+  console.log((++steps) + ")", next.literal); //, next.characters[0].decomposition[0]);
+  med = util.minEditDist(word.literal, next.literal);
+  word = next;
+  remember(word.literal);
+  loop();
+  autostep && setTimeout(step, stepms)
 }
+
+function mouseClicked() {
+  autostep = false;
+  step();
+}
+
+function doubleClicked() {
+  autostep = true;
+  step();
+}
+
 
 function remember(o) {
   memory.push(o);
-  if (memory.length > memorySize)
+  if (memory.length > memsize)
     memory.shift();
 }
 
 function renderWord(word) {
+  if (typeof word.characters === 'undefined') word = util.getWord(word);
   for (var i = 0; i < word.characters.length; i++) {
     renderPath(word.characters[i], i);
   }
