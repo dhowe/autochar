@@ -1,12 +1,13 @@
 // http://localhost/git/Automachar/p5/index.html
 
 // NEXT: enable back-arrow
-var util, word, charData, wordData, memory = [];
+var util, word, charData, wordData, actions = [];
 var med = 0,
   steps = 0,
   memsize = 10,
   stepms = 1000,
-  autostep = false;
+  autostep = false,
+  memory = [];
 
 function preload() {
   charData = loadJSON('../chardata.json');
@@ -14,6 +15,9 @@ function preload() {
 }
 
 function setup() {
+  let xx = "hello";
+  xx[0] = 'j';
+  console.log("x",xx);
   util = new CharUtils(charData, wordData);
   createCanvas(1024, 512);
   textAlign(CENTER);
@@ -22,12 +26,14 @@ function setup() {
 }
 
 function draw() {
+
   background(240);
   renderWord(word);
   text(util.def(word.literal), width / 2, height - 10);
-  text("med: "+med, width - 40, 20);
-  if (memory[memory.length-2])
-    text("last: "+memory[memory.length-2], 55, 20);
+  text("med: " + med, width - 40, 20);
+  if (memory[memory.length - 2]) {
+    text("last: " + memory[memory.length - 2], 55, 20);
+  }
   noLoop();
 }
 
@@ -39,31 +45,36 @@ function nextWord() {
   if (!bests || !bests.length) {
     throw Error('Died on ' + word.literal, word);
   }
-  var literal = bests[random(bests.length) << 0];
-  return util.getWord(literal);
+  return util.getWord(bests[random(bests.length) << 0]);
 }
 
-function step() {
+function step(dir) {
 
-  let next = nextWord();
-  console.log((++steps) + ")", next.literal); //, next.characters[0].decomposition[0]);
-  med = util.minEditDist(word.literal, next.literal);
-  word = next;
-  remember(word.literal);
-  loop();
-  autostep && setTimeout(step, stepms)
+  if (dir !== -1) {
+    let next = nextWord();
+
+    console.log((++steps) + ")", next.literal); //, next.characters[0].decomposition[0]);
+    med = util.minEditDist(word.literal, next.literal);
+    word = next;
+    remember(word.literal);
+    loop();
+    autostep && setTimeout(step, stepms)
+  } else {
+    // step backward
+    console.log("step back");
+  }
 }
 
-function mouseClicked() {
-  autostep = false;
-  step();
+function keyReleased() {
+  if (key == ' ') autostep = false;
+  if (keyCode === LEFT_ARROW) step(1);
+  if (keyCode === RIGHT_ARROW) step(-1);
 }
 
 function doubleClicked() {
   autostep = true;
   step();
 }
-
 
 function remember(o) {
   memory.push(o);

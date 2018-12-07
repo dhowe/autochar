@@ -7,27 +7,87 @@ class CharUtils {
       "," + Object.keys(wordData).length + "]");
   }
 
+  doAction(str, act) {
+    function doSub(str, idx, chr) {
+      if (idx > str.length) return str;
+      return str.substr(0, idx) + chr + str.substr(idx + 1);
+    }
+    if (act.action === 'del') {
+      return doSub(str, act.index, '');
+    } else if (act.action === 'ins') {
+      str = doSub(str, act.index, '');
+      //console.log("1: "+str);
+      return doSub(str, act.index, act.data);
+      //console.log("2: "+str);
+    } else if (act.action === 'sub') {
+      return doSub(str, act.index, act.data);
+    } else {
+      throw Error('Bad Action: ' + act.action);
+    }
+  }
+
+  pad(str, len) {
+    while (str.length < len) str += '？';
+    return str;
+  }
+
+  actions(currLit, nextLit) {
+
+    if (Math.abs(currLit.length-nextLit.length)>1) {
+      console.err('actions:',currLit,nextLit);
+      throw Error("Max allowed length diff is 1 [TODO]");
+    }
+
+    let len = Math.max(currLit.length, nextLit.length);
+    let cl = this.pad(currLit, len);
+    let nl = this.pad(nextLit, len);
+    let todo = [];
+
+    // first deletes off end?
+    /*for (let i = len - 1; i > 0; i--) {
+      //console.log(i+") ",cl[i],nl[i]);
+      if (nl[i] === '？') {
+        //console.log('push:'+i);
+        todo.push({ action: 'del', index: i });
+      }
+    }*/
+
+    for (let i = 0; i < len; i++) {
+      if (nl[i] !== cl[i]) {
+        if (cl[i] === '？')
+          todo.push({ action: 'ins', data: nl[i], index: i });
+        else if (nl[i] === '？')
+          todo.push({ action: 'del', index: i });
+        else if (nl[i] !== '？')
+          todo.push({ action: 'sub', data: nl[i], index: i });
+      }
+    }
+
+    return todo;
+  }
+
   bestEditDist(l1, words, hist) {
     words = words || Object.keys(this.wordData);
-    var meds = [], dbg = 1;
+    let meds = [],
+      dbg = 0;
 
-    for (var i = 0; i < words.length; i++) {
+    for (let i = 0; i < words.length; i++) {
       if (l1 === words[i]) continue; // no dups
-      var med = this.minEditDist(l1, words[i]);
+      let med = this.minEditDist(l1, words[i]);
       if (!meds[med]) meds[med] = [];
       if (typeof hist == 'undefined' || hist.indexOf(words[i]) < 0) {
         meds[med].push(words[i]);
       }
     }
 
-    var best = -1;
-    for (var i = meds.length-1; i >= 0; i--) {
+    let best = -1;
+    for (let i = meds.length - 1; i >= 0; i--) {
       if (meds[i] && meds[i].length) {
-        dbg&&console.log(i+")", meds[i]);
+        dbg && console.log(i + ")", meds[i]);
         best = i;
       }
     }
-    dbg&&console.log("\nbestEditDist="+best, meds[best]);
+    dbg && console.log("\nbestEditDist=" + best, meds[best]);
     //dbg&&console.log('\nbest: '+meds[best][0]+"->("+this.decomp(meds[best][0])+")");
     //dbg&&console.log('orig: '+l1+"->("+this.decomp(l1)+")\n");
     return best > 0 ? meds[best] : [];
@@ -40,9 +100,10 @@ class CharUtils {
     if (l1 === l2) return 0;
 
     let med = 0;
-    for (var i = 0; i < l1.length; i++) {
-      med += this.binEditDist(l1[i],l2[i]);
+    for (let i = 0; i < l1.length; i++) {
+      med += this.binEditDist(l1[i], l2[i]);
     }
+
     return med;
   }
 
@@ -69,9 +130,9 @@ class CharUtils {
   }
 
   decomp(literal) {
-    console.log("decomp:"+literal);
-    if (literal.length != 1 ) {
-      throw Error('Accepts single char only, got: '+literal);
+    console.log("decomp:" + literal);
+    if (literal.length != 1) {
+      throw Error('Accepts single char only, got: ' + literal);
     }
     return this.charData[literal].decomposition;
   }
