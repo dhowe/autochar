@@ -1,6 +1,60 @@
+class HistQ {
+  constructor(sz) {
+    this.q = [];
+    this.capacity = sz;
+  }
+  add(item) {
+    this.q.push(item);
+    if (this.q.length > this.capacity) {
+      this.q.shift();
+    }
+  }
+  contains(item) {
+    return this.q.indexOf(item) > -1;
+  }
+  peek() {
+    return this.q[this.q.length - 1];
+  }
+  pop() {
+    return this.q.pop();
+  }
+  unshift(item) {
+    return this.q.unshift(item);
+  }
+  popOldest() {
+    return this.q.shift();
+  }
+  isEmpty() {
+    return this.q.length < 1;
+  }
+  oldest() {
+    return this.q[0];
+  }
+  size() {
+    return this.q.length;
+  }
+  indexOf(e) {
+    return this.q.indexOf(e);
+  }
+  toString() {
+    return this.q;
+  }
+  data() {
+    return this.q;
+  }
+  at(idx) {
+    return this.q[idx];
+  }
+  clear() {
+    this.q = [];
+    return this;
+  }
+}
+
 class CharUtils {
 
   constructor(charData, wordData) {
+    this.HistQ = HistQ;
     this.charData = charData;
     this.wordData = wordData;
     console.log("cutils[" + Object.keys(charData).length +
@@ -68,18 +122,23 @@ class CharUtils {
 
   bestEditDist(l1, words, hist) {
     words = words || Object.keys(this.wordData);
-    let meds = [],
-      dbg = 0;
+    let med, meds = [], dbg = 0;
 
+    // check each word in list for edit-distance
+    // meds is an array where each index is the MED
+    // and holds a list of all words with the MED
     for (let i = 0; i < words.length; i++) {
-      if (l1 === words[i]) continue; // no dups
-      let med = this.minEditDist(l1, words[i]);
-      if (!meds[med]) meds[med] = [];
-      if (typeof hist == 'undefined' || hist.indexOf(words[i]) < 0) {
-        meds[med].push(words[i]);
+
+      // no dups and nothing in history
+      if (l1 === words[i] || (typeof hist != 'undefined' && hist.indexOf(words[i]) > -1)) {
+        continue
       }
+      med = this.minEditDist(l1, words[i]);
+      if (!meds[med]) meds[med] = [];
+      meds[med].push(words[i]);
     }
 
+    // find the best non-empty index (REDO)
     let best = -1;
     for (let i = meds.length - 1; i >= 0; i--) {
       if (meds[i] && meds[i].length) {
@@ -87,9 +146,10 @@ class CharUtils {
         best = i;
       }
     }
+
     dbg && console.log("\nbestEditDist=" + best, meds[best]);
-    //dbg&&console.log('\nbest: '+meds[best][0]+"->("+this.decomp(meds[best][0])+")");
-    //dbg&&console.log('orig: '+l1+"->("+this.decomp(l1)+")\n");
+
+    // return the best list
     return best > 0 ? meds[best] : [];
   }
 
@@ -141,7 +201,7 @@ class CharUtils {
     let chars = [];
     for (let i = 0; i < literal.length; i++) {
       if (!this.charData.hasOwnProperty(literal[i])) {
-        throw Error('randWord() fail: ' + literal[i]);
+        throw Error('getWord() fail: ' + literal[i]);
       }
       chars.push(this.charData[literal[i]]);
     }
@@ -149,7 +209,7 @@ class CharUtils {
   }
 
   def(literal) {
-    return this.wordData[literal];
+    return this.wordData.hasOwnProperty(literal) ? this.wordData[literal] : '---';
   }
 
   randWord() {

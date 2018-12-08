@@ -1,5 +1,22 @@
 let expect = require('chai').expect;
 let util = require('../cutils');
+let HistQ = util.HistQ;
+
+describe('history-q', function () {
+  it('should act like a history queue (stack)', function () {
+    let hq = new HistQ(5);
+    expect(hq.size()).to.equal(0);
+    expect(hq.isEmpty()).to.equal(true);
+    for (var i = 0; i < 5; i++) hq.add(i);
+    expect(hq.size()).to.equal(5);
+    hq.add(5);
+    expect(hq.size()).to.equal(5);
+    expect(hq.peek()).to.equal(5);
+    expect(hq.pop()).to.equal(5);
+    expect(hq.size()).to.equal(4);
+    expect(hq.isEmpty()).to.equal(false);
+  });
+});
 
 describe('cutil-tests', function () {
 
@@ -9,7 +26,6 @@ describe('cutil-tests', function () {
       expect(util.pad('a', 3)).to.equal('a？？');
       expect(util.pad('', 3)).to.equal('？？？');
       expect(util.pad('AA', 3)).to.equal('AA？');
-
       expect(util.pad('aaa', 2)).to.equal('aaa');
       expect(util.pad('a', 0)).to.equal('a');
       expect(util.pad('', 1)).to.equal('？');

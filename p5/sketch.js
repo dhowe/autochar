@@ -1,13 +1,12 @@
 // http://localhost/git/Automachar/p5/index.html
 
-// NEXT: enable back-arrow
-var util, word, charData, wordData, actions = [];
+var util, tid, memory, charData, wordData, actions = [];
 var med = 0,
+  word = 0,
+  dbeng = 0,
   steps = 0,
-  memsize = 10,
   stepms = 1000,
-  autostep = false,
-  memory = [];
+  autostep = 0;
 
 function preload() {
   charData = loadJSON('../chardata.json');
@@ -15,10 +14,8 @@ function preload() {
 }
 
 function setup() {
-  let xx = "hello";
-  xx[0] = 'j';
-  console.log("x",xx);
   util = new CharUtils(charData, wordData);
+  memory = new util.HistQ(10);
   createCanvas(1024, 512);
   textAlign(CENTER);
   textSize(20);
@@ -26,20 +23,29 @@ function setup() {
 }
 
 function draw() {
-
+  //console.log('draw');
   background(240);
-  renderWord(word);
+  if (word.characters) {
+    renderWord(word);
+  } else {
+    textSize(120);
+    text(word, width / 2, height / 2);
+    textSize(20);
+  }
   text(util.def(word.literal), width / 2, height - 10);
   text("med: " + med, width - 40, 20);
-  if (memory[memory.length - 2]) {
-    text("last: " + memory[memory.length - 2], 55, 20);
-  }
+  if (memory.size() > 1) text("last: " + memory.at(memory.size() - 2), 55, 20);
   noLoop();
 }
 
 function nextWord() {
 
-  if (typeof word === 'undefined') word = util.randWord();
+  if (dbeng) {
+    if (!word) word = dbeng + "";
+    return ++dbeng + "";
+  }
+
+  if (!word) word = util.randWord();
   let bests = util.bestEditDist(word.literal, 0, memory);
 
   if (!bests || !bests.length) {
@@ -51,39 +57,56 @@ function nextWord() {
 function step(dir) {
 
   if (dir !== -1) {
-    let next = nextWord();
 
-    console.log((++steps) + ")", next.literal); //, next.characters[0].decomposition[0]);
-    med = util.minEditDist(word.literal, next.literal);
+    let next = nextWord();
+    //console.log((++steps) + ")", dbeng ? next : next.literal, memory);
+    med = (dbeng ? -1 : util.minEditDist(word.literal, next.literal));
     word = next;
-    remember(word.literal);
-    loop();
-    autostep && setTimeout(step, stepms)
+
   } else {
+
     // step backward
-    console.log("step back");
+    var tmp = memory.pop();
+    word = dbeng ? memory.pop() : util.getWord(memory.pop());
+    if (memory.isEmpty()) {
+      memory.add(dbeng ? word : word.literal);
+      console.log("end-of-history");
+    }
   }
+
+  memory.add(dbeng ? word : word.literal);
+
+  loop();
+
+  word && console.log((++steps) + ")", dbeng ? word : word.literal, memory.q);
+
+  autostep && stepAfterDelay()
+}
+
+function stepAfterDelay() {
+  clearTimeout(tid);
+  tid = setTimeout(step, stepms);
 }
 
 function keyReleased() {
-  if (key == ' ') autostep = false;
-  if (keyCode === LEFT_ARROW) step(1);
-  if (keyCode === RIGHT_ARROW) step(-1);
-}
-
-function doubleClicked() {
-  autostep = true;
-  step();
-}
-
-function remember(o) {
-  memory.push(o);
-  if (memory.length > memsize)
-    memory.shift();
+  clearTimeout(tid);
+  if (keyCode === RIGHT_ARROW) {
+    autostep = false;
+    step(1);
+  }
+  if (keyCode === LEFT_ARROW) {
+    autostep = false;
+    step(-1);
+  }
+  if (key == ' ') {
+    autostep = !autostep;
+    if (autostep) {
+      step();
+    } else console.log(memory);
+  }
 }
 
 function renderWord(word) {
-  if (typeof word.characters === 'undefined') word = util.getWord(word);
   for (var i = 0; i < word.characters.length; i++) {
     renderPath(word.characters[i], i);
   }
