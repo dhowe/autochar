@@ -127,11 +127,11 @@ describe('cutil-tests', function () {
       // atomic actions
       tests = [
         ['拒拒', '拒'],
-        // ['拒', '拒拒'],
-        // ['拒', ''],
-        // ['', '拒'],
-        // ['拒拒', '拒三'],
-        // ['拒拒', '三拒']
+        ['拒', '拒拒'],
+        ['拒', ''],
+        ['', '拒'],
+        ['拒拒', '拒三'],
+        ['拒拒', '三拒']
       ]
       for (var i = 0; i < tests.length; i++) {
         test = tests[i];
@@ -194,6 +194,19 @@ describe('cutil-tests', function () {
         }
         expect(current).to.equal(test[1]);
       }
+    });
+  });
+
+  describe('getWord()', function () {
+    it('should return word object for literal', function () {
+      let word = util.getWord('拒');
+      expect(word.literal).to.equal('拒');
+
+      word = util.getWord("三價");
+      expect(word.literal).to.equal("三價");
+
+      word = util.getWord(" 價");
+      expect(word.literal).to.equal(" 價");
     });
   });
 

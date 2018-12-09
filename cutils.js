@@ -54,8 +54,8 @@ class CharUtils {
         }
         else if (nl[i] !== '？') {
           if (disallowSubs) {
-            todo.push({ action: 'del', index: i });
-            todo.push({ action: 'ins', data: nl[i], index: i });
+            todo.push({ action: 'sub', data: ' ', index: i });
+            todo.push({ action: 'sub', data: nl[i], index: i });
           }
           else {
             todo.push({ action: 'sub', data: nl[i], index: i });
@@ -158,10 +158,15 @@ class CharUtils {
   getWord(literal) {
     let chars = [];
     for (let i = 0; i < literal.length; i++) {
-      if (!this.charData.hasOwnProperty(literal[i])) {
-        throw Error('getWord() fail: ' + literal[i]);
+      if (literal[i] !== ' ') {
+        if (!this.charData.hasOwnProperty(literal[i])) {
+          throw Error('getWord() fail: ' + literal[i]);
+        }
+        chars.push(this.charData[literal[i]]);
       }
-      chars.push(this.charData[literal[i]]);
+      else {
+        chars.push([]);
+      }
     }
     return { literal: literal, characters: chars };
   }

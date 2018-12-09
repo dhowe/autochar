@@ -3,6 +3,7 @@
 var util, tid, memory, charData, wordData, actions = [];
 var med = 0,
   word = 0,
+  next = 0,
   dbeng = 0,
   steps = 0,
   stepms = 1000,
@@ -43,8 +44,8 @@ function nextWord() {
     return ++dbeng + "";
   }
 
-  if (!word) word = util.randWord(); // first time
-  let bests = util.bestEditDist(word.literal, 0, memory,3);
+  word = word || util.randWord(); // first time
+  let bests = util.bestEditDist(word.literal, 0, memory, 4);
 
   if (!bests || !bests.length) {
     throw Error('Died on ' + word.literal, word);
@@ -56,16 +57,23 @@ function step(dir) {
 
   if (dir !== -1) {
 
-    // if actions is empty
-    if (!actions.length) {
-      let next = nextWord();
-      actions = util.actions(word.literal, next.literal);
-      console.log('actions['+actions.length+']');
+    if (word.literal == next.literal) {
+      next = nextWord();
+      actions = util.actions(word.literal, next.literal, true);
+      var s = word.literal+' -> '+next.literal+'\n';
+      s += '  '+actions.length+' actions:\n';
+      for (var i = 0; i < actions.length; i++) {
+        s += '  '+i+') '+actions[i].action+actions[i].index+'\n';
+      }
+      console.log(s);
       med = (dbeng ? -1 : util.minEditDist(word.literal, next.literal));
+      return;
     }
+
     let action = actions.shift();
     word = util.getWord(util.doAction(word.literal, action));
-    console.log('  :', action, " -> "+word.literal);
+
+    //console.log('  :', action, " -> "+word.literal);
     //console.log((++steps) + ")", word;
     //med = (dbeng ? -1 : util.minEditDist(word.literal, next.literal));
     //word = next;
@@ -114,7 +122,8 @@ function keyReleased() {
 function renderWord(word) {
   if (word.characters) {
     for (var i = 0; i < word.characters.length; i++) {
-      renderPath(word.characters[i], i);
+      if (word.literal[i] !== ' ')
+        renderPath(word.characters[i], i);
     }
   } else {
     textSize(120);
