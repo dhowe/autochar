@@ -23,30 +23,28 @@ function setup() {
 }
 
 function draw() {
-  //console.log('draw');
+
   background(240);
-  if (word.characters) {
-    renderWord(word);
-  } else {
-    textSize(120);
-    text(word, width / 2, height / 2);
-    textSize(20);
-  }
+  renderWord(word);
   text(util.def(word.literal), width / 2, height - 10);
   text("med: " + med, width - 40, 20);
-  if (memory.size() > 1) text("last: " + memory.at(memory.size() - 2), 55, 20);
+  if (memory.size() > 1) {
+    text("last: " + memory.at(memory.size() - 2), 55, 20);
+  }
   noLoop();
 }
+
+////////////////////////////////////////////////////////////
 
 function nextWord() {
 
   if (dbeng) {
-    if (!word) word = dbeng + "";
+    word = word || dbeng + "";
     return ++dbeng + "";
   }
 
-  if (!word) word = util.randWord();
-  let bests = util.bestEditDist(word.literal, 0, memory);
+  if (!word) word = util.randWord(); // first time
+  let bests = util.bestEditDist(word.literal, 0, memory,3);
 
   if (!bests || !bests.length) {
     throw Error('Died on ' + word.literal, word);
@@ -58,10 +56,19 @@ function step(dir) {
 
   if (dir !== -1) {
 
-    let next = nextWord();
-    //console.log((++steps) + ")", dbeng ? next : next.literal, memory);
-    med = (dbeng ? -1 : util.minEditDist(word.literal, next.literal));
-    word = next;
+    // if actions is empty
+    if (!actions.length) {
+      let next = nextWord();
+      actions = util.actions(word.literal, next.literal);
+      console.log('actions['+actions.length+']');
+      med = (dbeng ? -1 : util.minEditDist(word.literal, next.literal));
+    }
+    let action = actions.shift();
+    word = util.getWord(util.doAction(word.literal, action));
+    console.log('  :', action, " -> "+word.literal);
+    //console.log((++steps) + ")", word;
+    //med = (dbeng ? -1 : util.minEditDist(word.literal, next.literal));
+    //word = next;
 
   } else {
 
@@ -70,16 +77,12 @@ function step(dir) {
     word = dbeng ? memory.pop() : util.getWord(memory.pop());
     if (memory.isEmpty()) {
       memory.add(dbeng ? word : word.literal);
-      console.log("end-of-history");
     }
   }
 
   memory.add(dbeng ? word : word.literal);
-
   loop();
-
   word && console.log((++steps) + ")", dbeng ? word : word.literal, memory.q);
-
   autostep && stepAfterDelay()
 }
 
@@ -89,7 +92,9 @@ function stepAfterDelay() {
 }
 
 function keyReleased() {
+
   clearTimeout(tid);
+
   if (keyCode === RIGHT_ARROW) {
     autostep = false;
     step(1);
@@ -102,13 +107,19 @@ function keyReleased() {
     autostep = !autostep;
     if (autostep) {
       step();
-    } else console.log(memory);
+    }
   }
 }
 
 function renderWord(word) {
-  for (var i = 0; i < word.characters.length; i++) {
-    renderPath(word.characters[i], i);
+  if (word.characters) {
+    for (var i = 0; i < word.characters.length; i++) {
+      renderPath(word.characters[i], i);
+    }
+  } else {
+    textSize(120);
+    text(word, width / 2, height / 2);
+    textSize(20);
   }
 }
 

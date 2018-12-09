@@ -21,7 +21,7 @@ describe('history-q', function () {
 describe('cutil-tests', function () {
 
   describe('pad()', function () {
-    it('should return actions needed to transform one string to another', function () {
+    it('should pad the string with ？', function () {
       expect(util.pad('aaa', 3)).to.equal('aaa');
       expect(util.pad('a', 3)).to.equal('a？？');
       expect(util.pad('', 3)).to.equal('？？？');
@@ -32,15 +32,47 @@ describe('cutil-tests', function () {
     });
   });
 
-  // describe('current-test', function () {
-  //   it('should fix current problem', function () {
-  //     acs = util.actions('三拒拒', '三');
-  //     console.log(acs);
-  //     expect(acs.length).to.equal(2); // delete two
-  //     expect(acs[0]).to.eql({ action: 'del', index: 2 });
-  //     expect(acs[1]).to.eql({ action: 'del', index: 1 });
-  //   });
-  // });
+  describe('actions(noSubs)', function () {
+    it('should return actions that transform one string to other wout subs', function () {
+      let acs, act;
+
+      expect(util.actions('拒拒', '拒拒', true)).to.eql([]); // nothing required
+
+      acs = util.actions('拒', '', true);
+      expect(acs.length).to.equal(1); // 1 delete
+      expect(acs[0]).to.eql({ action: 'del', index: 0 });
+
+      // atomic actions.....
+      acs = util.actions('拒拒', '拒', true);
+      expect(acs.length).to.equal(1); // 1 delete
+      expect(acs[0]).to.eql({ action: 'del', index: 1 });
+
+      acs = util.actions('拒', '拒拒', true);
+      expect(acs.length).to.equal(1); // 1 insert
+      expect(acs[0]).to.eql({ action: 'ins', data: '拒', index: 1 });
+
+      acs = util.actions('', '拒', true);
+      expect(acs.length).to.equal(1); // 1 insert
+      expect(acs[0]).to.eql({ action: 'ins', data: '拒', index: 0 });
+
+      acs = util.actions('拒拒', '拒三', true);
+      expect(acs.length).to.equal(2); // replace last
+      expect(acs[0]).to.eql({ action: 'del', index: 1 });
+      expect(acs[1]).to.eql({ action: 'ins', data: '三', index: 1 });
+
+      acs = util.actions('拒拒', '三拒', true);
+      expect(acs.length).to.equal(2); // replace first
+      expect(acs[0]).to.eql({ action: 'del', index: 0 });
+      expect(acs[1]).to.eql({ action: 'ins', data: '三', index: 0 });
+
+      acs = util.actions('拒拒', '三齐', true);
+      expect(acs.length).to.equal(4); // replace both
+      expect(acs[0]).to.eql({ action: 'del', index: 0 });
+      expect(acs[1]).to.eql({ action: 'ins', data: '三', index: 0 });
+      expect(acs[2]).to.eql({ action: 'del', index: 1 });
+      expect(acs[3]).to.eql({ action: 'ins', data: '齐', index: 1 });
+    });
+  });
 
   describe('actions()', function () {
     it('should return actions needed to transform one string to another', function () {
@@ -62,7 +94,6 @@ describe('cutil-tests', function () {
       expect(acs.length).to.equal(1); // 1 insert
       expect(acs[0]).to.eql({ action: 'ins', data: '拒', index: 1 });
 
-
       acs = util.actions('', '拒');
       expect(acs.length).to.equal(1); // 1 insert
       expect(acs[0]).to.eql({ action: 'ins', data: '拒', index: 0 });
@@ -81,11 +112,51 @@ describe('cutil-tests', function () {
       expect(acs[0]).to.eql({ action: 'sub', data: '三', index: 0 });
       expect(acs[1]).to.eql({ action: 'sub', data: '齐', index: 1 });
 
-      // FAILING
+      // FAILING (only handles length-diff of 1)
       // acs = util.actions('三拒拒', '三');
       // expect(acs.length).to.equal(2); // delete two
       // expect(acs[0]).to.eql({ action: 'del', index: 2 });
       // expect(acs[1]).to.eql({ action: 'del', index: 1 });
+    });
+  });
+
+  describe('doAction(noSubs)', function () {
+    it('should transform string to target wout subs', function () {
+      let test, tests, acts;
+
+      // atomic actions
+      tests = [
+        ['拒拒', '拒'],
+        // ['拒', '拒拒'],
+        // ['拒', ''],
+        // ['', '拒'],
+        // ['拒拒', '拒三'],
+        // ['拒拒', '三拒']
+      ]
+      for (var i = 0; i < tests.length; i++) {
+        test = tests[i];
+        acts = util.actions(test[0], test[1], true);
+        let current = test[0];
+        for (var j = 0; j < acts.length; j++) {
+          current = util.doAction(current, acts[j]);
+        }
+        expect(current).to.equal(test[1]);
+      }
+
+      // compound actions
+      tests = [
+        ['拒拒', '三齐'],
+        //['三拒拒', '三'], // FAILING (only handles length-diff of 1)
+      ]
+      for (var i = 0; i < tests.length; i++) {
+        test = tests[i];
+        acts = util.actions(test[0], test[1]);
+        let current = test[0];
+        for (var j = 0; j < acts.length; j++) {
+          current = util.doAction(current, acts[j])
+        }
+        expect(current).to.equal(test[1]);
+      }
     });
   });
 
@@ -107,11 +178,10 @@ describe('cutil-tests', function () {
         acts = util.actions(test[0], test[1]);
         expect(util.doAction(test[0], acts[0])).to.equal(test[1]);
       }
-
       // compound actions
       tests = [
         ['拒拒', '三齐'],
-        //['三拒拒', '三'], //FAILING
+        //['三拒拒', '三'], // FAILING (only handles length-diff of 1)
       ]
       for (var i = 0; i < tests.length; i++) {
         test = tests[i];
@@ -132,32 +202,51 @@ describe('cutil-tests', function () {
       let bet, word = util.getWord('拒');
 
       bet = util.bestEditDist(word.literal, ['拒', '捕', '價', '三', '齊', '齐']);
-      expect(bet.length).is.equal(1);
-      expect(bet[0]).is.equal('捕'); // ignore duplicate
-      expect(util.minEditDist(word.literal, bet[0])).is.equal(1);
+      expect(bet.length).to.equal(1);
+      expect(bet[0]).to.equal('捕'); // ignore duplicate
+      expect(util.minEditDist(word.literal, bet[0])).to.equal(1);
 
       bet = util.bestEditDist(word.literal, ['捕', '價', '三', '齊', '齐']);
-      expect(bet.length).is.equal(1);
-      expect(bet[0]).is.equal('捕');
-      expect(util.minEditDist(word.literal, bet[0])).is.equal(1);
+      expect(bet.length).to.equal(1);
+      expect(bet[0]).to.equal('捕');
+      expect(util.minEditDist(word.literal, bet[0])).to.equal(1);
 
       bet = util.bestEditDist(word.literal, ['價', '三', '齊', '齐']);
-      expect(bet.length).is.equal(1);
-      expect(bet[0]).is.equal('價');
-      expect(util.minEditDist(word.literal, bet[0])).is.equal(2);
+      expect(bet.length).to.equal(1);
+      expect(bet[0]).to.equal('價');
+      expect(util.minEditDist(word.literal, bet[0])).to.equal(2);
 
       bet = util.bestEditDist(word.literal, ['三', '齊', '齐']);
-      expect(bet.length).is.equal(3);
-      expect(util.minEditDist(word.literal, bet[0])).is.equal(3);
+      expect(bet.length).to.equal(3);
+      expect(util.minEditDist(word.literal, bet[0])).to.equal(3);
+
+      // with 4th parameter
+      bet = util.bestEditDist(word.literal, ['拒', '捕', '價', '三', '齊', '齐'], null, 2);
+      expect(bet.length).to.equal(1);
+      expect(bet[0]).to.equal('價'); // ignore duplicate
+      expect(util.minEditDist(word.literal, bet[0])).to.equal(2);
+
+      bet = util.bestEditDist(word.literal, ['捕', '價', '三', '齊', '齐'], null, 2);
+      expect(bet.length).to.equal(1);
+      expect(bet[0]).to.equal('價');
+      expect(util.minEditDist(word.literal, bet[0])).to.equal(2);
+
+      bet = util.bestEditDist(word.literal, ['價', '三', '齊', '齐'], null, 2);
+      expect(bet.length).to.equal(1);
+      expect(bet[0]).to.equal('價');
+      expect(util.minEditDist(word.literal, bet[0])).to.equal(2);
+
+      bet = util.bestEditDist(word.literal, ['三', '齊', '齐'], null, 4);
+      expect(bet).to.eql([]);
     });
   });
 
   describe('minEditDist()', function () {
     it('should return dist between 2 words (1 matching)', function () {
-      expect(util.minEditDist('拒拒', '拒拒')).is.equal(0); // exact
-      expect(util.minEditDist('拒拒', '拒捕')).is.equal(1); // match decomp + half
-      expect(util.minEditDist('拒拒', '拒價')).is.equal(2); // match decomp only
-      expect(util.minEditDist('拒拒', '拒三')).is.equal(3); // nothing
+      expect(util.minEditDist('拒拒', '拒拒')).to.equal(0); // exact
+      expect(util.minEditDist('拒拒', '拒捕')).to.equal(1); // match decomp + half
+      expect(util.minEditDist('拒拒', '拒價')).to.equal(2); // match decomp only
+      expect(util.minEditDist('拒拒', '拒三')).to.equal(3); // nothing
     });
 
     // FAILING (HANDLE WITH ACTIONS)
@@ -169,12 +258,12 @@ describe('cutil-tests', function () {
   describe('binEditDist()', function () {
     it('should return dist between 2 chars', function () {
       let dbg = 0;
-      expect(util.binEditDist('拒', '拒')).is.equal(0); // exact
-      expect(util.binEditDist('拒', '捕')).is.equal(1); // match decomp + half
-      expect(util.binEditDist('拒', '價')).is.equal(2); // match decomp only
-      expect(util.binEditDist('拒', '三')).is.equal(3); // nothing
+      expect(util.binEditDist('拒', '拒')).to.equal(0); // exact
+      expect(util.binEditDist('拒', '捕')).to.equal(1); // match decomp + half
+      expect(util.binEditDist('拒', '價')).to.equal(2); // match decomp only
+      expect(util.binEditDist('拒', '三')).to.equal(3); // nothing
 
-      expect(util.binEditDist('齐', '齊')).is.equal(2); // match decomp and ?
+      expect(util.binEditDist('齐', '齊')).to.equal(2); // match decomp and ?
 
       if (dbg) {
         for (var i = 0; i < 5; i++) {
