@@ -16,20 +16,21 @@ class CharUtils {
     // this.BY_STROKE = 3;
   }
 
-  doAction(str, act) {
-    function doSub(str, idx, chr) {
-      if (idx > str.length) return str;
-      return str.substr(0, idx) + chr + str.substr(idx + 1);
+  doAction(word, act) {
+    function doSub(word, idx, chr) {
+      let str = word.literal;
+      if (idx > str.length) return;
+      word.literal = str.substr(0, idx) + chr + str.substr(idx + 1);;
     }
     if (act.action === 'del') {
-      return doSub(str, act.index, '');
+      doSub(word, act.index, '');
     } else if (act.action === 'ins') {
-      str = doSub(str, act.index, '');
+      doSub(word, act.index, '');
       //console.log("1: "+str);
-      return doSub(str, act.index, act.data);
+      doSub(word, act.index, act.data);
       //console.log("2: "+str);
     } else if (act.action === 'sub') {
-      return doSub(str, act.index, act.data);
+      doSub(word, act.index, act.data);
     } else {
       throw Error('Bad Action: ' + act.action);
     }

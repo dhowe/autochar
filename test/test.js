@@ -178,6 +178,42 @@ describe('cutil-tests', function () {
 
   describe('doAction(part)', function () {
     it('should transform string to target part', function () {
+      let test, tests, acts;
+
+      // atomic actions
+      tests = [
+        ['拒拒', '拒'],
+        ['拒', '拒拒'],
+        ['拒', ''],
+        ['', '拒'],
+        ['拒拒', '拒三'],
+        ['拒拒', '三拒']
+      ]
+      for (var i = 0; i < tests.length; i++) {
+        test = tests[i];
+        acts = util.actions(test[0], test[1]);
+        word = util.getWord(test[0]);
+        for (var j = 0; j < acts.length; j++) {
+          util.doAction(word, acts[j]);
+        }
+        expect(word.literal).to.equal(test[1]);
+        expect(word.characters[0].parts).to.equal([]); // WORKING HERE
+      }
+return;
+      // compound actions
+      tests = [
+        ['拒拒', '三齐'],
+        //['三拒拒', '三'], // FAILING (only handles length-diff of 1)
+      ]
+      for (var i = 0; i < tests.length; i++) {
+        test = tests[i];
+        acts = util.actions(test[0], test[1]);
+        word = util.getWord(test[0]);
+        for (var j = 0; j < acts.length; j++) {
+          util.doAction(word, acts[j]);
+        }
+        expect(word.literal).to.equal(test[1]);
+      }
     });
   });
 
@@ -196,12 +232,12 @@ describe('cutil-tests', function () {
       ]
       for (var i = 0; i < tests.length; i++) {
         test = tests[i];
-        acts = util.actions(test[0], test[1], 'char');
-        let current = test[0];
+        acts = util.actions(test[0], test[1]);
+        word = util.getWord(test[0]);
         for (var j = 0; j < acts.length; j++) {
-          current = util.doAction(current, acts[j]);
+          util.doAction(word, acts[j]);
         }
-        expect(current).to.equal(test[1]);
+        expect(word.literal).to.equal(test[1]);
       }
 
       // compound actions
@@ -212,18 +248,18 @@ describe('cutil-tests', function () {
       for (var i = 0; i < tests.length; i++) {
         test = tests[i];
         acts = util.actions(test[0], test[1]);
-        let current = test[0];
+        word = util.getWord(test[0]);
         for (var j = 0; j < acts.length; j++) {
-          current = util.doAction(current, acts[j])
+          util.doAction(word, acts[j]);
         }
-        expect(current).to.equal(test[1]);
+        expect(word.literal).to.equal(test[1]);
       }
     });
   });
 
   describe('doAction(simple)', function () {
     it('should transform string to target', function () {
-      let test, tests, acts;
+      let test, tests, acts, word;
 
       // atomic actions
       tests = [
@@ -237,7 +273,11 @@ describe('cutil-tests', function () {
       for (var i = 0; i < tests.length; i++) {
         test = tests[i];
         acts = util.actions(test[0], test[1]);
-        expect(util.doAction(test[0], acts[0])).to.equal(test[1]);
+        word = util.getWord(test[0]);
+        for (var j = 0; j < acts.length; j++) {
+          util.doAction(word, acts[j]);
+        }
+        expect(word.literal).to.equal(test[1]);
       }
       // compound actions
       tests = [
@@ -246,14 +286,12 @@ describe('cutil-tests', function () {
       ]
       for (var i = 0; i < tests.length; i++) {
         test = tests[i];
-        acts = util.actions(test[0], test[1]);
-        var current = test[0];
-        //console.log('curr0:', current);
+        acts = util.actions(test[0], test[1], 'part');
+        word = util.getWord(test[0]);
         for (var j = 0; j < acts.length; j++) {
-          current = util.doAction(current, acts[j])
-          //console.log('curr' + j + ':', current, acts[j]);
+          util.doAction(word, acts[j]);
         }
-        expect(current).to.equal(test[1]);
+        expect(word.literal).to.equal(test[1]);
       }
     });
   });
