@@ -42,7 +42,6 @@ describe('cutil-tests', function () {
       expect(acs.length).to.equal(1); // 1 delete
       expect(acs[0]).to.eql({ action: 'del', index: 0 });
 
-      // atomic actions.....
       acs = util.actions('拒拒', '拒', true);
       expect(acs.length).to.equal(1); // 1 delete
       expect(acs[0]).to.eql({ action: 'del', index: 1 });
@@ -56,21 +55,22 @@ describe('cutil-tests', function () {
       expect(acs[0]).to.eql({ action: 'ins', data: '拒', index: 0 });
 
       acs = util.actions('拒拒', '拒三', true);
+
       expect(acs.length).to.equal(2); // replace last
-      expect(acs[0]).to.eql({ action: 'del', index: 1 });
-      expect(acs[1]).to.eql({ action: 'ins', data: '三', index: 1 });
+      expect(acs[0]).to.eql({ action: 'sub', data: ' ', index: 1 });
+      expect(acs[1]).to.eql({ action: 'sub', data: '三', index: 1 });
 
       acs = util.actions('拒拒', '三拒', true);
       expect(acs.length).to.equal(2); // replace first
-      expect(acs[0]).to.eql({ action: 'del', index: 0 });
-      expect(acs[1]).to.eql({ action: 'ins', data: '三', index: 0 });
+      expect(acs[0]).to.eql({ action: 'sub', data: ' ', index: 0 });
+      expect(acs[1]).to.eql({ action: 'sub', data: '三', index: 0 });
 
       acs = util.actions('拒拒', '三齐', true);
       expect(acs.length).to.equal(4); // replace both
-      expect(acs[0]).to.eql({ action: 'del', index: 0 });
-      expect(acs[1]).to.eql({ action: 'ins', data: '三', index: 0 });
-      expect(acs[2]).to.eql({ action: 'del', index: 1 });
-      expect(acs[3]).to.eql({ action: 'ins', data: '齐', index: 1 });
+      expect(acs[0]).to.eql({ action: 'sub', data: ' ', index: 0 });
+      expect(acs[1]).to.eql({ action: 'sub', data: '三', index: 0 });
+      expect(acs[2]).to.eql({ action: 'sub', data: ' ', index: 1 });
+      expect(acs[3]).to.eql({ action: 'sub', data: '齐', index: 1 });
     });
   });
 

@@ -32,7 +32,7 @@ class CharUtils {
     return str;
   }
 
-  actions(currLit, nextLit, disallowSubs) {
+  actions(currLit, nextLit, microOpsOnly) {
 
     if (Math.abs(currLit.length-nextLit.length)>1) {
       console.err('actions:',currLit,nextLit);
@@ -53,7 +53,7 @@ class CharUtils {
           todo.push({ action: 'del', index: i });
         }
         else if (nl[i] !== '？') {
-          if (disallowSubs) {
+          if (microOpsOnly) {
             todo.push({ action: 'sub', data: ' ', index: i });
             todo.push({ action: 'sub', data: nl[i], index: i });
           }
@@ -241,6 +241,14 @@ class HistQ {
     return this;
   }
 }
+
+CharUtils.DELETE = 1;
+CharUtils.INSERT = 2;
+CharUtils.REPLACE = 3;
+
+CharUtils.BY_CHAR = 1;
+CharUtils.BY_PART = 2;
+CharUtils.BY_STROKE = 3;
 
 if (typeof module != 'undefined') {
   let fs = require("fs");

@@ -1,5 +1,8 @@
 // http://localhost/git/Automachar/p5/index.html
 
+// NEXT: erase/replace characters part-by-part
+//       then erase/replace characters stroke-by-stroke
+//       flash/sound on word ?
 var util, tid, memory, charData, wordData, actions = [];
 var med = 0,
   word = 0,
@@ -72,11 +75,6 @@ function step(dir) {
 
     let action = actions.shift();
     word = util.getWord(util.doAction(word.literal, action));
-
-    //console.log('  :', action, " -> "+word.literal);
-    //console.log((++steps) + ")", word;
-    //med = (dbeng ? -1 : util.minEditDist(word.literal, next.literal));
-    //word = next;
 
   } else {
 
