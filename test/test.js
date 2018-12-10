@@ -32,40 +32,40 @@ describe('cutil-tests', function () {
     });
   });
 
-  describe('actions(noSubs)', function () {
+  describe('actions(char)', function () {
     it('should return actions that transform one string to other wout subs', function () {
       let acs, act;
 
-      expect(util.actions('拒拒', '拒拒', true)).to.eql([]); // nothing required
+      expect(util.actions('拒拒', '拒拒', 'BY_CHAR')).to.eql([]); // nothing required
 
-      acs = util.actions('拒', '', true);
+      acs = util.actions('拒', '', 'char');
       expect(acs.length).to.equal(1); // 1 delete
       expect(acs[0]).to.eql({ action: 'del', index: 0 });
 
-      acs = util.actions('拒拒', '拒', true);
+      acs = util.actions('拒拒', '拒', 'char');
       expect(acs.length).to.equal(1); // 1 delete
       expect(acs[0]).to.eql({ action: 'del', index: 1 });
 
-      acs = util.actions('拒', '拒拒', true);
+      acs = util.actions('拒', '拒拒', 'char');
       expect(acs.length).to.equal(1); // 1 insert
       expect(acs[0]).to.eql({ action: 'ins', data: '拒', index: 1 });
 
-      acs = util.actions('', '拒', true);
+      acs = util.actions('', '拒', 'char');
       expect(acs.length).to.equal(1); // 1 insert
       expect(acs[0]).to.eql({ action: 'ins', data: '拒', index: 0 });
 
-      acs = util.actions('拒拒', '拒三', true);
+      acs = util.actions('拒拒', '拒三', 'char');
 
       expect(acs.length).to.equal(2); // replace last
       expect(acs[0]).to.eql({ action: 'sub', data: ' ', index: 1 });
       expect(acs[1]).to.eql({ action: 'sub', data: '三', index: 1 });
 
-      acs = util.actions('拒拒', '三拒', true);
+      acs = util.actions('拒拒', '三拒', 'char');
       expect(acs.length).to.equal(2); // replace first
       expect(acs[0]).to.eql({ action: 'sub', data: ' ', index: 0 });
       expect(acs[1]).to.eql({ action: 'sub', data: '三', index: 0 });
 
-      acs = util.actions('拒拒', '三齐', true);
+      acs = util.actions('拒拒', '三齐', 'char');
       expect(acs.length).to.equal(4); // replace both
       expect(acs[0]).to.eql({ action: 'sub', data: ' ', index: 0 });
       expect(acs[1]).to.eql({ action: 'sub', data: '三', index: 0 });

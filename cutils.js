@@ -1,11 +1,19 @@
 class CharUtils {
 
   constructor(charData, wordData) {
+
     this.HistQ = HistQ;
     this.charData = charData;
     this.wordData = wordData;
     console.log("cutils[" + Object.keys(charData).length +
       "," + Object.keys(wordData).length + "]");
+
+    // this.DELETE = 1;
+    // this.INSERT = 2;
+    // this.REPLACE = 3;
+    // this.BY_CHAR = 1;
+    // this.BY_PART = 2;
+    // this.BY_STROKE = 3;
   }
 
   doAction(str, act) {
@@ -32,10 +40,10 @@ class CharUtils {
     return str;
   }
 
-  actions(currLit, nextLit, microOpsOnly) {
+  actions(currLit, nextLit, type) {
 
-    if (Math.abs(currLit.length-nextLit.length)>1) {
-      console.err('actions:',currLit,nextLit);
+    if (Math.abs(currLit.length - nextLit.length) > 1) {
+      console.err('actions:', currLit, nextLit);
       throw Error("Max allowed length diff is 1 [TODO]");
     }
 
@@ -48,16 +56,13 @@ class CharUtils {
       if (nl[i] !== cl[i]) {
         if (cl[i] === '？') {
           todo.push({ action: 'ins', data: nl[i], index: i });
-        }
-        else if (nl[i] === '？') {
+        } else if (nl[i] === '？') {
           todo.push({ action: 'del', index: i });
-        }
-        else if (nl[i] !== '？') {
-          if (microOpsOnly) {
+        } else if (nl[i] !== '？') {
+          if (type == 'char') {
             todo.push({ action: 'sub', data: ' ', index: i });
             todo.push({ action: 'sub', data: nl[i], index: i });
-          }
-          else {
+          } else {
             todo.push({ action: 'sub', data: nl[i], index: i });
           }
         }
@@ -72,7 +77,8 @@ class CharUtils {
     words = words || Object.keys(this.wordData);
     if (typeof minAllowed == 'undefined') minAllowed = 1;
 
-    let med, meds = [], dbg = 0;
+    let med, meds = [],
+      dbg = 0;
 
     // check each word in list for edit-distance
     // meds is an array where each index is the MED
@@ -83,7 +89,7 @@ class CharUtils {
       if (l1 === words[i] || (typeof hist != 'undefined' && hist && hist.contains(words[i]))) {
         continue;
       }
-      med = this.minEditDist(l1, words[i],minAllowed);
+      med = this.minEditDist(l1, words[i], minAllowed);
       if (med < minAllowed) continue;
       if (!meds[med]) meds[med] = [];
       meds[med].push(words[i]);
@@ -163,8 +169,7 @@ class CharUtils {
           throw Error('getWord() fail: ' + literal[i]);
         }
         chars.push(this.charData[literal[i]]);
-      }
-      else {
+      } else {
         chars.push([]);
       }
     }
@@ -241,14 +246,6 @@ class HistQ {
     return this;
   }
 }
-
-CharUtils.DELETE = 1;
-CharUtils.INSERT = 2;
-CharUtils.REPLACE = 3;
-
-CharUtils.BY_CHAR = 1;
-CharUtils.BY_PART = 2;
-CharUtils.BY_STROKE = 3;
 
 if (typeof module != 'undefined') {
   let fs = require("fs");

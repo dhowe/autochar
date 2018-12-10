@@ -62,7 +62,7 @@ function step(dir) {
 
     if (word.literal == next.literal) {
       next = nextWord();
-      actions = util.actions(word.literal, next.literal, true);
+      actions = util.actions(word.literal, next.literal, 'char');
       var s = word.literal+' -> '+next.literal+'\n';
       s += '  '+actions.length+' actions:\n';
       for (var i = 0; i < actions.length; i++) {
