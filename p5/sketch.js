@@ -74,7 +74,8 @@ function step(dir) {
     }
 
     let action = actions.shift();
-    word = util.getWord(util.doAction(word.literal, action));
+    //word = util.getWord(util.doAction(word.literal, action));
+    word = util.doAction(word, action);
 
   } else {
 

@@ -32,12 +32,62 @@ describe('cutil-tests', function () {
     });
   });
 
-  describe('actions(char)', function () {
-    it('should return actions that transform one string to other wout subs', function () {
+  describe('actions(stroke)', function () {
+    it('should return actions to transform string-to-string by stroke', function () {
+      let acs, act;
+    });
+  });
+
+  describe('actions(part)', function () {
+    it('should return actions to transform string-to-string by part', function () {
       let acs, act;
 
-      expect(util.actions('拒拒', '拒拒', 'BY_CHAR')).to.eql([]); // nothing required
+      expect(util.actions('拒拒', '拒拒', 'part')).to.eql([]); // nothing required
 
+      acs = util.actions('拒', '', 'part');
+      expect(acs.length).to.equal(2); // 1 delete
+      expect(acs[0]).to.eql({ action: 'del', index: 0, part: 0 });
+      expect(acs[1]).to.eql({ action: 'del', index: 0, part: 1 });
+
+      acs = util.actions('拒拒', '拒', 'part');
+      expect(acs.length).to.equal(2); // 1 delete
+      expect(acs[0]).to.eql({ action: 'del', index: 1, part: 0 });
+      expect(acs[1]).to.eql({ action: 'del', index: 1, part: 1 });
+
+      acs = util.actions('拒', '拒拒', 'part');
+      expect(acs.length).to.equal(2); // 1 insert
+      expect(acs[0]).to.eql({ action: 'ins', data: '拒', index: 1, part: 0 });
+      expect(acs[1]).to.eql({ action: 'ins', data: '拒', index: 1, part: 1 });
+
+      acs = util.actions('', '拒', 'part');
+      expect(acs.length).to.equal(2); // 1 insert
+      expect(acs[0]).to.eql({ action: 'ins', data: '拒', index: 0, part: 0 });
+      expect(acs[1]).to.eql({ action: 'ins', data: '拒', index: 0, part: 1 });
+
+      acs = util.actions('拒拒', '拒三', 'part');
+      expect(acs.length).to.equal(2); // replace last
+      expect(acs[0]).to.eql({ action: 'sub', data: '三', index: 1, part: 0 });
+      expect(acs[1]).to.eql({ action: 'sub', data: '三', index: 1, part: 1 });
+
+      acs = util.actions('拒拒', '三拒', 'part');
+      expect(acs.length).to.equal(2); // replace first
+      expect(acs[0]).to.eql({ action: 'sub', data: '三', index: 0, part: 0 });
+      expect(acs[1]).to.eql({ action: 'sub', data: '三', index: 0, part: 1 });
+
+      acs = util.actions('拒拒', '三齐', 'part');
+      expect(acs.length).to.equal(4); // replace both
+      expect(acs[0]).to.eql({ action: 'sub', data: '三', index: 0, part: 0 });
+      expect(acs[1]).to.eql({ action: 'sub', data: '三', index: 0, part: 1 });
+      expect(acs[2]).to.eql({ action: 'sub', data: '齐', index: 1, part: 0 });
+      expect(acs[3]).to.eql({ action: 'sub', data: '齐', index: 1, part: 1 });
+    });
+  });
+
+  describe('actions(char)', function () {
+    it('should return actions to transform string-to-string by char', function () {
+      let acs, act;
+
+      expect(util.actions('拒拒', '拒拒', 'char')).to.eql([]); // nothing required
       acs = util.actions('拒', '', 'char');
       expect(acs.length).to.equal(1); // 1 delete
       expect(acs[0]).to.eql({ action: 'del', index: 0 });
@@ -74,7 +124,7 @@ describe('cutil-tests', function () {
     });
   });
 
-  describe('actions()', function () {
+  describe('actions(simple)', function () {
     it('should return actions needed to transform one string to another', function () {
 
       let acs, act;
@@ -120,8 +170,19 @@ describe('cutil-tests', function () {
     });
   });
 
-  describe('doAction(noSubs)', function () {
-    it('should transform string to target wout subs', function () {
+  describe('doAction(stroke)', function () {
+    it('should transform string to target by stroke', function () {
+      let test, tests, acts;
+    });
+  });
+
+  describe('doAction(part)', function () {
+    it('should transform string to target part', function () {
+    });
+  });
+
+  describe('doAction(char)', function () {
+    it('should transform string to target by char', function () {
       let test, tests, acts;
 
       // atomic actions
@@ -135,7 +196,7 @@ describe('cutil-tests', function () {
       ]
       for (var i = 0; i < tests.length; i++) {
         test = tests[i];
-        acts = util.actions(test[0], test[1], true);
+        acts = util.actions(test[0], test[1], 'char');
         let current = test[0];
         for (var j = 0; j < acts.length; j++) {
           current = util.doAction(current, acts[j]);
@@ -160,7 +221,7 @@ describe('cutil-tests', function () {
     });
   });
 
-  describe('doAction()', function () {
+  describe('doAction(simple)', function () {
     it('should transform string to target', function () {
       let test, tests, acts;
 

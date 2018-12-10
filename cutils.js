@@ -40,7 +40,7 @@ class CharUtils {
     return str;
   }
 
-  actions(currLit, nextLit, type) {
+  actions(currLit, nextLit, mode) {
 
     if (Math.abs(currLit.length - nextLit.length) > 1) {
       console.err('actions:', currLit, nextLit);
@@ -52,6 +52,27 @@ class CharUtils {
     let nl = this.pad(nextLit, len);
     let todo = [];
 
+    if (typeof mode == 'undefined') {
+      for (let i = 0; i < len; i++) {
+        if (nl[i] !== cl[i]) {
+          if (cl[i] === '？') {
+            todo.push({ action: 'ins', data: nl[i], index: i });
+          } else if (nl[i] === '？') {
+            todo.push({ action: 'del', index: i });
+          } else if (nl[i] !== '？') {
+            todo.push({ action: 'sub', data: nl[i], index: i });
+          }
+        }
+      }
+
+    } else {
+      this['_by' + mode](cl, nl, len, todo);
+    }
+
+    return todo;
+  }
+
+  _bychar(cl, nl, len, todo) {
     for (let i = 0; i < len; i++) {
       if (nl[i] !== cl[i]) {
         if (cl[i] === '？') {
@@ -59,17 +80,42 @@ class CharUtils {
         } else if (nl[i] === '？') {
           todo.push({ action: 'del', index: i });
         } else if (nl[i] !== '？') {
-          if (type == 'char') {
-            todo.push({ action: 'sub', data: ' ', index: i });
-            todo.push({ action: 'sub', data: nl[i], index: i });
-          } else {
-            todo.push({ action: 'sub', data: nl[i], index: i });
-          }
+          todo.push({ action: 'sub', data: ' ', index: i });
+          todo.push({ action: 'sub', data: nl[i], index: i });
         }
       }
     }
+  }
 
-    return todo;
+  _bypart(cl, nl, len, todo) {
+    for (let i = 0; i < len; i++) {
+      if (nl[i] !== cl[i]) {
+        if (cl[i] === '？') {
+          todo.push({ action: 'ins', data: nl[i], index: i, part: 0});
+          todo.push({ action: 'ins', data: nl[i], index: i, part: 1});
+        } else if (nl[i] === '？') {
+          todo.push({ action: 'del', index: i , part: 0});
+          todo.push({ action: 'del', index: i, part: 1});
+        } else if (nl[i] !== '？') {
+          todo.push({ action: 'sub', data: nl[i], index: i, part: 0 });
+          todo.push({ action: 'sub', data: nl[i], index: i, part: 1});
+        }
+      }
+    }
+  }
+
+  _bystroke(cl, nl, len, todo) {
+    for (let i = 0; i < len; i++) {
+      if (nl[i] !== cl[i]) {
+        if (cl[i] === '？') {
+          todo.push({ action: 'ins', data: nl[i], index: i });
+        } else if (nl[i] === '？') {
+          todo.push({ action: 'del', index: i });
+        } else if (nl[i] !== '？') {
+          todo.push({ action: 'sub', data: nl[i], index: i });
+        }
+      }
+    }
   }
 
   bestEditDist(l1, words, hist, minAllowed) {
