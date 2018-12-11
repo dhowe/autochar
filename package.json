@@ -2,12 +2,13 @@
   "name": "automachar",
   "version": "1.0.0",
   "description": "",
-  "main": "test.js",
+  "main": "main.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
     "test": "mocha",
+    "start": "electron .",
     "debug-sketch": "mocha --inspect-brk p5/sketch.js",
     "debug-tests": "mocha --inspect-brk test/test.js"
   },
@@ -23,6 +24,7 @@
   "homepage": "https://github.com/dhowe/Automachar#readme",
   "devDependencies": {
     "chai": "^4.2.0",
+    "electron": "^3.0.11",
     "mocha": "^5.2.0"
   },
   "dependencies": {
