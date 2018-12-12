@@ -1,37 +1,66 @@
+class Word {
+
+  constructor(literal, chars) {
+    this.length = chars.length;
+    this.literal = literal;
+    this.characters = chars;
+    this.strokeIdxs = new Array(this.length);
+    this.strokeIdxs.fill(-1);
+    this.partIdxs = new Array(this.length);
+    this.partIdxs.fill(-1);
+  }
+  setPart(charIdx, partIdx) {
+    this.partIdxs[charIdx] = partIdx;
+  }
+  getPart(charIdx) {
+    return this.partIdxs[charIdx];
+  }
+  nextStroke(charIdx) {
+    this.strokeIdxs[charIdx] = (this.strokeIdxs[charIdx] + 1) % this.length;
+  }
+  reset() {
+    this.strokeIdxs.fill(0);
+    this.partIdxs.fill(-1);
+  }
+}
+
 class CharUtils {
 
   constructor(charData, wordData) {
 
-    this.HistQ = HistQ;
+    this.HistQ = HistQ; // class
+    this.Word = Word; // class
     this.charData = charData;
     this.wordData = wordData;
     console.log("cutils[" + Object.keys(charData).length +
       "," + Object.keys(wordData).length + "]");
-
-    // this.DELETE = 1;
-    // this.INSERT = 2;
-    // this.REPLACE = 3;
-    // this.BY_CHAR = 1;
-    // this.BY_PART = 2;
-    // this.BY_STROKE = 3;
   }
 
   doAction(word, act) {
-    function doSub(word, idx, chr) {
+
+    function doSub(word, idx, chr, part) {
       let str = word.literal;
       if (idx > str.length) return;
       word.literal = str.substr(0, idx) + chr + str.substr(idx + 1);;
     }
+
     if (act.action === 'del') {
-      doSub(word, act.index, '');
+
+      doSub(word, act.index, '', act.part);
+
     } else if (act.action === 'ins') {
-      doSub(word, act.index, '');
+
+      doSub(word, act.index, '', act.part);
       //console.log("1: "+str);
-      doSub(word, act.index, act.data);
+      doSub(word, act.index, act.data, act.part);
       //console.log("2: "+str);
+
     } else if (act.action === 'sub') {
-      doSub(word, act.index, act.data);
+
+      doSub(word, act.index, act.data, act.part);
+
     } else {
+
       throw Error('Bad Action: ' + act.action);
     }
   }
@@ -92,14 +121,14 @@ class CharUtils {
     for (let i = 0; i < len; i++) {
       if (nl[i] !== cl[i]) {
         if (cl[i] === '？') {
-          todo.push({ action: 'ins', data: nl[i], index: i, part: 0});
-          todo.push({ action: 'ins', data: nl[i], index: i, part: 1});
+          todo.push({ action: 'ins', data: nl[i], index: i, part: 0 });
+          todo.push({ action: 'ins', data: nl[i], index: i, part: 1 });
         } else if (nl[i] === '？') {
-          todo.push({ action: 'del', index: i , part: 0});
-          todo.push({ action: 'del', index: i, part: 1});
+          todo.push({ action: 'del', index: i, part: 0 });
+          todo.push({ action: 'del', index: i, part: 1 });
         } else if (nl[i] !== '？') {
           todo.push({ action: 'sub', data: nl[i], index: i, part: 0 });
-          todo.push({ action: 'sub', data: nl[i], index: i, part: 1});
+          todo.push({ action: 'sub', data: nl[i], index: i, part: 1 });
         }
       }
     }
@@ -220,7 +249,7 @@ class CharUtils {
         chars.push([]);
       }
     }
-    return { literal: literal, characters: chars };
+    return new Word(literal, chars);
   }
 
   def(literal) {
@@ -241,6 +270,7 @@ class CharUtils {
     return keys[keys.length * Math.random() << 0];
   }
 }
+
 class HistQ {
   constructor(sz) {
     this.q = [];

@@ -4,7 +4,7 @@ const HANZI = "chardata.json";
 var fs = require("fs");
 var entries = JSON.parse(fs.readFileSync(CCDICT, 'utf8'));
 var lookup = JSON.parse(fs.readFileSync(HANZI, 'utf8'));
-var type = 'simplified'; //'traditional'
+var type = 'traditional';//'simplified';
 var output = 'words-' + type.substring(0, 4) + '.json';
 
 //////////////////////////////////////////////////////////////////////

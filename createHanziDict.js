@@ -17,6 +17,7 @@ function parseDict(lines) {
   function addData(chars, data) {
     chars[data.character] = {
       matches: data.matches,
+      medians: data.medians,
       character: data.character,
       decomposition: data.decomposition
     };

@@ -2,6 +2,27 @@ let expect = require('chai').expect;
 let util = require('../cutils');
 let HistQ = util.HistQ;
 
+describe('word-class', function () {
+  it('should test Word class functions', function () {
+    let word = util.getWord('拒三');
+    expect(word.length).to.equal(2);
+    expect(word.literal).to.equal('拒三');
+    expect(word.characters.length).to.equal(2);
+    expect(word.strokeIdxs.length).to.equal(2);
+    expect(word.partIdxs.length).to.equal(2);
+    for (var i = 0; i < word.length; i++) {
+      expect(word.partIdxs[i]).to.equal(-1);
+      expect(word.strokeIdxs[i]).to.equal(0);
+    }
+
+    word.nextStroke(0);
+    expect(word.strokeIdxs[0]).to.equal(1);
+    word.nextStroke(0);
+    expect(word.strokeIdxs[0]).to.equal(0);
+
+  });
+});
+
 describe('history-q', function () {
   it('should act like a history queue (stack)', function () {
     let hq = new HistQ(5);
@@ -76,6 +97,7 @@ describe('cutil-tests', function () {
 
       acs = util.actions('拒拒', '三齐', 'part');
       expect(acs.length).to.equal(4); // replace both
+      // what if the decompositions are different
       expect(acs[0]).to.eql({ action: 'sub', data: '三', index: 0, part: 0 });
       expect(acs[1]).to.eql({ action: 'sub', data: '三', index: 0, part: 1 });
       expect(acs[2]).to.eql({ action: 'sub', data: '齐', index: 1, part: 0 });
@@ -191,13 +213,13 @@ describe('cutil-tests', function () {
       ]
       for (var i = 0; i < tests.length; i++) {
         test = tests[i];
-        acts = util.actions(test[0], test[1]);
         word = util.getWord(test[0]);
+        acts = util.actions(test[0], test[1]);
         for (var j = 0; j < acts.length; j++) {
           util.doAction(word, acts[j]);
         }
         expect(word.literal).to.equal(test[1]);
-        expect(word.characters[0].parts).to.equal([]); // WORKING HERE
+        expect(word.characters[0].parts).to.equal([]);
       }
 return;
       // compound actions
