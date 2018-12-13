@@ -1,17 +1,18 @@
 const CCDICT = "data/cc-cedict.json";
 const HANZI = "chardata.json";
+const TYPE = 'traditional';//'simplified';
+const INDENT = false;
 
 var fs = require("fs");
 var entries = JSON.parse(fs.readFileSync(CCDICT, 'utf8'));
 var lookup = JSON.parse(fs.readFileSync(HANZI, 'utf8'));
-var type = 'traditional';//'simplified';
-var output = 'words-' + type.substring(0, 4) + '.json';
+var output = 'words-' + TYPE.substring(0, 4) + '.json';
 
 //////////////////////////////////////////////////////////////////////
 
 var words = {};
 for (var i = 0; i < entries.length; i++) {
-  var e = entries[i][type];
+  var e = entries[i][TYPE];
 
   // is it a 2-length word with both parts in the hanzi data?
   if (e.length == 2 && doLookup(lookup, e)) {
@@ -23,7 +24,7 @@ for (var i = 0; i < entries.length; i++) {
 
 console.log("Found " + Object.keys(words).length + " words, writing...");
 
-var json = JSON.stringify(words, null, 2);
+var json =  INDENT ? JSON.stringify(words, null, 2) : JSON.stringify(words);
 fs.writeFileSync(output, json);
 
 console.log("Wrote JSON to " + output);

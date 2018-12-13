@@ -1,32 +1,33 @@
 const DICT = "data/dictionary.txt";
 const STROKES = "data/graphics.txt";
 const OUTPUT = "chardata.json";
+const INDENT = false;
+const MEDIANS = false;
 
 var fs = require("fs"), chars = {};
 parseDict(fs.readFileSync(DICT, 'utf8').split('\n'));
 parseStrokes(fs.readFileSync(STROKES, 'utf8').split('\n'));
-var json = JSON.stringify(chars, null, 2);
+var json = INDENT ? JSON.stringify(chars, null, 2) : JSON.stringify(chars);
 fs.writeFileSync(OUTPUT, json);
-console.log("Wrote JSON to "+OUTPUT);
-
+console.log("Wrote JSON to " + OUTPUT);
 
 ////////////////////////////////////////////////////////////////////////////////
 
 function parseDict(lines) {
-
   function addData(chars, data) {
     chars[data.character] = {
       matches: data.matches,
-      medians: data.medians,
       character: data.character,
       decomposition: data.decomposition
     };
   }
-  var count = 0, uniques = {};
+  var count = 0,
+    uniques = {};
 
   lines.forEach(line => {
     if (line) {
       var data = JSON.parse(line);
+
       var dcom = data.decomposition;
 
       // store unique top-level decomps
@@ -43,8 +44,8 @@ function parseDict(lines) {
     }
   });
 
-  console.log("Processed "+count+" characters");
-  console.log("Found  "+Object.keys(uniques));
+  console.log("Processed " + count + " characters");
+  console.log("Found  " + Object.keys(uniques));
 }
 
 function parseStrokes(lines, saveAsJSON) {
@@ -54,12 +55,13 @@ function parseStrokes(lines, saveAsJSON) {
     if (line) {
       var data = JSON.parse(line);
       if (chars.hasOwnProperty(data.character)) {
-          if (chars[data.character].hasOwnProperty('strokes'))
-            console.error("Dup. stroke data for: "+data.character);
-          chars[data.character].strokes = data.strokes;
-          count++;
+        if (chars[data.character].hasOwnProperty('strokes'))
+          console.error("Dup. stroke data for: " + data.character);
+        chars[data.character].strokes = data.strokes;
+        if (MEDIANS) chars[data.character].medians = data.medians;
+        count++;
       }
     }
   });
-  console.log("Processed "+count+" paths");
+  console.log("Processed " + count + " paths");
 }

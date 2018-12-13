@@ -1,5 +1,6 @@
 class Word {
 
+  // TODO: make it possible to show 2nd full-part and first stroke-by-stroke
   constructor(literal, chars) {
     this.length = chars.length;
     this.literal = literal;

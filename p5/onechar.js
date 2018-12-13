@@ -12,7 +12,7 @@ function setup() {
   console.log(word);
 }
 
-function draw() {
+function drawx() {
   background(240);
   renderWord(word, opts);
   noLoop();
