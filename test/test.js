@@ -4,22 +4,16 @@ let HistQ = util.HistQ;
 
 describe('word-class', function () {
   it('should test Word class functions', function () {
-    let word = util.getWord('拒三');
-    expect(word.length).to.equal(2);
-    expect(word.literal).to.equal('拒三');
-    expect(word.characters.length).to.equal(2);
-    expect(word.strokeIdxs.length).to.equal(2);
-    expect(word.partIdxs.length).to.equal(2);
-    for (var i = 0; i < word.length; i++) {
-      expect(word.partIdxs[i]).to.equal(-1);
-      expect(word.strokeIdxs[i]).to.equal(0);
+    let word = util.getWord('拒齐');
+    expect(word.literal).to.equal('拒齐');
+    expect(word.literal[0]).to.equal('拒');
+    expect(word.literal[1]).to.equal('齐');
+
+    for (var i = 0; i < word.characters.length; i++) {
+      expect(word.characters[i].parts.length).to.equal(2);
+      expect(word.characters[i].parts[0]).to.equal(-1);
+      expect(word.characters[i].parts[1]).to.equal(-1);
     }
-
-    word.nextStroke(0);
-    expect(word.strokeIdxs[0]).to.equal(1);
-    word.nextStroke(0);
-    expect(word.strokeIdxs[0]).to.equal(0);
-
   });
 });
 
@@ -53,13 +47,13 @@ describe('cutil-tests', function () {
     });
   });
 
-  describe('actions(stroke)', function () {
+  /*ddescribe('actions(stroke)', function () {
     it('should return actions to transform string-to-string by stroke', function () {
       let acs, act;
     });
   });
 
-  describe('actions(part)', function () {
+  escribe('actions(part)', function () {
     it('should return actions to transform string-to-string by part', function () {
       let acs, act;
 
@@ -103,7 +97,7 @@ describe('cutil-tests', function () {
       expect(acs[2]).to.eql({ action: 'sub', data: '齐', index: 1, part: 0 });
       expect(acs[3]).to.eql({ action: 'sub', data: '齐', index: 1, part: 1 });
     });
-  });
+  }); */
 
   describe('actions(char)', function () {
     it('should return actions to transform string-to-string by char', function () {
@@ -198,7 +192,7 @@ describe('cutil-tests', function () {
     });
   });
 
-  describe('doAction(part)', function () {
+  /*describe('doAction(part)', function () {
     it('should transform string to target part', function () {
       let test, tests, acts;
 
@@ -237,7 +231,7 @@ return;
         expect(word.literal).to.equal(test[1]);
       }
     });
-  });
+  });*/
 
   describe('doAction(char)', function () {
     it('should transform string to target by char', function () {

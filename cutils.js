@@ -2,26 +2,56 @@ class Word {
 
   // TODO: make it possible to show 2nd full-part and first stroke-by-stroke
   constructor(literal, chars) {
-    this.length = chars.length;
     this.literal = literal;
     this.characters = chars;
-    this.strokeIdxs = new Array(this.length);
-    this.strokeIdxs.fill(-1);
-    this.partIdxs = new Array(this.length);
-    this.partIdxs.fill(-1);
+    this.reset();
+    this.NONE = -1;
+    this.PART0 = 0;
+    this.PART1 = 1;
+    this.ALL = Number.MAX_SAFE_INTEGER;
   }
-  setPart(charIdx, partIdx) {
-    this.partIdxs[charIdx] = partIdx;
+
+  nextStroke(charIdx, partIdx) { // partIdx is 0 || 1
+    console.log('nextStroke', arguments.length);
+    if (arguments.length != 2) throw Error('bad args: '+arguments.length);
+    if (arguments[0] != 0 && arguments[0] != 1) throw Error('bad charIdx: '+arguments[0]);
+    if (arguments[1] != 0 && arguments[1] != 1) throw Error('bad partIdx: '+arguments[1]);
+    this.characters[charIdx].parts[partIdx]++;
+    console.log("parts["+partIdx+"] = "+  this.characters[charIdx].parts[partIdx]);
+
   }
-  getPart(charIdx) {
-    return this.partIdxs[charIdx];
+
+  visiblePart(charIdx, value) { // -1(none), 0(left), 1(right), max(both)
+    if (arguments.length != 2) throw Error('bad args: '+arguments.length);
+    if (arguments[0] != 0 && arguments[0] != 1) throw Error('bad charIdx: '+arguments[0]);
+
+    this.characters[charIdx].parts[0] = this.ALL;
+    this.characters[charIdx].parts[1] = this.ALL;
+    if (value == 0) { // show left-only
+      this.characters[charIdx].parts[1] = -1;
+    }
+    else if (value == 1) { // show right-only
+      this.characters[charIdx].parts[0] = -1;
+    }
+    else if (value < 0) { // show neither
+      this.characters[charIdx].parts[0] = -1;
+      this.characters[charIdx].parts[1] = -1;
+    }
+    else if (value != this.ALL) {
+      throw Error('visiblePart() got bad value: '+value);
+    }
   }
-  nextStroke(charIdx) {
-    this.strokeIdxs[charIdx] = (this.strokeIdxs[charIdx] + 1) % this.length;
-  }
+
   reset() {
-    this.strokeIdxs.fill(0);
-    this.partIdxs.fill(-1);
+    for (var i = 0; i < this.characters.length; i++) {
+      let partCount = 2;  // NOTE: can be != 2
+      if (!this.characters[i].hasOwnProperty('parts')
+        || this.characters[i].parts.length != partCount)
+      {
+        this.characters[i].parts = new Array(partCount);
+      }
+      this.characters[i].parts.fill(Number.MAX_SAFE_INTEGER);
+    }
   }
 }
 
