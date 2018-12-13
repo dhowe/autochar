@@ -4,7 +4,9 @@ const OUTPUT = "chardata.json";
 const INDENT = false;
 const MEDIANS = false;
 
-var fs = require("fs"), chars = {}, nulls = [];
+var fs = require("fs"),
+  chars = {},
+  nulls = [];
 parseDict(fs.readFileSync(DICT, 'utf8').split('\n'));
 parseStrokes(fs.readFileSync(STROKES, 'utf8').split('\n'));
 var json = INDENT ? JSON.stringify(chars, null, 2) : JSON.stringify(chars);
@@ -48,9 +50,10 @@ function parseDict(lines) {
       }
     }
   });
-
-  console.log("Processed " + Object.keys(chars).length + " characters ("+nulls.length + " bad matches)");
-  console.log("Found  " + Object.keys(uniques));
+  console.log("Found " + lines.length + " total entries");
+  console.log("Decompositions: " + Object.keys(uniques));
+  console.log("Including chars with either ⿰ or ⿱");
+  console.log("Processed " + Object.keys(chars).length + " characters (" + nulls.length + " bad matches)");
 }
 
 function parseStrokes(lines, saveAsJSON) {
