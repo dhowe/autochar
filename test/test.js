@@ -9,11 +9,41 @@ describe('word-class', function () {
     expect(word.literal[0]).to.equal('拒');
     expect(word.literal[1]).to.equal('齐');
 
+    // -1(none), 0(left), 1(right), max(both)
     for (var i = 0; i < word.characters.length; i++) {
       expect(word.characters[i].parts.length).to.equal(2);
-      expect(word.characters[i].parts[0]).to.equal(-1);
-      expect(word.characters[i].parts[1]).to.equal(-1);
+      expect(word.characters[i].parts[0]).to.equal(word.ALL);
+      expect(word.characters[i].parts[1]).to.equal(word.ALL);
     }
+
+    // char 0 -> '拒'
+    expect(word.characters[0].matches.length).to.equal(7);
+    expect(word.characters[0].strokes.length).to.equal(2);
+    expect(word.characters[0].parts.length).to.equal(2);
+    expect(word.characters[0].strokes[0].length).to.equal(3);
+    expect(word.characters[0].strokes[1].length).to.equal(4);
+
+    var strokes = word.characters[0].strokes, strokeCount = 0;
+    for (var i = 0; i < strokes.length; i++) {
+      strokeCount += strokes[i].length;
+    }
+    expect(word.characters[0].matches.length).to.equal(strokeCount);
+
+    // char 1 -> '齐'
+    expect(word.characters[1].matches.length).to.equal(6);
+    expect(word.characters[1].strokes.length).to.equal(2);
+    expect(word.characters[1].parts.length).to.equal(2);
+    expect(word.characters[1].strokes[0].length).to.equal(4);
+    expect(word.characters[1].strokes[1].length).to.equal(2);
+
+
+    strokeCount = 0;
+    strokes = word.characters[1].strokes;
+    for (var i = 0; i < strokes.length; i++) {
+      strokeCount += strokes[i].length;
+    }
+    expect(word.characters[1].matches.length).to.equal(strokeCount);
+
   });
 });
 

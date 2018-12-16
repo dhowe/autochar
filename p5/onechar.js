@@ -1,4 +1,4 @@
-let charData, wordData, util, word, opts;
+let charData, wordData, util, word;
 
 function preload() {
   charData = loadJSON('../chardata.json');
@@ -13,7 +13,7 @@ function setup() {
   //word.visiblePart(1, -1); // 0:left-only, 1:both
 
   //console.log(word);
-  setTimeout(step, 500);
+  //setTimeout(step, 500);
 }
 
 function step() {
@@ -32,7 +32,7 @@ function mouseClicked() {
 
 function draw() {
   background(240);
-  renderWord(word, opts);
+  renderWord(word);
   noLoop();
 }
 

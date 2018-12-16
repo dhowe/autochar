@@ -14,10 +14,8 @@ class Word {
       }
       this.characters[i].parts.fill(Number.MAX_SAFE_INTEGER);
     }
-    console.log(this);
-    this.computeStrokes(this.characters);
 
-    console.log(this);
+    this.computeStrokes(this.characters); // this.characters.strokes[i] = [strokes]
 
     this.NONE = -1;
     this.PART0 = 0;
@@ -32,22 +30,42 @@ class Word {
     }
   }
 
+  strokesToPaths(charIdx) {
+
+    var chr = this.characters[charIdx];
+
+    var paths = [];
+    for (var i = 0; i < chr.parts.length; i++) paths[i] = [];
+
+    for (var j = 0; j < chr.parts.length; j++) {
+      for (var i = 0; i < chr.strokes[j].length; i++) {
+        paths[j].push(new Path2D(chr.strokes[j][i]));
+      }
+    }
+    return paths;
+  }
+
   // divide strokes into character parts
   computeStrokesFor(chr) {
 
     // char has two parts
     // each part has a list of strokes
     var strokes = [];
-    for (var i = 0; i < chr.parts.length; i++) strokes[i] = [];
+    for (var i = 0; i < chr.parts.length; i++) {
+      strokes[i] = [];
+    }
 
     for (var j = 0; j < chr.matches.length; j++) {
-      if (chr.matches[j] == 0) { // part 0
+      //console.log(j, chr.matches[j][0]);
+      var strokeIdx = chr.matches[j][0];
+      if (strokeIdx === 0) { // part 0
         strokes[0].push(chr.strokes[j]);
       }
       // (handle null values by putting them in 2nd part?)
-      else { //(char.matches[j] == 1) {   // part 1
+      else if (strokeIdx === 1) {   // part 1
         strokes[1].push(chr.strokes[j]);
       }
+      else console.error("Null stroke match at ["+j+"]0");
     }
 
     return strokes;
@@ -59,7 +77,7 @@ class Word {
     if (arguments[0] != 0 && arguments[0] != 1) throw Error('bad charIdx: ' + arguments[0]);
     if (arguments[1] != 0 && arguments[1] != 1) throw Error('bad partIdx: ' + arguments[1]);
     this.characters[charIdx].parts[partIdx]++;
-    console.log("parts[" + partIdx + "] = " + this.characters[charIdx].parts[partIdx]);
+    //console.log("parts[" + partIdx + "] = " + this.characters[charIdx].parts[partIdx]);
   }
 
   charComplete(charIdx) {
@@ -311,7 +329,7 @@ class CharUtils {
   }
 
   decomp(literal) {
-    console.log("decomp:" + literal);
+    //console.log("decomp:" + literal);
     if (literal.length != 1) {
       throw Error('Accepts single char only, got: ' + literal);
     }
@@ -353,43 +371,27 @@ class CharUtils {
 
   renderPath(word, charIdx, renderer) {
 
+    //console.log('render-idx='+charIdx, word.literal[charIdx]);
+
     var pg = renderer || this._renderer;
     var char = word.characters[charIdx];
     var matches = char.matches;
     var parts = char.parts;
-    var stokes = char.stokes;
+    var strokes = char.strokes;
 
-    var strokeIdx0 = parts[0]; // left/top part
-    var strokeIdx1 = parts[1]; // right/bottom part
+    console.log('renderPath', word.literal[charIdx]+' ['+(parts[0]==9007199254740991?'all':parts[0]) +','+ (parts[1]==9007199254740991?'all':parts[1])+']');
 
-    console.log('renderPath', word.literal[charIdx], strokeIdx0, strokeIdx1);
-
-    if (strokeIdx0 < 0 && strokeIdx1 < 0) return; // nothing to draw
-
-    if (typeof char.matches === 'undefined') {
-      throw Error('No matches: ' + char.character);
-    }
+    if (parts[0] < 0 && parts[1] < 0) return; // nothing to draw
 
     // char has two parts
     // each part has a list of strokes
-    var paths = [];
-    for (var i = 0; i < parts.length; i++) paths[i] = [];
-
-    //for (var i = 0; i < parts.length; i++)
-    for (var j = 0; j < char.matches.length; j++) {
-      if (char.matches[j] == 0) { // part 0
-        paths[0].push(new Path2D(char.strokes[j]));
-      }
-      // (handle null values by putting them in 2nd part?)
-      else { //(char.matches[j] == 1) {   // part 1
-        paths[1].push(new Path2D(char.strokes[j]));
-      }
-    }
+    var paths = word.strokesToPaths(charIdx);
 
     var ctx = pg.drawingContext,
       adjust = true;
 
     ctx.fillStyle = "#000";
+
     for (var j = 0; j < paths.length; j++) {
       for (var i = 0; i < paths[j].length; i++) {
         if (adjust) {
@@ -403,8 +405,13 @@ class CharUtils {
         }*/
 
         //if (strokeIdx < 0 || i <= strokeIdx) // TEMP, FIX
-        if (parts[j] >= i)
+        if (parts[j] >= i) {
+          //console.log('path#'+j,"stroke#"+i, paths[j][i]);
           ctx.fill(paths[j][i]);
+        }
+        else {
+          console.log('skip',j,i);
+        }
 
         /*
         ctx.strokeStyle = "#777";
