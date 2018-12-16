@@ -4,50 +4,100 @@ class Word {
   constructor(literal, chars) {
     this.literal = literal;
     this.characters = chars;
-    this.reset();
+
+    //this.reset();
+    for (var i = 0; i < this.characters.length; i++) {
+      let partCount = 2; // NOTE: can be != 2
+      if (!this.characters[i].hasOwnProperty('parts') ||
+        this.characters[i].parts.length != partCount) {
+        this.characters[i].parts = new Array(partCount);
+      }
+      this.characters[i].parts.fill(Number.MAX_SAFE_INTEGER);
+    }
+    console.log(this);
+    this.computeStrokes(this.characters);
+
+    console.log(this);
+
     this.NONE = -1;
     this.PART0 = 0;
     this.PART1 = 1;
     this.ALL = Number.MAX_SAFE_INTEGER;
   }
 
+  computeStrokes() {
+    var chrs = this.characters;
+    for (var i = 0; i < chrs.length; i++) {
+      chrs[i].strokes = this.computeStrokesFor(chrs[i]);
+    }
+  }
+
+  // divide strokes into character parts
+  computeStrokesFor(chr) {
+
+    // char has two parts
+    // each part has a list of strokes
+    var strokes = [];
+    for (var i = 0; i < chr.parts.length; i++) strokes[i] = [];
+
+    for (var j = 0; j < chr.matches.length; j++) {
+      if (chr.matches[j] == 0) { // part 0
+        strokes[0].push(chr.strokes[j]);
+      }
+      // (handle null values by putting them in 2nd part?)
+      else { //(char.matches[j] == 1) {   // part 1
+        strokes[1].push(chr.strokes[j]);
+      }
+    }
+
+    return strokes;
+  }
+
   nextStroke(charIdx, partIdx) { // partIdx is 0 || 1
     console.log('nextStroke', arguments.length);
-    if (arguments.length != 2) throw Error('bad args: '+arguments.length);
-    if (arguments[0] != 0 && arguments[0] != 1) throw Error('bad charIdx: '+arguments[0]);
-    if (arguments[1] != 0 && arguments[1] != 1) throw Error('bad partIdx: '+arguments[1]);
+    if (arguments.length != 2) throw Error('bad args: ' + arguments.length);
+    if (arguments[0] != 0 && arguments[0] != 1) throw Error('bad charIdx: ' + arguments[0]);
+    if (arguments[1] != 0 && arguments[1] != 1) throw Error('bad partIdx: ' + arguments[1]);
     this.characters[charIdx].parts[partIdx]++;
-    console.log("parts["+partIdx+"] = "+  this.characters[charIdx].parts[partIdx]);
+    console.log("parts[" + partIdx + "] = " + this.characters[charIdx].parts[partIdx]);
+  }
 
+  charComplete(charIdx) {
+    //if (typeof charIdx === 'undefined') charIdx = -1;
+    // if (typeof partIdx === 'undefined') partIdx = -1;
+    // if (this.characters[charIdx].parts[0] >
+    // }
+  }
+
+  partComplete(charIdx, partIdx) {
+    //if (typeof charIdx === 'undefined') charIdx = -1;
+    // if (typeof partIdx === 'undefined') partIdx = -1;
+    // if (this.characters[charIdx].parts[partIdx] >
+    // }
   }
 
   visiblePart(charIdx, value) { // -1(none), 0(left), 1(right), max(both)
-    if (arguments.length != 2) throw Error('bad args: '+arguments.length);
-    if (arguments[0] != 0 && arguments[0] != 1) throw Error('bad charIdx: '+arguments[0]);
+    if (arguments.length != 2) throw Error('bad args: ' + arguments.length);
+    if (arguments[0] != 0 && arguments[0] != 1) throw Error('bad charIdx: ' + arguments[0]);
 
     this.characters[charIdx].parts[0] = this.ALL;
     this.characters[charIdx].parts[1] = this.ALL;
     if (value == 0) { // show left-only
       this.characters[charIdx].parts[1] = -1;
-    }
-    else if (value == 1) { // show right-only
+    } else if (value == 1) { // show right-only
       this.characters[charIdx].parts[0] = -1;
-    }
-    else if (value < 0) { // show neither
+    } else if (value < 0) { // show neither
       this.characters[charIdx].parts[0] = -1;
       this.characters[charIdx].parts[1] = -1;
-    }
-    else if (value != this.ALL) {
-      throw Error('visiblePart() got bad value: '+value);
+    } else if (value != this.ALL) {
+      throw Error('visiblePart() got bad value: ' + value);
     }
   }
 
   reset() {
     for (var i = 0; i < this.characters.length; i++) {
-      let partCount = 2;  // NOTE: can be != 2
-      if (!this.characters[i].hasOwnProperty('parts')
-        || this.characters[i].parts.length != partCount)
-      {
+      let partCount = 2; // NOTE: can be != 2
+      if (this.characters[i].parts.length != partCount) {
         this.characters[i].parts = new Array(partCount);
       }
       this.characters[i].parts.fill(Number.MAX_SAFE_INTEGER);
@@ -299,6 +349,72 @@ class CharUtils {
   randKey(o) {
     let keys = Object.keys(o);
     return keys[keys.length * Math.random() << 0];
+  }
+
+  renderPath(word, charIdx, renderer) {
+
+    var pg = renderer || this._renderer;
+    var char = word.characters[charIdx];
+    var matches = char.matches;
+    var parts = char.parts;
+    var stokes = char.stokes;
+
+    var strokeIdx0 = parts[0]; // left/top part
+    var strokeIdx1 = parts[1]; // right/bottom part
+
+    console.log('renderPath', word.literal[charIdx], strokeIdx0, strokeIdx1);
+
+    if (strokeIdx0 < 0 && strokeIdx1 < 0) return; // nothing to draw
+
+    if (typeof char.matches === 'undefined') {
+      throw Error('No matches: ' + char.character);
+    }
+
+    // char has two parts
+    // each part has a list of strokes
+    var paths = [];
+    for (var i = 0; i < parts.length; i++) paths[i] = [];
+
+    //for (var i = 0; i < parts.length; i++)
+    for (var j = 0; j < char.matches.length; j++) {
+      if (char.matches[j] == 0) { // part 0
+        paths[0].push(new Path2D(char.strokes[j]));
+      }
+      // (handle null values by putting them in 2nd part?)
+      else { //(char.matches[j] == 1) {   // part 1
+        paths[1].push(new Path2D(char.strokes[j]));
+      }
+    }
+
+    var ctx = pg.drawingContext,
+      adjust = true;
+
+    ctx.fillStyle = "#000";
+    for (var j = 0; j < paths.length; j++) {
+      for (var i = 0; i < paths[j].length; i++) {
+        if (adjust) {
+          ctx.translate(0, 512 - 70); // shift for mirror
+          if (charIdx > 0) ctx.translate(512, 0); // shift for mirror
+          ctx.scale(.5, -.5); // mirror-vertically
+        }
+
+        /* if (ctx.isPointInPath(paths[i], mouseX, mouseY)) {
+          ctx.fillStyle = "#d00";
+        }*/
+
+        //if (strokeIdx < 0 || i <= strokeIdx) // TEMP, FIX
+        if (parts[j] >= i)
+          ctx.fill(paths[j][i]);
+
+        /*
+        ctx.strokeStyle = "#777";
+        ctx.lineWidth = 6;
+        ctx.stroke(paths[i]);
+        */
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0); // reset
+      }
+    }
   }
 }
 
