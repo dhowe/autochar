@@ -18,7 +18,7 @@ for (let i = 0; i < entries.length; i++) {
   let e = entries[i][TYPE];
 
   // is it a 2-length word with both parts in the hanzi data?
-  if (e.length == MAXLEN && doLookup(lookup, e)) {
+  if (e.length <= MAXLEN && doLookup(lookup, e)) {
     if (entries[i].hasOwnProperty('definitions')) {
       words[e] = entries[i].definitions[0];
     }
