@@ -14,18 +14,26 @@ let lookup = JSON.parse(fs.readFileSync(HANZI, 'utf8'));
 let output = 'words-' + TYPE.substring(0, 4);
 
 let words = {};
+let doubles = 0;
 for (let i = 0; i < entries.length; i++) {
   let e = entries[i][TYPE];
 
   // is it a 2-length word with both parts in the hanzi data?
   if (e.length <= MAXLEN && doLookup(lookup, e)) {
+
+    // skip two-word chars with both chars the same
+    if (e.length == 2 && e[0] == e[1]) {
+      doubles++;
+      continue;
+    }
+
     if (entries[i].hasOwnProperty('definitions')) {
       words[e] = entries[i].definitions[0];
     }
   }
 }
 
-console.log("Found " + Object.keys(words).length + " words, writing...");
+console.log("Found " + Object.keys(words).length + " words ("+doubles+" bad doubles)");
 
 let json = indent ? JSON.stringify(words, null, 2) : JSON.stringify(words);
 if (MAXLEN != 2) output += MAXLEN;
@@ -33,6 +41,7 @@ output += (indent ? "-hr" : "") + ".json";
 fs.writeFileSync(output, json);
 
 console.log("Wrote JSON to " + output);
+
 
 //////////////////////////////////////////////////////////////////////
 

@@ -6,20 +6,37 @@
 class Word {
 
   constructor(literal, chars) {
+
+    //console.log('new Word('+literal+')', chars);
+    // for (var i = 0; i < chars.length; i++) {
+    //   console.log(typeof chars[i]);
+    // }
+
     this.literal = literal;
     this.characters = chars;
     this.length = literal.length;
 
     for (var i = 0; i < this.characters.length; i++) {
-      let partCount = 2; // NOTE: can be != 2
-      if (!this.characters[i].hasOwnProperty('parts') ||
-        this.characters[i].parts.length != partCount) {
-        this.characters[i].parts = new Array(partCount);
-      }
-      this.characters[i].parts.fill(Number.MAX_SAFE_INTEGER);
+      this.characters[i].parts = [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER];
     }
 
+    //console.log(this.characters[0].cstrokes);
+
+    // for (var i = 0; i < this.characters.length; i++) {
+    //   let partCount = 2; // NOTE: can be != 2
+    //   if (!this.characters[i].hasOwnProperty('parts') ||
+    //     this.characters[i].parts.length != partCount) {
+    //     this.characters[i].parts = new Array(partCount);
+    //   }
+    //   this.characters[i].parts.fill(Number.MAX_SAFE_INTEGER);
+    // }
+    //
     this.computeStrokes(this.characters);
+
+    //
+    // console.log(this.characters[0].cstrokes.length);
+    // console.log(this.characters[0].cstrokes[0].length);
+    // console.log(this.characters[0].cstrokes[1].length);
   }
 
   toEditStr() {
@@ -35,23 +52,8 @@ class Word {
   computeStrokes() {
     var chrs = this.characters;
     for (var i = 0; i < chrs.length; i++) {
-      chrs[i].strokes = this.computeStrokesFor(chrs[i]);
+      chrs[i].cstrokes = this.computeStrokesFor(chrs[i]);
     }
-  }
-
-  strokesToPaths(charIdx) {
-
-    var chr = this.characters[charIdx];
-
-    var paths = [];
-    for (var i = 0; i < chr.parts.length; i++) paths[i] = [];
-
-    for (var j = 0; j < chr.parts.length; j++) {
-      for (var i = 0; i < chr.strokes[j].length; i++) {
-        paths[j].push(new Path2D(chr.strokes[j][i]));
-      }
-    }
-    return paths;
   }
 
   // divide strokes into character parts
@@ -73,10 +75,26 @@ class Word {
       // (handle null values by putting them in 2nd part?)
       else if (strokeIdx === 1) { // part 1
         strokes[1].push(chr.strokes[j]);
-      } else console.error("Null stroke match at [" + j + "]0");
+      }
+      else console.error("Null stroke match at [" + j + "]0");
     }
 
     return strokes;
+  }
+
+  strokesToPaths(charIdx) {
+
+    var chr = this.characters[charIdx];
+
+    var paths = [];
+    for (var i = 0; i < chr.parts.length; i++) paths[i] = [];
+
+    for (var j = 0; j < chr.parts.length; j++) {
+      for (var i = 0; i < chr.cstrokes[j].length; i++) {
+        paths[j].push(new Path2D(chr.cstrokes[j][i]));
+      }
+    }
+    return paths;
   }
 
   eraseStroke(charIdx, partIdx) { // returns true if changed
@@ -92,11 +110,11 @@ class Word {
       throw Error('bad partIdx: ' + partIdx);
     }
 
-    chr.parts[partIdx] = min(chr.parts[partIdx], chr.strokes[partIdx].length - 1);
+    chr.parts[partIdx] = min(chr.parts[partIdx], chr.cstrokes[partIdx].length - 1);
 
     if (--chr.parts[partIdx] >= -1) {
       //console.log("eraseStroke:char[" + charIdx + "][" + partIdx + "] = " +
-        //(chr.parts[partIdx]) + "/" + (chr.strokes[partIdx].length)); // keep
+        //(chr.parts[partIdx]) + "/" + (chr.cstrokes[partIdx].length)); // keep
       return true;
     }
     return false;
@@ -115,10 +133,10 @@ class Word {
     var chr = this.characters[charIdx];
 
     //console.log("char["+ charIdx+"]["+partIdx+"] = " +
-      //(chr.parts[partIdx]+1)+"/"+(chr.strokes[partIdx].length)); // keep
+      //(chr.parts[partIdx]+1)+"/"+(chr.cstrokes[partIdx].length)); // keep
 
     return (++this.characters[charIdx].parts[partIdx] <
-      this.characters[charIdx].strokes[partIdx].length);
+      this.characters[charIdx].cstrokes[partIdx].length);
   }
 
   isVisible() { // true if word is fully drawn
@@ -159,15 +177,15 @@ class Word {
     if (typeof charIdx === 'undefined') throw Error('no charIdx');
     if (typeof partIdx === 'undefined') throw Error('no partIdx');
     var chr = this.characters[charIdx];
-    //console.log('check '+chr.parts[partIdx]+ " >=? "+(chr.strokes[partIdx].length-1));
-    return (chr.parts[partIdx] >= chr.strokes[partIdx].length - 1);
+    //console.log('check '+chr.parts[partIdx]+ " >=? "+(chr.cstrokes[partIdx].length-1));
+    return (chr.parts[partIdx] >= chr.cstrokes[partIdx].length - 1);
   }
 
   isPartHidden(charIdx, partIdx) { // true if part is fully drawn
     if (typeof charIdx === 'undefined') throw Error('no charIdx');
     if (typeof partIdx === 'undefined') throw Error('no partIdx');
     var chr = this.characters[charIdx];
-    //console.log('check '+chr.parts[partIdx]+ " >=? "+(chr.strokes[partIdx].length-1));
+    //console.log('check '+chr.parts[partIdx]+ " >=? "+(chr.cstrokes[partIdx].length-1));
     return (chr.parts[partIdx] < 0);
   }
 
@@ -606,11 +624,11 @@ class CharUtils {
     var char = word.characters[charIdx];
     var matches = char.matches;
     var parts = char.parts;
-    var strokes = char.strokes;
+    var cstrokes = char.cstrokes;
 
     if (parts[0] < 0 && parts[1] < 0) return; // nothing to draw
 
-    // char has two parts, each with a list of strokes
+    // char has two parts, each with a list of cstrokes
     var paths = word.strokesToPaths(charIdx);
     var ctx = pg.drawingContext;
     var adjust = true;
@@ -631,7 +649,7 @@ class CharUtils {
 
         //if (strokeIdx < 0 || i <= strokeIdx) // TEMP, FIX
         if (parts[j] >= i) {
-          //console.log('path#'+j,"stroke#"+i+"/"+strokes[j].length, paths[j][i]);
+          //console.log('path#'+j,"stroke#"+i+"/"+cstrokes[j].length, paths[j][i]);
           ctx.fill(paths[j][i]);
         } // else console.log('skip', j, i);
 
