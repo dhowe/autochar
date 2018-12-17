@@ -23,6 +23,7 @@ describe('Word', function () {
     expect(word.characters[0].strokes.length).to.equal(2);
     expect(word.characters[0].parts.length).to.equal(2);
     expect(word.characters[0].strokes[0].length).to.equal(3);
+    267
     expect(word.characters[0].strokes[1].length).to.equal(4);
 
     let strokeCount = 0;
@@ -181,7 +182,6 @@ describe('Word', function () {
   });
 });
 
-
 describe('HistQ', function () {
   it('should act like a history queue (stack)', function () {
     let hq = new HistQ(5);
@@ -198,9 +198,7 @@ describe('HistQ', function () {
   });
 });
 
-describe('CharUtils', function () {
-  it('should provide utility functions for characters', function () {
-
+describe('CharUtils: utility functions for characters', function () {
   describe('rawEditDistance', function () {
     it('should do the right thing', function () {
 
@@ -253,11 +251,68 @@ describe('CharUtils', function () {
 
       expect(util.minEditDistance('拒拒', '拒三')).to.equal(3); // one different (non-matching decomp) -> 3
 
-      // these should go up by something (penalty for char switch)
-      // adding cost param to raise them each by one
+      // added cost param to raise them each by one
       expect(util.minEditDistance('拒拒', '三三')).to.equal(7); // both different(0 matched decomps) -> 6
-      expect(util.minEditDistance('拒拒', '捕三')).to.equal(5); // both different(1 matched decomp) -> 5
-      expect(util.minEditDistance('拒拒', '捕價')).to.equal(4); // both different(2 matched decomp) ->  4
+      expect(util.minEditDistance('拒拒', '捕三')).to.equal(5); // both different(1 matched decomp)  -> 5
+      expect(util.minEditDistance('拒拒', '捕價')).to.equal(4); // both different(2 matched decomp)  -> 4
+    });
+  });
+
+  describe('bestEditDistance(2)', function () {
+    it('should return set of minimum MEDs for a 2-char word', function () {
+      let test = '拒價';
+      let bets = util.bestEditDistance(test);
+      for (var i = 0; i < bets.length; i++) {
+        expect(util.minEditDistance(test, bets[i])).to.equal(1);
+        // console.log(i+"[0]",'vs', bets[i][0], util.minEditDistance(test[0], bets[i][0]));
+        // console.log(i+"[1]",'vs', bets[i][1], util.minEditDistance(test[1], bets[i][1]));
+        //break;
+      }
+    });
+  });
+
+  describe('bestEditDistance(1)', function () {
+    it('should return set of minimum MEDs for a single char', function () {
+
+      let bet, word = util.getWord('拒');
+
+      bet = util.bestEditDistance(word.literal, ['拒', '捕', '價', '三', '齐']);
+      expect(bet.length).to.equal(1);
+      expect(bet[0]).to.equal('捕'); // ignore duplicate
+      expect(util.minEditDistance(word.literal, bet[0])).to.equal(1);
+
+      bet = util.bestEditDistance(word.literal, ['捕', '價', '三', '齐']);
+      expect(bet.length).to.equal(1);
+      expect(bet[0]).to.equal('捕');
+      expect(util.minEditDistance(word.literal, bet[0])).to.equal(1);
+
+      bet = util.bestEditDistance(word.literal, ['價', '三', '齐']);
+      expect(bet.length).to.equal(1);
+      expect(bet[0]).to.equal('價');
+      expect(util.minEditDistance(word.literal, bet[0])).to.equal(2);
+
+      bet = util.bestEditDist(word.literal, ['三', '齐']);
+      expect(bet.length).to.equal(2);
+      expect(util.minEditDistance(word.literal, bet[0])).to.equal(3);
+
+      // with 4th parameter
+      bet = util.bestEditDistance(word.literal, ['拒', '捕', '價', '三', '齐'], null, 2);
+      expect(bet.length).to.equal(1);
+      expect(bet[0]).to.equal('價'); // ignore duplicate
+      expect(util.minEditDistance(word.literal, bet[0])).to.equal(2);
+
+      bet = util.bestEditDistance(word.literal, ['捕', '價', '三', '齐'], null, 2);
+      expect(bet.length).to.equal(1);
+      expect(bet[0]).to.equal('價');
+      expect(util.minEditDistance(word.literal, bet[0])).to.equal(2);
+
+      bet = util.bestEditDistance(word.literal, ['價', '三', '齐'], null, 2);
+      expect(bet.length).to.equal(1);
+      expect(bet[0]).to.equal('價');
+      expect(util.minEditDistance(word.literal, bet[0])).to.equal(2);
+
+      bet = util.bestEditDistance(word.literal, ['三', '齐'], null, 4);
+      expect(bet).to.eql([]);
     });
   });
 
@@ -533,11 +588,7 @@ describe('CharUtils', function () {
     });
   });
 
-  describe('bestEditDist()', function () {
-    it('should return set of minimum MEDs for a word', function () {});
-  });
-
-  describe('bestEditDistOld()', function () {
+  /*describe('bestEditDistOld()', function () {
     it('should return set of minimum MEDs for a word', function () {
 
       let bet, word = util.getWord('拒');
@@ -580,9 +631,9 @@ describe('CharUtils', function () {
       bet = util.bestEditDist(word.literal, ['三', '齐'], null, 4);
       expect(bet).to.eql([]);
     });
-  });
+  });*/
 
-  describe('minEditDist()', function () {
+  describe('minEditDistOld()', function () {
     it('should return dist between 2 words (1 matching)', function () {
       expect(util.minEditDist('拒拒', '拒拒')).to.equal(0); // exact
       expect(util.minEditDist('拒拒', '拒捕')).to.equal(1); // match decomp + half
@@ -596,7 +647,7 @@ describe('CharUtils', function () {
     // });
   });
 
-  describe('binEditDist()', function () {
+  describe('binEditDistOld()', function () {
     it('should return dist between 2 chars', function () {
 
       let dbg = 0;
@@ -619,6 +670,5 @@ describe('CharUtils', function () {
         }
       }
     });
-  });
   });
 });

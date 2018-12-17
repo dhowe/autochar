@@ -1,4 +1,7 @@
 let charData, wordData, util, word, charIdx, partIdx;
+let autostep = 1;
+let tid = 0;
+let dir = 1; // 0 = pause
 
 function preload() {
   charData = loadJSON('../chardata.json');
@@ -10,19 +13,47 @@ function setup() {
   textSize(24);
   util = new CharUtils(charData, wordData);
   word = util.randWord(2);
-  console.log(word.literal);
-  word.show();
-  unstep();
+  //word = util.getWord("璨");
+  step();
 }
 
-function mouseClicked() {
-  if (typeof charIdx === 'undefined') charIdx = 1
-  if (typeof partIdx === 'undefined') partIdx = 1;
-  word.eraseStroke(charIdx, partIdx);
-  unstep();
+function keyReleased() {
+
+  clearTimeout(tid);
+
+  if (keyCode === RIGHT_ARROW) {
+    autostep = false;
+    dir = 1;
+    step();
+  }
+  if (keyCode === LEFT_ARROW) {
+    autostep = false;
+    dir = -1;
+    step();
+  }
+  if (key == ' ') {
+    autostep = !autostep;
+    autostep && step();
+  }
 }
 
 function step() {
+
+  if (dir == 1) {
+    if (typeof charIdx === 'undefined') charIdx = 0
+    if (typeof partIdx === 'undefined') partIdx = -1;
+    word.nextStroke(charIdx, partIdx);
+    forward();
+  } else if (dir == -1) {
+    if (typeof charIdx === 'undefined') charIdx = 1
+    if (typeof partIdx === 'undefined') partIdx = 1;
+    word.eraseStroke(charIdx, partIdx);
+    backward();
+  }
+}
+
+function forward() {
+
   if (typeof charIdx === 'undefined') charIdx = 0
   if (typeof partIdx === 'undefined') partIdx = -1;
 
@@ -33,33 +64,31 @@ function step() {
       var dirty = word.nextStroke(charIdx, partIdx);
       if (dirty) {
         loop();
-        setTimeout(step, 100);
-      }
-      else {
-        if (partIdx < word.characters[charIdx].parts.length-1) {
+        if (autostep) tid = setTimeout(forward, 100);
+      } else {
+        if (partIdx < word.characters[charIdx].parts.length - 1) {
           partIdx++;
-          step();
+          forward();
         }
       }
-    }
-    else {
-      if (charIdx < word.characters.length-1) {
+    } else {
+      if (charIdx < word.characters.length - 1) {
         partIdx = -1;
         charIdx++;
-        step();
+        forward();
       }
     }
-  }
-  else {
+  } else {
     word = util.randWord(2);
+    console.log(word.literal);
     word.hide();
     partIdx = -1;
     charIdx = 0;
-    step();
+    if (autostep) tid = setTimeout(forward, 1000);
   }
 }
 
-function unstep() {
+function backward() {
 
   if (typeof charIdx === 'undefined') charIdx = 1;
   if (typeof partIdx === 'undefined') partIdx = 1;
@@ -71,29 +100,27 @@ function unstep() {
       var dirty = word.eraseStroke(charIdx, partIdx);
       if (dirty) {
         loop();
-        setTimeout(unstep, 200);
-      }
-      else {
+        if (autostep) tid = setTimeout(backward, 200);
+      } else {
         if (partIdx > 0) {
           partIdx--;
-          unstep();
+          backward();
         }
       }
-    }
-    else {
+    } else {
       if (charIdx > 0) {
         partIdx = 1;
         charIdx--;
-        unstep();
+        backward();
       }
     }
-  }
-  else {
+  } else {
     word = util.randWord(2);
+    console.log(word.literal);
     word.show();
     partIdx = 1;
     charIdx = 1;
-    unstep();
+    backward();
   }
 }
 
@@ -101,15 +128,16 @@ function draw() {
   background(240);
   renderWord(word);
   textAlign(CENTER);
-  text(word.definition(), width / 2, height - 10);
+  text(util.definition(word.literal), width / 2, height - 10);
   textAlign(LEFT);
-  text(word.definition(0), 20, 20);
+  text(util.definition(word.literal[0]), 20, 20);
   textAlign(RIGHT);
-  text(word.definition(1), width - 20, 20);
+  text(util.definition(word.literal[1]), width - 20, 20);
   noLoop();
 }
 
 function renderWord(word) {
+  //console.log('renderWord', word);
   if (word.characters) {
     for (var i = 0; i < word.characters.length; i++) {
       //if (i != 1) continue;

@@ -32,13 +32,6 @@ class Word {
     return es;
   }
 
-  // definition(charIdx) {
-  //   if (typeof charIdx === 'undefined' || charIdx < 0) {
-  //     return definition(this.literal);
-  //   }
-  //   return definition(this.literal[charIdx]);
-  // }
-
   computeStrokes() {
     var chrs = this.characters;
     for (var i = 0; i < chrs.length; i++) {
@@ -92,17 +85,18 @@ class Word {
     if (typeof partIdx === 'undefined') throw Error('no partIdx');
 
     var chr = this.characters[charIdx];
-    partIdx = Math.min(partIdx, chr.parts.length - 1);
+    partIdx = this.constrain(partIdx, 0, chr.parts.length - 1);
+    //Math.min(partIdx, chr.parts.length - 1);
+
     if (partIdx < 0 || partIdx >= chr.parts.length) {
       throw Error('bad partIdx: ' + partIdx);
     }
-    console.log(charIdx + "/" + partIdx);
 
     chr.parts[partIdx] = min(chr.parts[partIdx], chr.strokes[partIdx].length - 1);
 
     if (--chr.parts[partIdx] >= -1) {
-      console.log("eraseStroke3:char[" + charIdx + "][" + partIdx + "] = " +
-        (chr.parts[partIdx]) + "/" + (chr.strokes[partIdx].length)); // keep
+      //console.log("eraseStroke:char[" + charIdx + "][" + partIdx + "] = " +
+        //(chr.parts[partIdx]) + "/" + (chr.strokes[partIdx].length)); // keep
       return true;
     }
     return false;
@@ -118,8 +112,10 @@ class Word {
     charIdx = Math.max(charIdx, 0); // if -1, show first char
     partIdx = Math.max(partIdx, 0); // if -1, show first part
 
+    var chr = this.characters[charIdx];
+
     //console.log("char["+ charIdx+"]["+partIdx+"] = " +
-    //(chr.parts[partIdx]+1)+"/"+(chr.strokes[partIdx].length)); // keep
+      //(chr.parts[partIdx]+1)+"/"+(chr.strokes[partIdx].length)); // keep
 
     return (++this.characters[charIdx].parts[partIdx] <
       this.characters[charIdx].strokes[partIdx].length);
@@ -192,11 +188,14 @@ class Word {
   }
 
   hide(charIdx, partIdx) {
+
     if (typeof charIdx === 'undefined') {
-      this.setVisible(0, -1); // hide both chars
-      this.setVisible(1, -1);
+      for (var i = 0; i < this.characters.length; i++) {
+        this.setVisible(i, -1); // hide all chars
+      }
+
     } else {
-      var chr = this.characters[charIdx];
+
       if (!chr) throw Error('hide: no charIdx for: ' + charIdx);
       if (typeof partIdx === 'undefined') {
         this.setVisible(charIdx, -1); // hide one char
@@ -209,22 +208,22 @@ class Word {
   setVisible(charIdx, value) { // -1(none), 0(left), 1(right), max(both)
 
     if (arguments.length != 2) throw Error('bad args: ' + arguments.length);
-    if (arguments[0] != 0 && arguments[0] != 1) throw Error('bad charIdx: ' + arguments[0]);
+
+    if (typeof charIdx === 'undefined') throw Error('no charIdx');
 
     var ALL = Number.MAX_SAFE_INTEGER;
 
     var chr = this.characters[charIdx];
-
-    chr.parts[0] = ALL;
-    chr.parts[1] = ALL;
+    //console.log('setVisible', charIdx, value);
+    for (var i = 0; i < chr.parts.length; i++) chr.parts[i] = ALL;
 
     if (value == 0) { // show left-only
-      chr.parts[1] = -1;
+      if (chr.parts.length > 0) chr.parts[1] = -1;
 
     } else if (value == 1) { // show right-only
       chr.parts[0] = -1;
 
-    } else if (value < 0) { // show neither
+    } else if (value < 0) { // show none
       chr.parts[0] = -1;
       chr.parts[1] = -1;
 
@@ -368,22 +367,41 @@ class CharUtils {
     }
   }
 
-  // bestEditDistance(literal, words, hist, minAllowed) {
-  //   words = words || Object.keys(this.wordData);
-  //   if (typeof minAllowed == 'undefined') minAllowed = 1;
-  //
-  //   let med, meds = [];
-  //   let dbg = 0;
-  //
-  //   for (let i = 0; i < words.length; i++) {
-  //
-  //     // no dups and nothing in history, maintain length
-  //     if (literal === words[i] || words[i].length != literal.length ||
-  //       (typeof hist != 'undefined' && hist && hist.contains(words[i]))) {
-  //       continue;
-  //     }
-  //   }
-  // };
+  bestEditDistance(literal, words, hist, minAllowed) { // todo: only store bestSoFar
+
+    words = words || Object.keys(this.wordData);
+    if (typeof minAllowed == 'undefined') minAllowed = 1;
+
+    //console.log('bestEditDistance: '+literal);
+
+    let med, meds = [];
+    let dbg = 0;
+
+    for (let i = 0; i < words.length; i++) {
+
+      // no dups and nothing in history, maintain length
+      if (literal === words[i] || words[i].length != literal.length ||
+        (typeof hist != 'undefined' && hist && hist.contains(words[i]))) {
+        continue;
+      }
+
+      //console.log(i, words[i], literal.length, words[i].length, literal.length == words[i].length);
+      med = this.minEditDistance(literal, words[i]);
+
+//      if (med < minAllowed) continue;
+
+      if (!meds[med]) meds[med] = [];
+
+      meds[med].push(words[i]);
+    }
+
+    // return the best list
+    for (var i = minAllowed; i < meds.length; i++) {
+      if (meds[i] && meds[i].length) return meds[i];
+    }
+
+    return []; // or nothing
+  };
 
   bestEditDist(literal, words, hist, minAllowed) {
 
@@ -406,14 +424,14 @@ class CharUtils {
       //console.log(i, words[i], literal.length, words[i].length, literal.length == words[i].length);
       med = this.minEditDist(literal, words[i], minAllowed);
 
-      if (med < minAllowed) continue;
+      //if (med < minAllowed) continue;
 
       if (!meds[med]) meds[med] = [];
 
       meds[med].push(words[i]);
     }
 
-    // return the best list
+    //return the best list
     for (var i = minAllowed; i < meds.length; i++) {
       if (meds[i] && meds[i].length) return meds[i];
     }
@@ -421,8 +439,7 @@ class CharUtils {
     return []; // or nothing
   }
 
-  // 
-  minEditDistance(l1, l2, words) {
+  minEditDistance(l1, l2) {
     var cost = Math.max(0, this.rawEditDistance(l1, l2) - 1);
     let e1 = this.getWord(l1).toEditStr();
     let e2 = this.getWord(l2).toEditStr();

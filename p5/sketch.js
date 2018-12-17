@@ -40,26 +40,42 @@ function draw() {
 
 ////////////////////////////////////////////////////////////
 
+function nextWord() {
+
+  if (dbeng) {
+    word = word || dbeng + "";
+    return ++dbeng + "";
+  }
+
+  word = word || util.randWord(2); // first time
+  let bests = util.bestEditDistance(word.literal, 0, memory, 4);
+
+  if (!bests || !bests.length) {
+    throw Error('Died on ' + word.literal, word);
+  }
+  return util.getWord(bests[random(bests.length) << 0]);
+}
+
 function step(dir) {
 
   if (dir !== -1) {
 
     if (word.literal == next.literal) {
       next = nextWord();
-      actions = util.actions(word.literal, next.literal, 'char');
+      //actions = util.actions(word.literal, next.literal, 'char');
       var s = word.literal+' -> '+next.literal+'\n';
-      s += '  '+actions.length+' actions:\n';
-      for (var i = 0; i < actions.length; i++) {
-        s += '  '+i+') '+actions[i].action+actions[i].index+'\n';
-      }
-      console.log(s);
-      med = (dbeng ? -1 : util.minEditDist(word.literal, next.literal));
+      // s += '  '+actions.length+' actions:\n';
+      // for (var i = 0; i < actions.length; i++) {
+      //   s += '  '+i+') '+actions[i].action+actions[i].index+'\n';
+      // }
+      console.log(word, next);
+      med = (dbeng ? -1 : util.minEditDistance(word.literal, next.literal));
       return;
     }
 
-    let action = actions.shift();
+    //let action = actions.shift();
     //word = util.getWord(util.doAction(word.literal, action));
-    word = util.doAction(word, action);
+    //word = util.doAction(word, action);
 
   } else {
 
@@ -75,22 +91,6 @@ function step(dir) {
   loop();
   word && console.log((++steps) + ")", dbeng ? word : word.literal, memory.q);
   autostep && stepAfterDelay()
-}
-
-function nextWord() {
-
-  if (dbeng) {
-    word = word || dbeng + "";
-    return ++dbeng + "";
-  }
-
-  word = word || util.randWord(2); // first time
-  let bests = util.bestEditDist(word.literal, 0, memory, 4);
-
-  if (!bests || !bests.length) {
-    throw Error('Died on ' + word.literal, word);
-  }
-  return util.getWord(bests[random(bests.length) << 0]);
 }
 
 function stepAfterDelay() {
