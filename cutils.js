@@ -22,12 +22,22 @@ class Word {
     this.computeStrokes(this.characters);
   }
 
-  definition(charIdx) {
-    if (typeof charIdx === 'undefined' || charIdx < 0) {
-      return util.definition(this.literal);
+  toEditStr() {
+    var es = '';
+    var chrs = this.characters;
+    for (var i = 0; i < chrs.length; i++) {
+      es += chrs[i].decomposition;
+      if (i < chrs.length - 1) es += ' ';
     }
-    return util.definition(this.literal[charIdx]);
+    return es;
   }
+
+  // definition(charIdx) {
+  //   if (typeof charIdx === 'undefined' || charIdx < 0) {
+  //     return definition(this.literal);
+  //   }
+  //   return definition(this.literal[charIdx]);
+  // }
 
   computeStrokes() {
     var chrs = this.characters;
@@ -86,7 +96,7 @@ class Word {
     if (partIdx < 0 || partIdx >= chr.parts.length) {
       throw Error('bad partIdx: ' + partIdx);
     }
-    console.log(charIdx+"/"+partIdx);
+    console.log(charIdx + "/" + partIdx);
 
     chr.parts[partIdx] = min(chr.parts[partIdx], chr.strokes[partIdx].length - 1);
 
@@ -358,13 +368,30 @@ class CharUtils {
     }
   }
 
-  bestEditDist(l1, words, hist, minAllowed) {
+  // bestEditDistance(literal, words, hist, minAllowed) {
+  //   words = words || Object.keys(this.wordData);
+  //   if (typeof minAllowed == 'undefined') minAllowed = 1;
+  //
+  //   let med, meds = [];
+  //   let dbg = 0;
+  //
+  //   for (let i = 0; i < words.length; i++) {
+  //
+  //     // no dups and nothing in history, maintain length
+  //     if (literal === words[i] || words[i].length != literal.length ||
+  //       (typeof hist != 'undefined' && hist && hist.contains(words[i]))) {
+  //       continue;
+  //     }
+  //   }
+  // };
+
+  bestEditDist(literal, words, hist, minAllowed) {
 
     words = words || Object.keys(this.wordData);
     if (typeof minAllowed == 'undefined') minAllowed = 1;
 
-    let med, meds = [],
-      dbg = 0;
+    let med, meds = [];
+    let dbg = 0;
 
     // check each word in list for edit-distance
     // meds is an array where each index is the MED
@@ -372,13 +399,12 @@ class CharUtils {
     for (let i = 0; i < words.length; i++) {
 
       // no dups and nothing in history, maintain length
-      if (l1 === words[i] || words[i].length != l1.length
-        || (typeof hist != 'undefined' && hist && hist.contains(words[i])))
-      {
+      if (literal === words[i] || words[i].length != literal.length ||
+        (typeof hist != 'undefined' && hist && hist.contains(words[i]))) {
         continue;
       }
-      //console.log(i, words[i], l1.length, words[i].length, l1.length == words[i].length);
-      med = this.minEditDist(l1, words[i], minAllowed);
+      //console.log(i, words[i], literal.length, words[i].length, literal.length == words[i].length);
+      med = this.minEditDist(literal, words[i], minAllowed);
 
       if (med < minAllowed) continue;
 
@@ -395,7 +421,28 @@ class CharUtils {
     return []; // or nothing
   }
 
-  minEditDistance(source, target) {
+  // 
+  minEditDistance(l1, l2, words) {
+    var cost = Math.max(0, this.rawEditDistance(l1, l2) - 1);
+    let e1 = this.getWord(l1).toEditStr();
+    let e2 = this.getWord(l2).toEditStr();
+    //console.log('minEditDistance', e1, 'vs', e2, cost);
+    return this.rawEditDistance(e1, e2) + cost;
+  }
+
+  /*logoEditDistance(l1, l2, words) {
+    var d1 =
+  }
+
+  /*Word.binEditDistance(w) {
+    if (typeof w === 'undefined') throw Error('no word1: '+w);
+    if (!w.literal) w = util.getWord(w);
+    if (typeof w === 'undefined') throw Error('no word2: '+w);
+    var e1 = this.toEditStr();
+    return 0;
+  }*/
+
+  rawEditDistance(source, target) {
 
     function min3(a, b, c) {
       var min = a;
@@ -467,8 +514,8 @@ class CharUtils {
     let c1 = this.charData[lc1];
     let c2 = this.charData[lc2];
 
-    if (!c1) throw Error("1.no entry in charData for "+lc1+this.charData.length);
-    if (!c2) throw Error("2.no entry in charData for "+lc2+' '+Object.keys(this.charData).length);
+    if (!c1) throw Error("1.no entry in charData for " + lc1 + this.charData.length);
+    if (!c2) throw Error("2.no entry in charData for " + lc2 + ' ' + Object.keys(this.charData).length);
 
     if (!c1.hasOwnProperty('decomposition')) throw Error(c1);
     if (!c2.hasOwnProperty('decomposition')) throw Error(c2);
