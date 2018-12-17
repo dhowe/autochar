@@ -9,8 +9,8 @@ function setup() {
   createCanvas(1024, 512);
   util = new CharUtils(charData, wordData);
   word = util.getWord('拒齐');
-  //word.visiblePart(0, -1); // 0:left-only, 1:both
-  //word.visiblePart(1, -1); // 0:left-only, 1:both
+  word.setVisible(0, -1); // 0:left-only, 1:both
+  word.setVisible(1, -1); // 0:left-only, 1:both
 
   //console.log(word);
   //setTimeout(step, 500);

@@ -1,3 +1,8 @@
+/*class Char {
+  constructor() {
+  }
+}*/
+
 class Word {
 
   // TODO: make it possible to show 2nd full-part and first stroke-by-stroke
@@ -16,11 +21,6 @@ class Word {
     }
 
     this.computeStrokes(this.characters); // this.characters.strokes[i] = [strokes]
-
-    this.NONE = -1;
-    this.PART0 = 0;
-    this.PART1 = 1;
-    this.ALL = Number.MAX_SAFE_INTEGER;
   }
 
   computeStrokes() {
@@ -62,10 +62,9 @@ class Word {
         strokes[0].push(chr.strokes[j]);
       }
       // (handle null values by putting them in 2nd part?)
-      else if (strokeIdx === 1) {   // part 1
+      else if (strokeIdx === 1) { // part 1
         strokes[1].push(chr.strokes[j]);
-      }
-      else console.error("Null stroke match at ["+j+"]0");
+      } else console.error("Null stroke match at [" + j + "]0");
     }
 
     return strokes;
@@ -80,26 +79,37 @@ class Word {
     //console.log("parts[" + partIdx + "] = " + this.characters[charIdx].parts[partIdx]);
   }
 
-  charComplete(charIdx) {
-    //if (typeof charIdx === 'undefined') charIdx = -1;
-    // if (typeof partIdx === 'undefined') partIdx = -1;
-    // if (this.characters[charIdx].parts[0] >
-    // }
+  isVisible() { // true if word is fully rendered
+    for (var i = 0; i < this.characters.length; i++) {
+      if (!this.isCharVisible(i)) return false;
+    }
+    return true;
   }
 
-  partComplete(charIdx, partIdx) {
-    //if (typeof charIdx === 'undefined') charIdx = -1;
-    // if (typeof partIdx === 'undefined') partIdx = -1;
-    // if (this.characters[charIdx].parts[partIdx] >
-    // }
+  isCharVisible(charIdx) { // true if character is fully rendered
+    var chr = this.characters[charIdx];
+    if (!chr) throw Error('no charIdx for: '+charIdx);
+    for (var i = 0; i < chr.parts.length; i++) {
+      if (!this.isPartVisible(charIdx, i))
+        return false;
+    }
+    return true;
   }
 
-  visiblePart(charIdx, value) { // -1(none), 0(left), 1(right), max(both)
+  isPartVisible(charIdx, partIdx) { // true if part is fully rendered
+    if (typeof charIdx === 'undefined') throw Error('no charIdx');
+    if (typeof charIdx === 'undefined') throw Error('no partIdx');
+    var chr = this.characters[charIdx];
+    return (chr.parts[partIdx] >= chr.strokes[partIdx].length);
+  }
+
+  setVisible(charIdx, value) { // -1(none), 0(left), 1(right), max(both)
     if (arguments.length != 2) throw Error('bad args: ' + arguments.length);
     if (arguments[0] != 0 && arguments[0] != 1) throw Error('bad charIdx: ' + arguments[0]);
 
-    this.characters[charIdx].parts[0] = this.ALL;
-    this.characters[charIdx].parts[1] = this.ALL;
+    this.characters[charIdx].parts[0] = Number.MAX_SAFE_INTEGER;
+    this.characters[charIdx].parts[1] = Number.MAX_SAFE_INTEGER;
+
     if (value == 0) { // show left-only
       this.characters[charIdx].parts[1] = -1;
     } else if (value == 1) { // show right-only
@@ -107,8 +117,8 @@ class Word {
     } else if (value < 0) { // show neither
       this.characters[charIdx].parts[0] = -1;
       this.characters[charIdx].parts[1] = -1;
-    } else if (value != this.ALL) {
-      throw Error('visiblePart() got bad value: ' + value);
+    } else if (value != Number.MAX_SAFE_INTEGER) {
+      throw Error('setVisible() got bad value: ' + value);
     }
   }
 
@@ -270,16 +280,6 @@ class CharUtils {
       meds[med].push(words[i]);
     }
 
-    // find the best non-empty index (REDO)
-    // let best = -1;
-    // for (let i = meds.length - 1; i >= 0; i--) {
-    //   if (meds[i] && meds[i].length) {
-    //     dbg && console.log(i + ")", meds[i]);
-    //     best = i;
-    //   }
-    // }
-    //dbg && console.log("\nbestEditDist=" + best, meds[best]);
-
     // return the best list
     for (var i = minAllowed; i < meds.length; i++) {
       if (meds[i] && meds[i].length) return meds[i];
@@ -379,7 +379,8 @@ class CharUtils {
     var parts = char.parts;
     var strokes = char.strokes;
 
-    console.log('renderPath', word.literal[charIdx]+' ['+(parts[0]==9007199254740991?'all':parts[0]) +','+ (parts[1]==9007199254740991?'all':parts[1])+']');
+    console.log('renderPath', word.literal[charIdx] + ' [' +
+      (parts[0] == 9007199254740991 ? 'all' : parts[0]) + ',' + (parts[1] == 9007199254740991 ? 'all' : parts[1]) + ']');
 
     if (parts[0] < 0 && parts[1] < 0) return; // nothing to draw
 
@@ -408,9 +409,8 @@ class CharUtils {
         if (parts[j] >= i) {
           //console.log('path#'+j,"stroke#"+i, paths[j][i]);
           ctx.fill(paths[j][i]);
-        }
-        else {
-          console.log('skip',j,i);
+        } else {
+          console.log('skip', j, i);
         }
 
         /*

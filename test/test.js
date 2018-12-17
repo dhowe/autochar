@@ -4,7 +4,9 @@ let HistQ = util.HistQ;
 
 describe('word-class', function () {
   it('should test Word class functions', function () {
+
     let word = util.getWord('拒齐');
+
     expect(word.literal).to.equal('拒齐');
     expect(word.literal[0]).to.equal('拒');
     expect(word.literal[1]).to.equal('齐');
@@ -12,8 +14,8 @@ describe('word-class', function () {
     // -1(none), 0(left), 1(right), max(both)
     for (var i = 0; i < word.characters.length; i++) {
       expect(word.characters[i].parts.length).to.equal(2);
-      expect(word.characters[i].parts[0]).to.equal(word.ALL);
-      expect(word.characters[i].parts[1]).to.equal(word.ALL);
+      expect(word.characters[i].parts[0]).to.equal(Number.MAX_SAFE_INTEGER);
+      expect(word.characters[i].parts[1]).to.equal(Number.MAX_SAFE_INTEGER);
     }
 
     // char 0 -> '拒'
@@ -23,7 +25,8 @@ describe('word-class', function () {
     expect(word.characters[0].strokes[0].length).to.equal(3);
     expect(word.characters[0].strokes[1].length).to.equal(4);
 
-    var strokes = word.characters[0].strokes, strokeCount = 0;
+    let strokeCount = 0;
+    let strokes = word.characters[0].strokes;
     for (var i = 0; i < strokes.length; i++) {
       strokeCount += strokes[i].length;
     }
@@ -39,10 +42,18 @@ describe('word-class', function () {
 
     strokeCount = 0;
     strokes = word.characters[1].strokes;
-    for (var i = 0; i < strokes.length; i++) {
+    for (let i = 0; i < strokes.length; i++) {
       strokeCount += strokes[i].length;
     }
     expect(word.characters[1].matches.length).to.equal(strokeCount);
+
+    expect(word.isVisible()).to.equal(true);
+    expect(word.isCharVisible(0)).to.equal(true);
+    expect(word.isCharVisible(1)).to.equal(true);
+    expect(word.isPartVisible(0,0)).to.equal(true);
+    expect(word.isPartVisible(0,1)).to.equal(true);
+    expect(word.isPartVisible(1,0)).to.equal(true);
+    expect(word.isPartVisible(1,1)).to.equal(true);
 
   });
 });
