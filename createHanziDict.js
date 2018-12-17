@@ -1,23 +1,24 @@
 const DICT = "data/dictionary.txt";
 const STROKES = "data/graphics.txt";
-const OUTPUT = "chardata.json";
-const INDENT = false;
+const OUTFILE = "chardata";
 const MEDIANS = false;
 
-var fs = require("fs"),
-  chars = {},
-  nulls = [];
+////////////////////////////////////////////////////////////////////////////////
+let args = process.argv.slice(2);
+let indent = args.length && args[0] == '-i';
+let fs = require("fs"), chars = {}, nulls = [];
 parseDict(fs.readFileSync(DICT, 'utf8').split('\n'));
 parseStrokes(fs.readFileSync(STROKES, 'utf8').split('\n'));
-var json = INDENT ? JSON.stringify(chars, null, 2) : JSON.stringify(chars);
-fs.writeFileSync(OUTPUT, json);
-console.log("Wrote JSON to " + OUTPUT);
+let json = indent ? JSON.stringify(chars, null, 2) : JSON.stringify(chars);
+let out = OUTFILE + (indent ? "-hr" : "") + ".json";
+fs.writeFileSync(out, json);
+console.log("Wrote JSON to " + out);
 
 ////////////////////////////////////////////////////////////////////////////////
 
 function parseDict(lines) {
   function addData(chars, data) {
-    for (var i = 0; i < data.matches.length; i++) {
+    for (let i = 0; i < data.matches.length; i++) {
       if (!data.matches[i]) {
         //console.log('SKIP: Null match data for '+data.character);
         nulls.push(data.character);
@@ -31,12 +32,12 @@ function parseDict(lines) {
     };
     return true;
   }
-  var uniques = {};
+  let uniques = {};
 
   lines.forEach(line => {
     if (line) {
-      var data = JSON.parse(line);
-      var dcom = data.decomposition;
+      let data = JSON.parse(line);
+      let dcom = data.decomposition;
 
       // store unique top-level decomps
       if (dcom[0] != '？') uniques[dcom[0]] = 1;
@@ -60,7 +61,7 @@ function parseStrokes(lines, saveAsJSON) {
 
   lines.forEach(line => {
     if (line) {
-      var data = JSON.parse(line);
+      let data = JSON.parse(line);
       if (chars.hasOwnProperty(data.character)) {
         if (chars[data.character].hasOwnProperty('strokes'))
           console.error("Dup. stroke data for: " + data.character);

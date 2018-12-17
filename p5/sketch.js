@@ -30,7 +30,7 @@ function draw() {
 
   background(240);
   renderWord(word);
-  text(util.def(word.literal), width / 2, height - 10);
+  text(util.definition(word.literal), width / 2, height - 10);
   text("med: " + med, width - 40, 20);
   if (memory.size() > 1) {
     text("last: " + memory.at(memory.size() - 2), 55, 20);
@@ -39,22 +39,6 @@ function draw() {
 }
 
 ////////////////////////////////////////////////////////////
-
-function nextWord() {
-
-  if (dbeng) {
-    word = word || dbeng + "";
-    return ++dbeng + "";
-  }
-
-  word = word || util.randWord(); // first time
-  let bests = util.bestEditDist(word.literal, 0, memory, 4);
-
-  if (!bests || !bests.length) {
-    throw Error('Died on ' + word.literal, word);
-  }
-  return util.getWord(bests[random(bests.length) << 0]);
-}
 
 function step(dir) {
 
@@ -91,6 +75,22 @@ function step(dir) {
   loop();
   word && console.log((++steps) + ")", dbeng ? word : word.literal, memory.q);
   autostep && stepAfterDelay()
+}
+
+function nextWord() {
+
+  if (dbeng) {
+    word = word || dbeng + "";
+    return ++dbeng + "";
+  }
+
+  word = word || util.randWord(2); // first time
+  let bests = util.bestEditDist(word.literal, 0, memory, 4);
+
+  if (!bests || !bests.length) {
+    throw Error('Died on ' + word.literal, word);
+  }
+  return util.getWord(bests[random(bests.length) << 0]);
 }
 
 function stepAfterDelay() {

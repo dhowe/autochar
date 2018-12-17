@@ -5,12 +5,11 @@
 
 class Word {
 
-  // TODO: make it possible to show 2nd full-part and first stroke-by-stroke
   constructor(literal, chars) {
     this.literal = literal;
     this.characters = chars;
+    this.length = literal.length;
 
-    //this.reset();
     for (var i = 0; i < this.characters.length; i++) {
       let partCount = 2; // NOTE: can be != 2
       if (!this.characters[i].hasOwnProperty('parts') ||
@@ -20,7 +19,14 @@ class Word {
       this.characters[i].parts.fill(Number.MAX_SAFE_INTEGER);
     }
 
-    this.computeStrokes(this.characters); // this.characters.strokes[i] = [strokes]
+    this.computeStrokes(this.characters);
+  }
+
+  definition(charIdx) {
+    if (typeof charIdx === 'undefined' || charIdx < 0) {
+      return util.definition(this.literal);
+    }
+    return util.definition(this.literal[charIdx]);
   }
 
   computeStrokes() {
@@ -70,25 +76,62 @@ class Word {
     return strokes;
   }
 
-  nextStroke(charIdx, partIdx) { // partIdx is 0 || 1
-    console.log('nextStroke', arguments.length);
-    if (arguments.length != 2) throw Error('bad args: ' + arguments.length);
-    if (arguments[0] != 0 && arguments[0] != 1) throw Error('bad charIdx: ' + arguments[0]);
-    if (arguments[1] != 0 && arguments[1] != 1) throw Error('bad partIdx: ' + arguments[1]);
-    this.characters[charIdx].parts[partIdx]++;
-    //console.log("parts[" + partIdx + "] = " + this.characters[charIdx].parts[partIdx]);
+  eraseStroke(charIdx, partIdx) { // returns true if changed
+
+    if (typeof charIdx === 'undefined') throw Error('no charIdx');
+    if (typeof partIdx === 'undefined') throw Error('no partIdx');
+
+    var chr = this.characters[charIdx];
+    partIdx = Math.min(partIdx, chr.parts.length - 1);
+    if (partIdx < 0 || partIdx >= chr.parts.length) {
+      throw Error('bad partIdx: ' + partIdx);
+    }
+    console.log(charIdx+"/"+partIdx);
+
+    chr.parts[partIdx] = min(chr.parts[partIdx], chr.strokes[partIdx].length - 1);
+
+    if (--chr.parts[partIdx] >= -1) {
+      console.log("eraseStroke3:char[" + charIdx + "][" + partIdx + "] = " +
+        (chr.parts[partIdx]) + "/" + (chr.strokes[partIdx].length)); // keep
+      return true;
+    }
+    return false;
   }
 
-  isVisible() { // true if word is fully rendered
+  constrain(n, low, high) { return Math.max(Math.min(n, high), low); }
+
+  nextStroke(charIdx, partIdx) { // returns true if changed
+
+    if (typeof charIdx === 'undefined') throw Error('no charIdx');
+    if (typeof partIdx === 'undefined') throw Error('no partIdx');
+
+    charIdx = Math.max(charIdx, 0); // if -1, show first char
+    partIdx = Math.max(partIdx, 0); // if -1, show first part
+
+    //console.log("char["+ charIdx+"]["+partIdx+"] = " +
+    //(chr.parts[partIdx]+1)+"/"+(chr.strokes[partIdx].length)); // keep
+
+    return (++this.characters[charIdx].parts[partIdx] <
+      this.characters[charIdx].strokes[partIdx].length);
+  }
+
+  isVisible() { // true if word is fully drawn
     for (var i = 0; i < this.characters.length; i++) {
       if (!this.isCharVisible(i)) return false;
     }
     return true;
   }
 
-  isCharVisible(charIdx) { // true if character is fully rendered
+  isHidden() { // true if all strokes are hidden
+    for (var i = 0; i < this.characters.length; i++) {
+      if (!this.isCharHidden(i)) return false;
+    }
+    return true;
+  }
+
+  isCharVisible(charIdx) { // true if character is fully drawn
     var chr = this.characters[charIdx];
-    if (!chr) throw Error('no charIdx for: '+charIdx);
+    if (!chr) throw Error('no charIdx for: ' + charIdx);
     for (var i = 0; i < chr.parts.length; i++) {
       if (!this.isPartVisible(charIdx, i))
         return false;
@@ -96,28 +139,86 @@ class Word {
     return true;
   }
 
-  isPartVisible(charIdx, partIdx) { // true if part is fully rendered
-    if (typeof charIdx === 'undefined') throw Error('no charIdx');
-    if (typeof charIdx === 'undefined') throw Error('no partIdx');
+  isCharHidden(charIdx) { // true if character is fully drawn
     var chr = this.characters[charIdx];
-    return (chr.parts[partIdx] >= chr.strokes[partIdx].length);
+    if (!chr) throw Error('no charIdx for: ' + charIdx);
+    for (var i = 0; i < chr.parts.length; i++) {
+      if (!this.isPartHidden(charIdx, i))
+        return false;
+    }
+    return true;
+  }
+
+  isPartVisible(charIdx, partIdx) { // true if part is fully drawn
+    if (typeof charIdx === 'undefined') throw Error('no charIdx');
+    if (typeof partIdx === 'undefined') throw Error('no partIdx');
+    var chr = this.characters[charIdx];
+    //console.log('check '+chr.parts[partIdx]+ " >=? "+(chr.strokes[partIdx].length-1));
+    return (chr.parts[partIdx] >= chr.strokes[partIdx].length - 1);
+  }
+
+  isPartHidden(charIdx, partIdx) { // true if part is fully drawn
+    if (typeof charIdx === 'undefined') throw Error('no charIdx');
+    if (typeof partIdx === 'undefined') throw Error('no partIdx');
+    var chr = this.characters[charIdx];
+    //console.log('check '+chr.parts[partIdx]+ " >=? "+(chr.strokes[partIdx].length-1));
+    return (chr.parts[partIdx] < 0);
+  }
+
+  show(charIdx, partIdx) {
+    var ALL = Number.MAX_SAFE_INTEGER;
+    if (typeof charIdx === 'undefined') {
+      this.setVisible(0, ALL); // show both chars
+      this.setVisible(1, ALL);
+    } else {
+      var chr = this.characters[charIdx];
+      if (!chr) throw Error('show: no charIdx for: ' + charIdx);
+      if (typeof partIdx === 'undefined') {
+        this.setVisible(charIdx, ALL); // show one char
+      } else {
+        this.characters[charIdx].parts[partIdx] = ALL; // show one part
+      }
+    }
+  }
+
+  hide(charIdx, partIdx) {
+    if (typeof charIdx === 'undefined') {
+      this.setVisible(0, -1); // hide both chars
+      this.setVisible(1, -1);
+    } else {
+      var chr = this.characters[charIdx];
+      if (!chr) throw Error('hide: no charIdx for: ' + charIdx);
+      if (typeof partIdx === 'undefined') {
+        this.setVisible(charIdx, -1); // hide one char
+      } else {
+        this.characters[charIdx].parts[partIdx] = -1; // hide one part
+      }
+    }
   }
 
   setVisible(charIdx, value) { // -1(none), 0(left), 1(right), max(both)
+
     if (arguments.length != 2) throw Error('bad args: ' + arguments.length);
     if (arguments[0] != 0 && arguments[0] != 1) throw Error('bad charIdx: ' + arguments[0]);
 
-    this.characters[charIdx].parts[0] = Number.MAX_SAFE_INTEGER;
-    this.characters[charIdx].parts[1] = Number.MAX_SAFE_INTEGER;
+    var ALL = Number.MAX_SAFE_INTEGER;
+
+    var chr = this.characters[charIdx];
+
+    chr.parts[0] = ALL;
+    chr.parts[1] = ALL;
 
     if (value == 0) { // show left-only
-      this.characters[charIdx].parts[1] = -1;
+      chr.parts[1] = -1;
+
     } else if (value == 1) { // show right-only
-      this.characters[charIdx].parts[0] = -1;
+      chr.parts[0] = -1;
+
     } else if (value < 0) { // show neither
-      this.characters[charIdx].parts[0] = -1;
-      this.characters[charIdx].parts[1] = -1;
-    } else if (value != Number.MAX_SAFE_INTEGER) {
+      chr.parts[0] = -1;
+      chr.parts[1] = -1;
+
+    } else if (value != ALL) {
       throw Error('setVisible() got bad value: ' + value);
     }
   }
@@ -267,16 +368,22 @@ class CharUtils {
 
     // check each word in list for edit-distance
     // meds is an array where each index is the MED
-    // and holds a list of all words with the MED
+    // and holds a list of all words with that MED
     for (let i = 0; i < words.length; i++) {
 
-      // no dups and nothing in history
-      if (l1 === words[i] || (typeof hist != 'undefined' && hist && hist.contains(words[i]))) {
+      // no dups and nothing in history, maintain length
+      if (l1 === words[i] || words[i].length != l1.length
+        || (typeof hist != 'undefined' && hist && hist.contains(words[i])))
+      {
         continue;
       }
+      //console.log(i, words[i], l1.length, words[i].length, l1.length == words[i].length);
       med = this.minEditDist(l1, words[i], minAllowed);
+
       if (med < minAllowed) continue;
+
       if (!meds[med]) meds[med] = [];
+
       meds[med].push(words[i]);
     }
 
@@ -286,6 +393,50 @@ class CharUtils {
     }
 
     return []; // or nothing
+  }
+
+  minEditDistance(source, target) {
+
+    function min3(a, b, c) {
+      var min = a;
+      if (b < min) min = b;
+      if (c < min) min = c;
+      return min;
+    }
+
+    if (!source.length && !target.length) return 0;
+
+    var cost, matrix = [];
+    var sI; // ith character of s
+    var tJ; // jth character of t
+
+    var sourceLength = source.length;
+    var targetLength = target.length;
+
+    if (!source.length) return target.length;
+    if (!target.length) return source.length;
+
+    for (var i = 0; i <= source.length; i++) {
+      matrix[i] = [];
+      matrix[i][0] = i;
+    }
+
+    for (var j = 0; j <= target.length; j++) {
+      matrix[0][j] = j;
+    }
+
+    for (var i = 1; i <= source.length; i++) {
+      sI = source.charAt(i - 1);
+      for (var j = 1; j <= target.length; j++) {
+        tJ = target.charAt(j - 1);
+        cost = (sI == tJ) ? 0 : 1;
+        matrix[i][j] = min3(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost);
+      }
+    }
+    return matrix[source.length][target.length];
   }
 
   minEditDist(l1, l2) {
@@ -310,9 +461,18 @@ class CharUtils {
 
     let dbg = 0;
     dbg && console.log(lc1, lc2);
+
     if (lc1 === lc2) return 0;
+
     let c1 = this.charData[lc1];
     let c2 = this.charData[lc2];
+
+    if (!c1) throw Error("1.no entry in charData for "+lc1+this.charData.length);
+    if (!c2) throw Error("2.no entry in charData for "+lc2+' '+Object.keys(this.charData).length);
+
+    if (!c1.hasOwnProperty('decomposition')) throw Error(c1);
+    if (!c2.hasOwnProperty('decomposition')) throw Error(c2);
+
     let d1 = c1.decomposition,
       d2 = c2.decomposition;
 
@@ -351,12 +511,19 @@ class CharUtils {
     return new Word(literal, chars);
   }
 
-  def(literal) {
+  definition(literal) {
     return this.wordData.hasOwnProperty(literal) ? this.wordData[literal] : '---';
   }
 
-  randWord() {
-    return this.getWord(this.randKey(this.wordData));
+  randWord(num) {
+    if (typeof num == 'undefined') throw Error('no num');
+
+    let word = null;
+    while (!word || word.length != num) {
+      // keep going until we get the right length
+      word = this.getWord(this.randKey(this.wordData));
+    }
+    return word;
   }
 
   randVal(o) {
@@ -371,25 +538,18 @@ class CharUtils {
 
   renderPath(word, charIdx, renderer) {
 
-    //console.log('render-idx='+charIdx, word.literal[charIdx]);
-
     var pg = renderer || this._renderer;
     var char = word.characters[charIdx];
     var matches = char.matches;
     var parts = char.parts;
     var strokes = char.strokes;
 
-    console.log('renderPath', word.literal[charIdx] + ' [' +
-      (parts[0] == 9007199254740991 ? 'all' : parts[0]) + ',' + (parts[1] == 9007199254740991 ? 'all' : parts[1]) + ']');
-
     if (parts[0] < 0 && parts[1] < 0) return; // nothing to draw
 
-    // char has two parts
-    // each part has a list of strokes
+    // char has two parts, each with a list of strokes
     var paths = word.strokesToPaths(charIdx);
-
-    var ctx = pg.drawingContext,
-      adjust = true;
+    var ctx = pg.drawingContext;
+    var adjust = true;
 
     ctx.fillStyle = "#000";
 
@@ -407,11 +567,9 @@ class CharUtils {
 
         //if (strokeIdx < 0 || i <= strokeIdx) // TEMP, FIX
         if (parts[j] >= i) {
-          //console.log('path#'+j,"stroke#"+i, paths[j][i]);
+          //console.log('path#'+j,"stroke#"+i+"/"+strokes[j].length, paths[j][i]);
           ctx.fill(paths[j][i]);
-        } else {
-          console.log('skip', j, i);
-        }
+        } // else console.log('skip', j, i);
 
         /*
         ctx.strokeStyle = "#777";
