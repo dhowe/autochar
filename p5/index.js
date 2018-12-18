@@ -28,11 +28,20 @@ function step() {
 
   next = nextWord();
   console.log('NEXT: '+next.literal);
+
+  // substitution
+  if (next.length === word.length) {
+    
+  }
+  // addition
+  else if (next.length > word.length) {
+  }
+  // deletion
+  else if (next.length < word.length) {
+  }
 }
 
 function nextWord() {
-
-  //let bests = ["油花", "油葷", "泡菜", "洋菜", "浙菜", "湘菜", "滷菜", "酒菜"];//util.bestEditDistance(word.literal, 0, memory);
 
   let bests = util.bestEditDistance(word.literal, null, memory);
   if (!bests || !bests.length) {
@@ -42,7 +51,7 @@ function nextWord() {
 }
 
 function renderWord(word) {
-  console.log('renderWord', word);
+
   if (word.characters) {
     for (var i = 0; i < word.characters.length; i++) {
       if (word.literal[i] !== ' ')
@@ -51,14 +60,14 @@ function renderWord(word) {
   }
 }
 
-function minEditDistance(l1, l2) {
-    //console.log('minEditDistance', l1, l2);
-    var cost = Math.max(0, util.rawEditDistance(l1, l2) - 1);
-    //let e1 = this.getWord(l1).toEditStr();
-    //let e2 = this.getWord(l2).toEditStr();
-    //console.log('minEditDistance', e1, 'vs', e2, cost);
-    return 1;//cost;//this.rawEditDistance(e1, e2) + cost;
-  }
+// function minEditDistance(l1, l2) {
+//     //console.log('minEditDistance', l1, l2);
+//     var cost = Math.max(0, util.rawEditDistance(l1, l2) - 1);
+//     //let e1 = this.getWord(l1).toEditStr();
+//     //let e2 = this.getWord(l2).toEditStr();
+//     //console.log('minEditDistance', e1, 'vs', e2, cost);
+//     return 1;//cost;//this.rawEditDistance(e1, e2) + cost;
+//   }
 
 // function bestEditDistance(literal, words, hist, minAllowed) { // todo: only store bestSoFar
 //

@@ -82,7 +82,7 @@ class Word {
     return strokes;
   }
 
-  strokesToPaths(charIdx) {
+  strokesToPaths(charIdx) { // TODO: make sure this happens only once per char
 
     var chr = this.characters[charIdx];
 
@@ -104,7 +104,6 @@ class Word {
 
     var chr = this.characters[charIdx];
     partIdx = this.constrain(partIdx, 0, chr.parts.length - 1);
-    //Math.min(partIdx, chr.parts.length - 1);
 
     if (partIdx < 0 || partIdx >= chr.parts.length) {
       throw Error('bad partIdx: ' + partIdx);
@@ -618,7 +617,11 @@ class CharUtils {
     return keys[keys.length * Math.random() << 0];
   }
 
-  renderPath(word, charIdx, renderer) {
+  renderPath(word, charIdx, renderer, scale, yoff) {
+
+    if (typeof scale === 'undefined') scale = 1;
+
+    //console.log('renderPath', scale);
 
     var pg = renderer || this._renderer;
     var char = word.characters[charIdx];
@@ -638,18 +641,15 @@ class CharUtils {
     for (var j = 0; j < paths.length; j++) {
       for (var i = 0; i < paths[j].length; i++) {
         if (adjust) {
-          ctx.translate(0, 512 - 70); // shift for mirror
-          if (charIdx > 0) ctx.translate(512, 0); // shift for mirror
+          var shift = renderer.width/2;
+          ctx.translate(0, shift + yoff); // shift for mirror
+          if (charIdx > 0) ctx.translate(shift, 0); // shift for mirror
           ctx.scale(.5, -.5); // mirror-vertically
         }
 
-        /* if (ctx.isPointInPath(paths[i], mouseX, mouseY)) {
-          ctx.fillStyle = "#d00";
-        }*/
-
-        //if (strokeIdx < 0 || i <= strokeIdx) // TEMP, FIX
         if (parts[j] >= i) {
           //console.log('path#'+j,"stroke#"+i+"/"+cstrokes[j].length, paths[j][i]);
+          ctx.scale(scale, scale);
           ctx.fill(paths[j][i]);
         } // else console.log('skip', j, i);
 

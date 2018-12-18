@@ -9,13 +9,29 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(1024, 512);
-  textSize(24);
+  //createCanvas(1024, 512);
+  createCanvas(680, 490);
+
+  textSize(18);
   util = new CharUtils(charData, wordData);
   word = util.randWord(2);
   //word = util.getWord("璨");
   step();
 }
+
+function draw() {
+  background(240);
+  renderWord(word, .65, 30);
+  textAlign(CENTER);
+  text(util.definition(word.literal), width / 2, height - 10);
+  textAlign(LEFT);
+  text(util.definition(word.literal[0]), 20, 20);
+  textAlign(RIGHT);
+  text(util.definition(word.literal[1]), width - 20, 20);
+  noLoop();
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 function keyReleased() {
 
@@ -124,25 +140,13 @@ function backward() {
   }
 }
 
-function draw() {
-  background(240);
-  renderWord(word);
-  textAlign(CENTER);
-  text(util.definition(word.literal), width / 2, height - 10);
-  textAlign(LEFT);
-  text(util.definition(word.literal[0]), 20, 20);
-  textAlign(RIGHT);
-  text(util.definition(word.literal[1]), width - 20, 20);
-  noLoop();
-}
-
-function renderWord(word) {
+function renderWord(word, scale, yOffset) {
   //console.log('renderWord', word);
   if (word.characters) {
     for (var i = 0; i < word.characters.length; i++) {
       //if (i != 1) continue;
       if (word.literal[i] !== ' ')
-        util.renderPath(word, i, this._renderer);
+        util.renderPath(word, i, this._renderer, scale, yOffset);
     }
   } else {
     textSize(120);

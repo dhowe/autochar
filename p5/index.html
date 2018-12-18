@@ -2,14 +2,75 @@
 <html>
 
 <head>
+  <meta charset="UTF-8">
+  <title>Automachar</title>
   <script src="p5.js"></script>
   <script src="../cutils.js"></script>
-  <link rel="stylesheet" type="text/css" href="style.css">
-  <meta charset="utf-8">
+  <script src="../automachar.js"></script>
+  <script>
+    var typer, word;
+    var bg = 245;
+    var test = 0;
+
+    function preload()
+    {
+      charData = loadJSON('../chardata.json');
+      wordData = loadJSON('../words-trad.json');
+    }
+
+    function setup()
+    {
+      createCanvas(680, 490);
+      textAlign(CENTER);
+      textSize(20);
+
+      util = new CharUtils(charData, wordData);
+      memory = new util.HistQ(10);
+      typer = new Automachar(onActionComplete);
+      next();
+    }
+
+    function draw()
+    {
+      background(bg < 245 ? bg += 4 : bg);
+      typer.draw(this._renderer);
+      test && noLoop();
+    }
+
+    function next()
+    {
+      typer.step();
+      !test && setTimeout(next, random(300, 600));
+    }
+
+    function mouseClicked()
+    {
+      test = true;
+      next();
+    }
+
+    function onActionComplete(next, med)
+    {
+      if (next)
+      {
+        if (!test)
+        {
+          bg = 0;
+          console.log("bg=0");
+        }
+        //bell.play();
+        //word && console.log(word + " -> " + next + " " + med);
+        word = next;
+      }
+      else
+      {
+        //type.play();
+      }
+    }
+  </script>
 </head>
 
 <body>
-  <script src="index.js"></script>
 </body>
 
 </html>
