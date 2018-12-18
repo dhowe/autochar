@@ -3,6 +3,11 @@ const REPLACE_ERASE = 1,
   INSERT_ACTION = 3,
   REPLACE_NEXT = 4;
 
+// NEXT: handle cases for med > 1 (need array of charIdx/partIdx?) ***
+// NEXT: wordObjCache
+// NEXT: timing proportional to number of strokes
+// NEXT: alternative characters whenever possible
+// NEXT: alternative parts whenever possible ?
 class Automachar {
 
   constructor(callback) {
@@ -11,7 +16,7 @@ class Automachar {
     this.target = null;
     this.targetCharIdx = -1;
     this.targetPartIdx = -1;
-    this.word = util.getWord('油菜');
+    this.word = util.randWord(2);
     this.wordCompleteCallback = callback;
   }
 
@@ -41,7 +46,7 @@ class Automachar {
     memory.add(result);
     this.med = util.minEditDistance(this.word.literal, result.literal);
     this.target = result;
-    console.log("WORD: ", this.word, "\nNEXT: ", this.target, "\nMED: ", this.med);
+    //console.log("WORD: ", this.word, "\nNEXT: ", this.target, "\nMED: ", this.med);
   }
 
   doNextEdit() {
@@ -97,8 +102,7 @@ class Automachar {
       this.action = DELETE_ACTION
     }
 
-    console.log('target=' + this.target.literal[this.targetCharIdx] +
-      ', charIdx=' + this.targetCharIdx + ', pIdx=' + this.targetPartIdx);
+    //console.log('target=' + this.target.literal[this.targetCharIdx] +', charIdx=' + this.targetCharIdx + ', pIdx=' + this.targetPartIdx);
   }
 
   renderWord(word, renderer, scale, yoff) {

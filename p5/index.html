@@ -8,7 +8,7 @@
   <script src="../cutils.js"></script>
   <script src="../automachar.js"></script>
   <script>
-    var typer, word;
+    var typer, word, tid;
     var bg = 245;
     var test = 0;
 
@@ -27,6 +27,7 @@
       util = new CharUtils(charData, wordData);
       memory = new util.HistQ(10);
       typer = new Automachar(onActionComplete);
+      word = typer.word.literal;
       next();
     }
 
@@ -40,7 +41,7 @@
     function next()
     {
       typer.step();
-      !test && setTimeout(next, random(300, 600));
+      !test && (tid = setTimeout(next, random(300, 600)));
     }
 
     function mouseClicked()
@@ -48,18 +49,27 @@
       test = true;
       next();
     }
+    function keyReleased() {
+
+      clearTimeout(tid);
+
+      if (key == ' ') {
+        test = !test;
+        if (!test) {
+          next();
+          loop();
+        }
+      }
+    }
 
     function onActionComplete(next, med)
     {
+      //console.log('onActionComplete', next, med);
       if (next)
       {
-        if (!test)
-        {
-          bg = 0;
-          console.log("bg=0");
-        }
+        if (!test) bg = 0;
         //bell.play();
-        //word && console.log(word + " -> " + next + " " + med);
+        console.log(word + " -> " + next + " " + med);
         word = next;
       }
       else
