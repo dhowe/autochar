@@ -4,10 +4,13 @@ const REPLACE_ERASE = 1,
   REPLACE_NEXT = 4;
 
 // NEXT: handle cases for med > 1 (need array of charIdx/partIdx?) ***
-// NEXT: wordObjCache
 // NEXT: timing proportional to number of strokes
 // NEXT: alternative characters whenever possible
 // NEXT: alternative parts whenever possible ?
+
+// ENHANCEMENTS
+// sound
+// 3rd character
 class Automachar {
 
   constructor(callback) {
@@ -20,10 +23,10 @@ class Automachar {
     this.wordCompleteCallback = callback;
   }
 
-  draw(renderer) {
-    this.renderWord(this.word, renderer, .65, 30);
+  draw(renderer, hexcol) {
+    this.renderWord(this.word, renderer, .65, 30, hexcol);
     text(util.definition(this.word.literal), width / 2, height - 10);
-    text("med: " + this.med, width - 40, 20);
+    text(this.med, width - 10, 15);
   }
 
   step() {
@@ -43,7 +46,7 @@ class Automachar {
       throw Error('Died on ' + this.word.literal, this.word);
     }
     let result = util.getWord(bests[random(bests.length) << 0]);
-    memory.add(result);
+    memory.add(result.literal);
     this.med = util.minEditDistance(this.word.literal, result.literal);
     this.target = result;
     //console.log("WORD: ", this.word, "\nNEXT: ", this.target, "\nMED: ", this.med);
@@ -105,12 +108,12 @@ class Automachar {
     //console.log('target=' + this.target.literal[this.targetCharIdx] +', charIdx=' + this.targetCharIdx + ', pIdx=' + this.targetPartIdx);
   }
 
-  renderWord(word, renderer, scale, yoff) {
+  renderWord(word, renderer, scale, yoff, hexcol) {
 
     if (word.characters) {
       for (var i = 0; i < word.characters.length; i++) {
         if (word.literal[i] !== ' ')
-          util.renderPath(word, i, renderer, scale, yoff);
+          util.renderPath(word, i, renderer, scale, yoff, hexcol);
       }
     }
   }

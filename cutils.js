@@ -7,11 +7,6 @@ class Word {
 
   constructor(literal, chars) {
 
-    //console.log('new Word('+literal+')', chars);
-    // for (var i = 0; i < chars.length; i++) {
-    //   console.log(typeof chars[i]);
-    // }
-
     this.literal = literal;
     this.characters = chars;
     this.length = literal.length;
@@ -20,23 +15,7 @@ class Word {
       this.characters[i].parts = [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER];
     }
 
-    //console.log(this.characters[0].cstrokes);
-
-    // for (var i = 0; i < this.characters.length; i++) {
-    //   let partCount = 2; // NOTE: can be != 2
-    //   if (!this.characters[i].hasOwnProperty('parts') ||
-    //     this.characters[i].parts.length != partCount) {
-    //     this.characters[i].parts = new Array(partCount);
-    //   }
-    //   this.characters[i].parts.fill(Number.MAX_SAFE_INTEGER);
-    // }
-    //
     this.computeStrokes(this.characters);
-
-    //
-    // console.log(this.characters[0].cstrokes.length);
-    // console.log(this.characters[0].cstrokes[0].length);
-    // console.log(this.characters[0].cstrokes[1].length);
   }
 
   toEditStr() {
@@ -268,6 +247,7 @@ class CharUtils {
     this.Word = Word; // class
     this.charData = charData;
     this.wordData = wordData;
+    this.wordCache = {};
     console.log("cutils[" + Object.keys(charData).length +
       "," + Object.keys(wordData).length + "]");
   }
@@ -577,7 +557,16 @@ class CharUtils {
     return this.charData[literal].decomposition;
   }
 
+  cacheSize() {
+    return Object.keys(this.wordCache).length;
+  }
+
   getWord(literal) {
+
+    if (this.wordCache && this.wordCache.hasOwnProperty(literal)) {
+      return this.wordCache[literal];
+    }
+
     let chars = [];
     for (let i = 0; i < literal.length; i++) {
       if (literal[i] !== ' ') {
@@ -589,7 +578,12 @@ class CharUtils {
         chars.push([]);
       }
     }
-    return new Word(literal, chars);
+
+    let word = new Word(literal, chars);
+
+    if (this.wordCache) this.wordCache[literal] = word;
+
+    return word;
   }
 
   definition(literal) {
@@ -617,9 +611,11 @@ class CharUtils {
     return keys[keys.length * Math.random() << 0];
   }
 
-  renderPath(word, charIdx, renderer, scale, yoff) {
+  renderPath(word, charIdx, renderer, scale, yoff, hexcol) {
 
     if (typeof scale === 'undefined') scale = 1;
+
+    hexcol = hexcol || '#000';
 
     //console.log('renderPath', scale);
 
@@ -636,7 +632,7 @@ class CharUtils {
     var ctx = pg.drawingContext;
     var adjust = true;
 
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = hexcol;
 
     for (var j = 0; j < paths.length; j++) {
       for (var i = 0; i < paths[j].length; i++) {

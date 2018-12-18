@@ -22,7 +22,7 @@
     {
       createCanvas(680, 490);
       textAlign(CENTER);
-      textSize(20);
+      textSize(14);
 
       util = new CharUtils(charData, wordData);
       memory = new util.HistQ(10);
@@ -33,8 +33,9 @@
 
     function draw()
     {
-      background(bg < 245 ? bg += 4 : bg);
-      typer.draw(this._renderer);
+      background(bg < 245 ? bg += 5 : bg);
+      var c = hex(255 - bg, 2);
+      typer.draw(this._renderer, "#" + c + c + c);
       test && noLoop();
     }
 
@@ -44,18 +45,15 @@
       !test && (tid = setTimeout(next, random(300, 600)));
     }
 
-    function mouseClicked()
+    function keyReleased()
     {
-      test = true;
-      next();
-    }
-    function keyReleased() {
-
       clearTimeout(tid);
 
-      if (key == ' ') {
+      if (key == ' ')
+      {
         test = !test;
-        if (!test) {
+        if (!test)
+        {
           next();
           loop();
         }
@@ -64,7 +62,6 @@
 
     function onActionComplete(next, med)
     {
-      //console.log('onActionComplete', next, med);
       if (next)
       {
         if (!test) bg = 0;
