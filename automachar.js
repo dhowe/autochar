@@ -1,16 +1,20 @@
-const REPLACE_ERASE = 1,
-  DELETE_ACTION = 2,
-  INSERT_ACTION = 3,
-  REPLACE_NEXT = 4;
 
-// NEXT: handle cases for med > 1 (need array of charIdx/partIdx?) ***
-// NEXT: timing proportional to number of strokes
+// NEXT: erase should be immediate
 // NEXT: alternative characters whenever possible
 // NEXT: alternative parts whenever possible ?
 
 // ENHANCEMENTS
 // sound
 // 3rd character
+
+// OTHER: handle cases for med > 1 (need array of charIdx/partIdx?) *** ?
+// OTHER: timing inversely proportional to number of strokes ?
+
+const REPLACE_ERASE = 1;
+const DELETE_ACTION = 2;
+const INSERT_ACTION = 3;
+const REPLACE_NEXT = 4;
+
 class Automachar {
 
   constructor(callback) {
@@ -21,32 +25,31 @@ class Automachar {
     this.targetPartIdx = -1;
     this.word = util.randWord(2);
     this.wordCompleteCallback = callback;
+    this.memory = new util.HistQ(10);
+    this.memory.add(this.word.literal);
   }
 
   draw(renderer, hexcol) {
     this.renderWord(this.word, renderer, .65, 30, hexcol);
-    text(util.definition(this.word.literal), width / 2, height - 10);
-    text(this.med, width - 10, 15);
   }
 
   step() {
     if (!this.target) {
       this.pickNextTarget();
       this.findNextEdit();
-    }
-    else {
+    } else {
       this.doNextEdit();
     }
   }
 
   pickNextTarget() {
 
-    let bests = util.bestEditDistance(this.word.literal, null, memory);
+    let bests = util.bestEditDistance(this.word.literal, null, this.memory);
     if (!bests || !bests.length) {
       throw Error('Died on ' + this.word.literal, this.word);
     }
     let result = util.getWord(bests[random(bests.length) << 0]);
-    memory.add(result.literal);
+    this.memory.add(result.literal);
     this.med = util.minEditDistance(this.word.literal, result.literal);
     this.target = result;
     //console.log("WORD: ", this.word, "\nNEXT: ", this.target, "\nMED: ", this.med);
@@ -63,8 +66,7 @@ class Automachar {
         this.word.show(this.targetCharIdx, this.targetPartIdx == 1 ? 0 : 1);
         this.word.show(this.targetCharIdx == 1 ? 0 : 1);
         this.action = REPLACE_NEXT;
-      }
-      else {
+      } else {
         this.wordCompleteCallback(); // stroke change
       }
     }
@@ -73,6 +75,8 @@ class Automachar {
       if (!this.word.nextStroke(this.targetCharIdx, this.targetPartIdx)) {
         this.wordCompleteCallback(this.word.literal, this.med);
         this.target = null;
+      } else {
+        this.wordCompleteCallback(); // stroke change
       }
     }
   }
@@ -99,8 +103,10 @@ class Automachar {
           }
         }
       }
+
     } else if (this.target.length > this.word.length) {
       this.action = INSERT_ACTION;
+
     } else if (this.target.length < this.word.length) {
       this.action = DELETE_ACTION
     }

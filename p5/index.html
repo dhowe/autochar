@@ -8,9 +8,8 @@
   <script src="../cutils.js"></script>
   <script src="../automachar.js"></script>
   <script>
-    var typer, word, tid;
-    var bg = 245;
-    var test = 0;
+    var typer, word, tid, wmed='', def='';
+    var bg = 245, test = 0;
 
     function preload()
     {
@@ -25,9 +24,9 @@
       textSize(14);
 
       util = new CharUtils(charData, wordData);
-      memory = new util.HistQ(10);
       typer = new Automachar(onActionComplete);
       word = typer.word.literal;
+      def = util.definition(word);
       next();
     }
 
@@ -36,12 +35,14 @@
       background(bg < 245 ? bg += 5 : bg);
       var c = hex(255 - bg, 2);
       typer.draw(this._renderer, "#" + c + c + c);
+      text(def, width / 2, height - 10);
+      text(wmed, width - 10, 15);
       test && noLoop();
     }
 
     function next()
     {
-      typer.step();
+      typer.step(); // TODO: erase should be immediate
       !test && (tid = setTimeout(next, random(300, 600)));
     }
 
@@ -66,7 +67,9 @@
       {
         if (!test) bg = 0;
         //bell.play();
-        console.log(word + " -> " + next + " " + med);
+        def = util.definition(next);
+        console.log(word + " -> " + next, med, def);
+        wmed = med;
         word = next;
       }
       else

@@ -457,53 +457,7 @@ describe('CharUtils: utility functions for characters', function () {
     });
   });
 
-  describe('doAction(stroke)', function () {
-    it('should transform string to target by stroke', function () {
-      let test, tests, acts;
-    });
-  });
-
-  /*describe('doAction(part)', function () {
-    it('should transform string to target part', function () {
-      let test, tests, acts;
-
-      // atomic actions
-      tests = [
-        ['拒拒', '拒'],
-        ['拒', '拒拒'],
-        ['拒', ''],
-        ['', '拒'],
-        ['拒拒', '拒三'],
-        ['拒拒', '三拒']
-      ]
-      for (var i = 0; i < tests.length; i++) {
-        test = tests[i];
-        word = util.getWord(test[0]);
-        acts = util.actions(test[0], test[1]);
-        for (var j = 0; j < acts.length; j++) {
-          util.doAction(word, acts[j]);
-        }
-        expect(word.literal).to.equal(test[1]);
-        expect(word.characters[0].parts).to.equal([]);
-      }
-      // compound actions
-      tests = [
-        ['拒拒', '三齐'],
-        //['三拒拒', '三'], // FAILING (only handles length-diff of 1)
-      ]
-      for (var i = 0; i < tests.length; i++) {
-        test = tests[i];
-        acts = util.actions(test[0], test[1]);
-        word = util.getWord(test[0]);
-        for (var j = 0; j < acts.length; j++) {
-          util.doAction(word, acts[j]);
-        }
-        expect(word.literal).to.equal(test[1]);
-      }
-    });
-  });*/
-
-  describe('doAction(char)', function () {
+  /*describe('doAction(char)', function () {
     it('should transform string to target by char', function () {
       let test, tests, acts;
 
@@ -580,7 +534,7 @@ describe('CharUtils: utility functions for characters', function () {
         expect(word.literal).to.equal(test[1]);
       }
     });
-  });
+  });*/
 
   describe('getWord()', function () {
     it('should return word object for literal', function () {
