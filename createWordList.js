@@ -15,6 +15,7 @@ let output = 'words-' + TYPE.substring(0, 4);
 
 let words = {};
 let doubles = 0;
+let adjustedDefs = 0;
 for (let i = 0; i < entries.length; i++) {
   let e = entries[i][TYPE];
 
@@ -28,12 +29,17 @@ for (let i = 0; i < entries.length; i++) {
     }
 
     if (entries[i].hasOwnProperty('definitions')) {
-      words[e] = entries[i].definitions[0];
+      let def = entries[i].definitions[0];
+      words[e] = def.replace(/\([^)]+\)/g,'').replace(/\[[^\]]+\]/g,'').trim();
+      if (words[e].length == 0 && def.length > 0) words[e] = def.replace(/[()]/g,'');
+      if (words[e] != def) adjustedDefs++;
+      //console.log("Def: "+def+"\n  -> '"+words[e]+"'");
     }
   }
 }
 
 console.log("Found " + Object.keys(words).length + " words ("+doubles+" bad doubles)");
+console.log("Adjusted " + adjustedDefs + " definitions");
 
 let json = indent ? JSON.stringify(words, null, 2) : JSON.stringify(words);
 if (MAXLEN != 2) output += MAXLEN;

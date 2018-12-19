@@ -38,7 +38,7 @@ class Automachar {
   step() {
     if (!this.target) {
       this.pickNextTarget();
-      this.findNextEdit();
+      this.findEditIndices();
     }
     else {
       this.doNextEdit();
@@ -53,6 +53,12 @@ class Automachar {
     if (!bests || !bests.length) {
       throw Error('Died on ' + this.word.literal, this.word);
     }
+
+    /* WORKING HERE
+    for (var i = 0; i < bests.length; i++) {
+      bests[i][this.target]
+    }*/
+
     // TODO: for better-matching,
     // a) sort the best by stroke count, pick the closest (part of med?)
     // b) favor those which change a different character/part
@@ -70,7 +76,7 @@ class Automachar {
       if (!this.word.eraseStroke(this.targetCharIdx, this.targetPartIdx)) {
         // erasing done, now replace
         this.word = this.target;
-        this.word.hide(); // simplify
+        this.word.hide(); // TODO: simplify to one function
         this.word.show(this.targetCharIdx, this.targetPartIdx == 1 ? 0 : 1);
         this.word.show(this.targetCharIdx == 1 ? 0 : 1);
         this.action = REPLACE_STROKE;
@@ -89,7 +95,7 @@ class Automachar {
     }
   }
 
-  findNextEdit() {
+  findEditIndices() {
 
     this.targetCharIdx = -1;
     this.targetPartIdx = -1;
@@ -116,13 +122,14 @@ class Automachar {
       }
 
     } else if (this.target.length > this.word.length) {
-      this.action = INSERT_ACTION;
+      this.action = INSERT_ACTION; // TODO
 
     } else if (this.target.length < this.word.length) {
-      this.action = DELETE_ACTION
+      this.action = DELETE_ACTION;  // TODO
     }
 
-    //console.log('target=' + this.target.literal[this.targetCharIdx] +', charIdx=' + this.targetCharIdx + ', pIdx=' + this.targetPartIdx);
+    //console.log('target=' + this.target.literal[this.targetCharIdx]
+    //+', charIdx=' + this.targetCharIdx + ', pIdx=' + this.targetPartIdx);
   }
 
   renderWord(word, renderer, scale, yoff, hexcol) {

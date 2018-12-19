@@ -52,7 +52,7 @@ describe('Word', function () {
 });
 
 describe('Word-visibility', function () {
-  it('should wrap a sequence of characters', function () {
+  it('should manage visibility for characters/parts', function () {
 
     let word = util.getWord('拒齐');
 
@@ -211,7 +211,7 @@ describe('HistQ', function () {
 
 describe('CharUtils: utility functions for characters', function () {
   describe('rawEditDistance', function () {
-    it('should do the right thing', function () {
+    it('should compute standard edit distance ', function () {
 
       let s1 = 'The dog',
         s2 = 'The cat';
@@ -244,7 +244,7 @@ describe('CharUtils: utility functions for characters', function () {
   });
 
   describe('minEditDistance(1)', function () {
-    it('should compute the edit string for an MED', function () {
+    it('should compute the custom edit dist for single chinese chars', function () {
       expect(util.minEditDistance('拒', '拒')).to.equal(0); // exact
       expect(util.minEditDistance('拒', '捕')).to.equal(1); // match decomp + 1 part
       expect(util.minEditDistance('拒', '價')).to.equal(2); // match decomp only
@@ -253,7 +253,7 @@ describe('CharUtils: utility functions for characters', function () {
   });
 
   describe('minEditDistance(2)', function () {
-    it('should compute the edit string for an MED', function () {
+    it('should compute the custom edit dist for 2-char chiense words', function () {
       //first char same, 2nd different
       expect(util.minEditDistance('拒拒', '拒拒')).to.equal(0); // exact
       expect(util.minEditDistance('拒拒', '拒捕')).to.equal(1); // match decomp + half
@@ -270,7 +270,7 @@ describe('CharUtils: utility functions for characters', function () {
   });
 
   describe('bestEditDistance(2)', function () {
-    it('should return set of minimum MEDs for a 2-char word', function () {
+    it('should return set of 2-char words with minimum MEDs', function () {
       let test = '拒價';
       let bets = util.bestEditDistance(test);
       for (var i = 0; i < bets.length; i++) {
@@ -283,7 +283,7 @@ describe('CharUtils: utility functions for characters', function () {
   });
 
   describe('bestEditDistance(1)', function () {
-    it('should return set of minimum MEDs for a single char', function () {
+    it('should return set of 1-char words with minimum MEDs', function () {
 
       let bet, word = util.getWord('拒');
 

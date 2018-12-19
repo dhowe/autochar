@@ -9,6 +9,7 @@
   <script src="../automachar.js"></script>
   <script>
     var typer, word, tid, wmed='', def='';
+    var showDefs = 1, showMed = 1;
     var bg = 245, test = 0;
 
     function preload()
@@ -26,17 +27,16 @@
       util = new CharUtils(charData, wordData);
       typer = new Automachar(onActionComplete);
       word = typer.word.literal;
-      def = util.definition(word);
+      def = showDefs ? util.definition(word) : '';
       next();
     }
 
     function draw()
     {
       background(bg < 245 ? bg += 5 : bg);
-      var c = hex(255 - bg, 2);
-      typer.draw(this._renderer, "#" + c + c + c);
-      text(def, width / 2, height - 10);
-      text(wmed, width - 10, 15);
+      typer.draw(this._renderer, toHex(255 - bg));
+      showDefs && text(def, width / 2, height - 10);
+      showMed && text(wmed, width - 10, 15);
       test && noLoop();
     }
 
@@ -44,8 +44,8 @@
     {
       typer.step();
       if (!test) {
-        // erases (0) should happen almost immediately
-        tid = setTimeout(next, typer.nextAction() ? random(300, 600) : 10);
+        // erases [action=0] should happen almost immediately
+        tid = setTimeout(next, typer.nextAction() ? random(400, 700) : 5);
       }
     }
 
@@ -70,7 +70,7 @@
       {
         if (!test) bg = 0;
         //bell.play();
-        def = util.definition(next);
+        if (showDefs) def = util.definition(next);
         console.log(word + " -> " + next, med, def);
         wmed = med;
         word = next;
@@ -80,6 +80,13 @@
         //type.play();
       }
     }
+
+    function toHex(gs)
+    {
+      var c = hex(gs, 2);
+      return "#" + c + c + c;
+    }
+
   </script>
 </head>
 
