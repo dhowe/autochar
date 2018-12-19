@@ -1,18 +1,16 @@
+if (typeof Path2D == 'undefined') Path2D = (class Path2DMock {});
 let expect = require('chai').expect;
 let util = require('../cutils');
 let HistQ = util.HistQ;
 
-class Path2DMock {}
-if (typeof Path2D == 'undefined') Path2D = Path2DMock;
-
 describe('Word', function () {
   it('should wrap a sequence of characters', function () {
 
-    let word = util.getWord('拒齐');
+    let word = util.getWord('拒簽');
 
-    expect(word.literal).to.equal('拒齐');
+    expect(word.literal).to.equal('拒簽');
     expect(word.literal[0]).to.equal('拒');
-    expect(word.literal[1]).to.equal('齐');
+    expect(word.literal[1]).to.equal('簽');
 
     // -1(none), 0(left), 1(right), max(both)
     for (var i = 0; i < word.characters.length; i++) {
@@ -21,10 +19,13 @@ describe('Word', function () {
       expect(word.characters[i].parts[1]).to.equal(Number.MAX_SAFE_INTEGER);
     }
 
-    // char 0 -> '拒'
-    expect(word.characters[0].matches.length).to.equal(7);
+    expect(word.characters[0].matches.length).to.equal
+      (word.characters[0].cstrokes[0].length+word.characters[0].cstrokes[1].length);
     expect(word.characters[0].cstrokes.length).to.equal(2);
     expect(word.characters[0].parts.length).to.equal(2);
+
+    // char 0 -> '拒'
+    expect(word.characters[0].matches.length).to.equal(7);
     expect(word.characters[0].cstrokes[0].length).to.equal(3);
     expect(word.characters[0].cstrokes[1].length).to.equal(4);
 
@@ -35,12 +36,15 @@ describe('Word', function () {
     }
     expect(word.characters[0].matches.length).to.equal(strokeCount);
 
-    // char 1 -> '齐'
-    expect(word.characters[1].matches.length).to.equal(6);
+    expect(word.characters[1].matches.length).to.equal
+      (word.characters[1].cstrokes[0].length+word.characters[1].cstrokes[1].length);
     expect(word.characters[1].cstrokes.length).to.equal(2);
     expect(word.characters[1].parts.length).to.equal(2);
-    expect(word.characters[1].cstrokes[0].length).to.equal(4);
-    expect(word.characters[1].cstrokes[1].length).to.equal(2);
+
+    // char 1 -> '簽'
+    expect(word.characters[1].cstrokes[0].length).to.equal(6);
+    expect(word.characters[1].cstrokes[1].length).to.equal(13);
+    expect(word.characters[1].matches.length).to.equal(19);
 
     strokeCount = 0;
     cstrokes = word.characters[1].cstrokes;
@@ -48,148 +52,6 @@ describe('Word', function () {
       strokeCount += cstrokes[i].length;
     }
     expect(word.characters[1].matches.length).to.equal(strokeCount);
-  });
-});
-
-describe('Word-visibility', function () {
-  it('should manage visibility for characters/parts', function () {
-
-    let word = util.getWord('拒齐');
-
-    expect(word.isVisible()).to.equal(true);
-    expect(word.isCharVisible(0)).to.equal(true);
-    expect(word.isCharVisible(1)).to.equal(true);
-    expect(word.isPartVisible(0, 0)).to.equal(true);
-    expect(word.isPartVisible(0, 1)).to.equal(true);
-    expect(word.isPartVisible(1, 0)).to.equal(true);
-    expect(word.isPartVisible(1, 1)).to.equal(true);
-
-    word.setVisible(0, -1);
-    expect(word.isVisible()).to.equal(false);
-    expect(word.isCharVisible(0)).to.equal(false);
-    expect(word.isPartVisible(0, 0)).to.equal(false);
-    expect(word.isPartVisible(0, 1)).to.equal(false);
-    expect(word.isCharVisible(1)).to.equal(true);
-    expect(word.isPartVisible(1, 0)).to.equal(true);
-    expect(word.isPartVisible(1, 1)).to.equal(true);
-
-    word.show();
-    expect(word.isVisible()).to.equal(true);
-    expect(word.isCharVisible(0)).to.equal(true);
-    expect(word.isPartVisible(0, 0)).to.equal(true);
-    expect(word.isPartVisible(0, 1)).to.equal(true);
-    expect(word.isCharVisible(1)).to.equal(true);
-    expect(word.isPartVisible(1, 0)).to.equal(true);
-    expect(word.isPartVisible(1, 1)).to.equal(true);
-
-    word.hide();
-    expect(word.isVisible()).to.equal(false);
-    expect(word.isCharVisible(0)).to.equal(false);
-    expect(word.isPartVisible(0, 0)).to.equal(false);
-    expect(word.isPartVisible(0, 1)).to.equal(false);
-    expect(word.isCharVisible(1)).to.equal(false);
-    expect(word.isPartVisible(1, 0)).to.equal(false);
-    expect(word.isPartVisible(1, 1)).to.equal(false);
-
-    ////////////////////////////////parts[[3][4]]/////////////////////////////////
-
-    word.characters[0].parts[0] = 0;
-    expect(word.isVisible()).to.equal(false);
-    expect(word.isCharVisible(0)).to.equal(false);
-    expect(word.isPartVisible(0, 0)).to.equal(false);
-    expect(word.isPartVisible(0, 1)).to.equal(false);
-
-    word.characters[0].parts[0] = 1;
-    expect(word.isVisible()).to.equal(false);
-    expect(word.isCharVisible(0)).to.equal(false);
-    expect(word.isPartVisible(0, 0)).to.equal(false);
-    expect(word.isPartVisible(0, 1)).to.equal(false);
-
-    //return; // FAILING
-    word.characters[0].parts[0] = 2;
-    expect(word.isVisible()).to.equal(false);
-    expect(word.isCharVisible(0)).to.equal(false);
-    expect(word.isPartVisible(0, 0)).to.equal(true); // HERE
-    expect(word.isPartVisible(0, 1)).to.equal(false);
-
-    word.characters[0].parts[1] = 0;
-    expect(word.isVisible()).to.equal(false);
-    expect(word.isCharVisible(0)).to.equal(false);
-    expect(word.isPartVisible(0, 0)).to.equal(true);
-    expect(word.isPartVisible(0, 1)).to.equal(false);
-
-    word.characters[0].parts[1] = 1;
-    expect(word.isVisible()).to.equal(false);
-    expect(word.isCharVisible(0)).to.equal(false);
-    expect(word.isPartVisible(0, 0)).to.equal(true);
-    expect(word.isPartVisible(0, 1)).to.equal(false);
-
-    word.characters[0].parts[1] = 2;
-    expect(word.isVisible()).to.equal(false);
-    expect(word.isCharVisible(0)).to.equal(false);
-    expect(word.isPartVisible(0, 0)).to.equal(true);
-    expect(word.isPartVisible(0, 1)).to.equal(false);
-
-    word.characters[0].parts[1] = 3;
-    expect(word.isVisible()).to.equal(false);
-    expect(word.isCharVisible(0)).to.equal(true);
-    expect(word.isPartVisible(0, 0)).to.equal(true);
-    expect(word.isPartVisible(0, 1)).to.equal(true);
-
-    ////////////////////////////////parts[4][2]/////////////////////////////////
-    //console.log(word.characters[1].cstrokes[0].length,word.characters[1].cstrokes[1].length);
-    word.characters[1].parts[0] = 0;
-    expect(word.isVisible()).to.equal(false);
-    expect(word.isCharVisible(0)).to.equal(true);
-    expect(word.isCharVisible(1)).to.equal(false);
-    expect(word.isPartVisible(1, 0)).to.equal(false);
-    expect(word.isPartVisible(1, 1)).to.equal(false);
-
-    word.characters[1].parts[0] = 1;
-    expect(word.isVisible()).to.equal(false);
-    expect(word.isCharVisible(1)).to.equal(false);
-    expect(word.isPartVisible(1, 0)).to.equal(false);
-    expect(word.isPartVisible(1, 1)).to.equal(false);
-
-    word.characters[1].parts[0] = 2;
-    expect(word.isVisible()).to.equal(false);
-    expect(word.isCharVisible(1)).to.equal(false);
-    expect(word.isPartVisible(1, 0)).to.equal(false);
-    expect(word.isPartVisible(1, 1)).to.equal(false);
-
-    word.characters[1].parts[0] = 3;
-    expect(word.isVisible()).to.equal(false);
-    expect(word.isCharVisible(1)).to.equal(false);
-    expect(word.isPartVisible(1, 0)).to.equal(true);
-    expect(word.isPartVisible(1, 1)).to.equal(false);
-
-    word.characters[1].parts[1] = 0;
-    expect(word.isVisible()).to.equal(false);
-    expect(word.isCharVisible(1)).to.equal(false);
-    expect(word.isPartVisible(1, 0)).to.equal(true);
-    expect(word.isPartVisible(1, 1)).to.equal(false);
-
-    word.characters[1].parts[1] = 1;
-    expect(word.isVisible()).to.equal(true);
-    expect(word.isCharVisible(0)).to.equal(true);
-    expect(word.isCharVisible(1)).to.equal(true);
-    expect(word.isPartVisible(0, 0)).to.equal(true);
-    expect(word.isPartVisible(0, 1)).to.equal(true);
-    expect(word.isPartVisible(1, 0)).to.equal(true);
-    expect(word.isPartVisible(1, 1)).to.equal(true);
-
-    word = util.getWord('拒齐');
-    let es = word.toEditStr();
-    expect(word.toEditStr()).to.equal('⿰扌巨 ⿱文？');
-    for (var i = 0; i < 5; i++) {
-      word = util.randWord(1);
-      expect(word.toEditStr()).to.equal(word.characters[0].decomposition);
-    }
-    for (var i = 0; i < 5; i++) {
-      word = util.randWord(2);
-      let exp = word.characters[0].decomposition + ' ' + word.characters[1].decomposition;
-      expect(word.toEditStr()).to.equal(exp);
-    }
   });
 });
 
@@ -253,28 +115,29 @@ describe('CharUtils: utility functions for characters', function () {
   });
 
   describe('minEditDistance(2)', function () {
-    it('should compute the custom edit dist for 2-char chiense words', function () {
-      //first char same, 2nd different
-      expect(util.minEditDistance('拒拒', '拒拒')).to.equal(0); // exact
-      expect(util.minEditDistance('拒拒', '拒捕')).to.equal(1); // match decomp + half
-      expect(util.minEditDistance('拒拒', '拒價')).to.equal(2); // match decomp only
-      expect(util.minEditDistance('拒拒', '拒三')).to.equal(3); // nothing
+    it('should compute the custom edit dist for 2-char chinese words', function () {
 
-      expect(util.minEditDistance('拒拒', '拒三')).to.equal(3); // one different (non-matching decomp) -> 3
+      //first char same, 2nd different
+      // expect(util.minEditDistance('拒拒', '拒拒')).to.equal(0); // exact
+      // expect(util.minEditDistance('拒拒', '拒捕')).to.equal(1); // match decomp + half
+      // expect(util.minEditDistance('拒拒', '拒價')).to.equal(2); // match decomp only
+      // expect(util.minEditDistance('拒拒', '拒三')).to.equal(3); // nothing
+      //
+      // expect(util.minEditDistance('拒拒', '拒三')).to.equal(3); // one different (non-matching decomp) -> 3
 
       // added cost param to raise them each by one
-      expect(util.minEditDistance('拒拒', '三三')).to.equal(7); // both different(0 matched decomps) -> 6
-      expect(util.minEditDistance('拒拒', '捕三')).to.equal(5); // both different(1 matched decomp)  -> 5
-      expect(util.minEditDistance('拒拒', '捕價')).to.equal(4); // both different(2 matched decomp)  -> 4
+      // expect(util.minEditDistance('拒拒', '三三')).to.equal(7); // both different(0 matched decomps) -> 6
+      // expect(util.minEditDistance('拒拒', '捕三')).to.equal(5); // both different(1 matched decomp)  -> 5
+      // expect(util.minEditDistance('拒拒', '捕價')).to.equal(4); // both different(2 matched decomp)  -> 4
     });
   });
 
   describe('bestEditDistance(2)', function () {
     it('should return set of 2-char words with minimum MEDs', function () {
-      let test = '拒價';
+      let test = '拒簽';
       let bets = util.bestEditDistance(test);
       for (var i = 0; i < bets.length; i++) {
-        expect(util.minEditDistance(test, bets[i])).to.equal(1);
+        expect(util.minEditDistance(test, bets[i])).to.equal(2);
         // console.log(i+"[0]",'vs', bets[i][0], util.minEditDistance(test[0], bets[i][0]));
         // console.log(i+"[1]",'vs', bets[i][1], util.minEditDistance(test[1], bets[i][1]));
         //break;
@@ -287,42 +150,42 @@ describe('CharUtils: utility functions for characters', function () {
 
       let bet, word = util.getWord('拒');
 
-      bet = util.bestEditDistance(word.literal, ['拒', '捕', '價', '三', '齐']);
+      bet = util.bestEditDistance(word.literal, ['拒', '捕', '價', '三', '簽']);
       expect(bet.length).to.equal(1);
       expect(bet[0]).to.equal('捕'); // ignore duplicate
       expect(util.minEditDistance(word.literal, bet[0])).to.equal(1);
 
-      bet = util.bestEditDistance(word.literal, ['捕', '價', '三', '齐']);
+      bet = util.bestEditDistance(word.literal, ['捕', '價', '三', '簽']);
       expect(bet.length).to.equal(1);
       expect(bet[0]).to.equal('捕');
       expect(util.minEditDistance(word.literal, bet[0])).to.equal(1);
 
-      bet = util.bestEditDistance(word.literal, ['價', '三', '齐']);
+      bet = util.bestEditDistance(word.literal, ['價', '三', '簽']);
       expect(bet.length).to.equal(1);
       expect(bet[0]).to.equal('價');
       expect(util.minEditDistance(word.literal, bet[0])).to.equal(2);
 
-      bet = util.bestEditDistance(word.literal, ['三', '齐']);
+      bet = util.bestEditDistance(word.literal, ['三', '簽']);
       expect(bet.length).to.equal(2);
       expect(util.minEditDistance(word.literal, bet[0])).to.equal(3);
 
       // with 4th parameter
-      bet = util.bestEditDistance(word.literal, ['拒', '捕', '價', '三', '齐'], null, 2);
+      bet = util.bestEditDistance(word.literal, ['拒', '捕', '價', '三', '簽'], null, 2);
       expect(bet.length).to.equal(1);
       expect(bet[0]).to.equal('價'); // ignore duplicate
       expect(util.minEditDistance(word.literal, bet[0])).to.equal(2);
 
-      bet = util.bestEditDistance(word.literal, ['捕', '價', '三', '齐'], null, 2);
+      bet = util.bestEditDistance(word.literal, ['捕', '價', '三', '簽'], null, 2);
       expect(bet.length).to.equal(1);
       expect(bet[0]).to.equal('價');
       expect(util.minEditDistance(word.literal, bet[0])).to.equal(2);
 
-      bet = util.bestEditDistance(word.literal, ['價', '三', '齐'], null, 2);
+      bet = util.bestEditDistance(word.literal, ['價', '三', '簽'], null, 2);
       expect(bet.length).to.equal(1);
       expect(bet[0]).to.equal('價');
       expect(util.minEditDistance(word.literal, bet[0])).to.equal(2);
 
-      bet = util.bestEditDistance(word.literal, ['三', '齐'], null, 4);
+      bet = util.bestEditDistance(word.literal, ['三' ], null, 4);
       expect(bet).to.eql([]);
     });
   });
@@ -332,7 +195,7 @@ describe('CharUtils: utility functions for characters', function () {
       let word = util.getWord('拒');
       let wstr = JSON.stringify(word);
       //console.log(wstr);
-      
+
       let word2 = util.getWord('拒');
       let wstr2 = JSON.stringify(word2);
 

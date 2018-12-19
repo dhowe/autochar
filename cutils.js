@@ -214,20 +214,25 @@ class Word {
 
 class CharUtils {
 
-  constructor(charData, wordData) {
+  constructor(charData, wordData, disablePrecache) {
 
     this.HistQ = HistQ; // class
     this.Word = Word; // class
     this.wordData = wordData; // TODO: remove defs?
     this.wordCache = {};
-    this.prefillCache(charData);
     console.log("cutils[" + Object.keys(charData).length +
       "," + Object.keys(wordData).length + "]");
+    if (!disablePrecache) {
+      this.prefillCache(charData);
+    } else {
+      this.charData = charData;
+    }
   }
 
   prefillCache(charData) {
     let that = this;
-    Object.keys(this.wordData).forEach(function(lit){ that.getWord(lit, charData); });
+    Object.keys(this.wordData).forEach(function (lit) { that.getWord(lit, charData); });
+    console.log('Cache prefilled with '+Object.keys(this.wordCache).length+' words');
   }
 
   bestEditDistance(literal, words, hist, minAllowed) { // todo: only store bestSoFar
@@ -329,7 +334,12 @@ class CharUtils {
       return this.wordCache[literal];
     }
 
-    if (typeof charData == 'undefined') throw Error('getWord: no charData');
+    if (typeof charData == 'undefined') {
+      if (!this.hasOwnProperty('charData')) {
+        throw Error('getWord: no charData for '+literal);
+      }
+      charData = this.charData;
+    }
 
     let chars = [];
     for (let i = 0; i < literal.length; i++) {
