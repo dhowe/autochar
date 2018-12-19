@@ -1,8 +1,8 @@
-const electron = require('electron');
-const {app, BrowserWindow} = electron;
+const {app, BrowserWindow} = require('electron');
 
 function createWindow () {
 
+  // add w:17 w:45 for electron chrome
   win = new BrowserWindow({ width: 697, height: 535 });
   win.loadFile('index.html');
   if (process.platform !== 'darwin') {
@@ -11,4 +11,4 @@ function createWindow () {
   //win.webContents.openDevTools();
 }
 
-app.on('ready', createWindow)
+app.on('ready', createWindow);
