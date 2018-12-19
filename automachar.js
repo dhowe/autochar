@@ -10,15 +10,16 @@
 // OTHER: handle cases for med > 1 (need array of charIdx/partIdx?) *** ?
 // OTHER: timing inversely proportional to number of strokes ?
 
-const REPLACE_ERASE = 1;
+const REPLACE_ERASE = 0;
+const REPLACE_STROKE = 1;
 const DELETE_ACTION = 2;
 const INSERT_ACTION = 3;
-const REPLACE_NEXT = 4;
 
 class Automachar {
 
   constructor(callback) {
 
+    this.tid = -1;
     this.med = -1;
     this.target = null;
     this.targetCharIdx = -1;
@@ -30,6 +31,7 @@ class Automachar {
   }
 
   draw(renderer, hexcol) {
+
     this.renderWord(this.word, renderer, .65, 30, hexcol);
   }
 
@@ -37,10 +39,13 @@ class Automachar {
     if (!this.target) {
       this.pickNextTarget();
       this.findNextEdit();
-    } else {
+    }
+    else {
       this.doNextEdit();
     }
   }
+
+  nextAction() { return this.action; }
 
   pickNextTarget() {
 
@@ -48,9 +53,12 @@ class Automachar {
     if (!bests || !bests.length) {
       throw Error('Died on ' + this.word.literal, this.word);
     }
+    // TODO: for better-matching,
+    // a) sort the best by stroke count, pick the closest (part of med?)
+    // b) favor those which change a different character/part
     let result = util.getWord(bests[random(bests.length) << 0]);
-    this.memory.add(result.literal);
     this.med = util.minEditDistance(this.word.literal, result.literal);
+    this.memory.add(result.literal);
     this.target = result;
     //console.log("WORD: ", this.word, "\nNEXT: ", this.target, "\nMED: ", this.med);
   }
@@ -62,16 +70,16 @@ class Automachar {
       if (!this.word.eraseStroke(this.targetCharIdx, this.targetPartIdx)) {
         // erasing done, now replace
         this.word = this.target;
-        this.word.hide();
+        this.word.hide(); // simplify
         this.word.show(this.targetCharIdx, this.targetPartIdx == 1 ? 0 : 1);
         this.word.show(this.targetCharIdx == 1 ? 0 : 1);
-        this.action = REPLACE_NEXT;
+        this.action = REPLACE_STROKE;
       } else {
         this.wordCompleteCallback(); // stroke change
       }
     }
 
-    if (this.action == REPLACE_NEXT) {
+    if (this.action == REPLACE_STROKE) {
       if (!this.word.nextStroke(this.targetCharIdx, this.targetPartIdx)) {
         this.wordCompleteCallback(this.word.literal, this.med);
         this.target = null;
@@ -97,6 +105,9 @@ class Automachar {
           let tchr = this.target.characters[i];
           //console.log('wchr',wchr);
           for (var j = 0; j < wchr.parts.length; j++) {
+
+            // check the number of strokes in each part
+            // if they don't match then this part needs updating
             if (wchr.cstrokes[j].length !== tchr.cstrokes[j].length) {
               this.targetPartIdx = j;
             }

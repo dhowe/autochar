@@ -42,8 +42,11 @@
 
     function next()
     {
-      typer.step(); // TODO: erase should be immediate
-      !test && (tid = setTimeout(next, random(300, 600)));
+      typer.step();
+      if (!test) {
+        // erases (0) should happen almost immediately
+        tid = setTimeout(next, typer.nextAction() ? random(300, 600) : 10);
+      }
     }
 
     function keyReleased()
