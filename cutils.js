@@ -218,11 +218,16 @@ class CharUtils {
 
     this.HistQ = HistQ; // class
     this.Word = Word; // class
-    this.charData = charData;
-    this.wordData = wordData;
+    this.wordData = wordData; // TODO: remove defs?
     this.wordCache = {};
+    this.prefillCache(charData);
     console.log("cutils[" + Object.keys(charData).length +
       "," + Object.keys(wordData).length + "]");
+  }
+
+  prefillCache(charData) {
+    let that = this;
+    Object.keys(this.wordData).forEach(function(lit){ that.getWord(lit, charData); });
   }
 
   bestEditDistance(literal, words, hist, minAllowed) { // todo: only store bestSoFar
@@ -318,19 +323,21 @@ class CharUtils {
     return Object.keys(this.wordCache).length;
   }
 
-  getWord(literal) {
+  getWord(literal, charData) {
 
     if (this.wordCache && this.wordCache.hasOwnProperty(literal)) {
       return this.wordCache[literal];
     }
 
+    if (typeof charData == 'undefined') throw Error('getWord: no charData');
+
     let chars = [];
     for (let i = 0; i < literal.length; i++) {
       if (literal[i] !== ' ') {
-        if (!this.charData.hasOwnProperty(literal[i])) {
+        if (!charData.hasOwnProperty(literal[i])) {
           throw Error('getWord() fail: ' + literal[i]);
         }
-        chars.push(this.charData[literal[i]]);
+        chars.push(charData[literal[i]]);
       } else {
         chars.push([]);
       }

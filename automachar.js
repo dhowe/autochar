@@ -1,16 +1,13 @@
 
-// NEXT: erase should be immediate
-// NEXT: alternative characters whenever possible
-// NEXT: alternative parts whenever possible ?
+// NEXT: sound
 
-// ENHANCEMENTS
-// sound
+// EXTRA:
 // 3rd character
 
 // OTHER: handle cases for med > 1 (need array of charIdx/partIdx?) *** ?
 // OTHER: timing inversely proportional to number of strokes ?
 
-// OPT: save decomposotions in Word, and unload chardata after use
+// OPT: save decompostions in Word, and unload chardata after use
 
 const REPLACE_ERASE = 0;
 const REPLACE_STROKE = 1;
@@ -56,19 +53,17 @@ class Automachar {
       throw Error('Died on ' + this.word.literal, this.word);
     }
 
-    // WORKING HERE
-    if (this.targetCharIdx > -1) {
+    if (this.targetCharIdx > -1) { // alternate characters when possible
       let ideals = [];
       let justChanged = this.word.literal[this.targetCharIdx];
-      console.log('justChanged', justChanged);
+      //console.log('justChanged', justChanged);
       for (var i = 0; i < opts.length; i++) {
         if (opts[i][this.targetCharIdx] === justChanged) {
           ideals.push(opts[i]);
         }
       }
-      console.log('opts  ', opts.length, JSON.stringify(ideals));
-      console.log('ideals', ideals.length, JSON.stringify(ideals));
-
+      //console.log('opts  ', opts.length, JSON.stringify(ideals));
+      //console.log('ideals', ideals.length, JSON.stringify(ideals));
       if (ideals.length) opts = ideals;
     }
 
