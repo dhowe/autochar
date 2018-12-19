@@ -10,6 +10,8 @@
 // OTHER: handle cases for med > 1 (need array of charIdx/partIdx?) *** ?
 // OTHER: timing inversely proportional to number of strokes ?
 
+// OPT: save decomposotions in Word, and unload chardata after use
+
 const REPLACE_ERASE = 0;
 const REPLACE_STROKE = 1;
 const DELETE_ACTION = 2;
@@ -54,10 +56,10 @@ class Automachar {
       throw Error('Died on ' + this.word.literal, this.word);
     }
 
-    /* WORKING HERE
+    // WORKING HERE
     for (var i = 0; i < bests.length; i++) {
-      bests[i][this.target]
-    }*/
+      //bests[i].literal[this.targetCharIdx];
+    }
 
     // TODO: for better-matching,
     // a) sort the best by stroke count, pick the closest (part of med?)

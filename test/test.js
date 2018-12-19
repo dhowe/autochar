@@ -332,14 +332,11 @@ describe('CharUtils: utility functions for characters', function () {
       let word = util.getWord('拒');
       let wstr = JSON.stringify(word);
       //console.log(wstr);
-      //expect(word.literal).to.equal('拒');
 
       let word2 = util.getWord('拒');
       let wstr2 = JSON.stringify(word2);
-      //console.log(wstr2);
+
       expect(wstr).to.equal(wstr2);
-      //return;
-      //console.log(word2.characters[0]);
       expect(word.literal).to.equal(word2.literal);
       expect(word.length).to.equal(word2.length);
       expect(word.characters.length).to.equal(word2.characters.length);

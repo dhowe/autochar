@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Automachar</title>
-  <script src="p5.js"></script>
-  <script src="../cutils.js"></script>
-  <script src="../automachar.js"></script>
+  <script src="node_modules/p5/lib/p5.min.js"></script>
+  <script src="cutils.js"></script>
+  <script src="automachar.js"></script>
   <script>
     var typer, word, tid, wmed='', def='';
     var showDefs = 1, showMed = 1;
@@ -14,8 +14,8 @@
 
     function preload()
     {
-      charData = loadJSON('../chardata.json');
-      wordData = loadJSON('../words-trad.json');
+      charData = loadJSON('chardata.json');
+      wordData = loadJSON('words-trad.json');
     }
 
     function setup()
