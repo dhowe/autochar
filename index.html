@@ -9,7 +9,7 @@
   <script src="automachar.js"></script>
   <script>
     var typer, word, tid, wmed='', def='';
-    var showDefs = 1, showMed = 1;
+    var showDefs = 1, showMed = 1, eraseSpeed = 35;
     var bg = 245, test = 0;
 
     function preload()
@@ -28,6 +28,7 @@
       typer = new Automachar(onActionComplete);
       word = typer.word.literal;
       def = showDefs ? util.definition(word) : '';
+      console.log("    -> " + word, def);
       next();
     }
 
@@ -44,23 +45,29 @@
     {
       typer.step();
       if (!test) {
-        // erases [action=0] should happen almost immediately
-        tid = setTimeout(next, typer.nextAction() ? random(400, 700) : 5);
+        if (typer.nextAction()) { // drawing
+          tid = setTimeout(next, random(400, 700));
+        }
+        else { // erasing
+          eraseSpeed ? (tid = setTimeout(next, eraseSpeed)) : next();
+        }
       }
     }
 
-    function keyReleasedDisabled()
+    function keyReleased()//Disabled()
     {
-      clearTimeout(tid);
-
-      if (key == ' ')
+      if (false && key == ' ')
       {
+        clearTimeout(tid);
         test = !test;
         if (!test)
         {
           next();
           loop();
         }
+      }
+      if (key == 's') {
+        eraseSpeed = eraseSpeed > 0 ? 0 : 35;
       }
     }
 

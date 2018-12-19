@@ -51,20 +51,32 @@ class Automachar {
 
   pickNextTarget() {
 
-    let bests = util.bestEditDistance(this.word.literal, null, this.memory);
-    if (!bests || !bests.length) {
+    let opts = util.bestEditDistance(this.word.literal, null, this.memory);
+    if (!opts || !opts.length) {
       throw Error('Died on ' + this.word.literal, this.word);
     }
 
     // WORKING HERE
-    for (var i = 0; i < bests.length; i++) {
-      //bests[i].literal[this.targetCharIdx];
+    if (this.targetCharIdx > -1) {
+      let ideals = [];
+      let justChanged = this.word.literal[this.targetCharIdx];
+      console.log('justChanged', justChanged);
+      for (var i = 0; i < opts.length; i++) {
+        if (opts[i][this.targetCharIdx] === justChanged) {
+          ideals.push(opts[i]);
+        }
+      }
+      console.log('opts  ', opts.length, JSON.stringify(ideals));
+      console.log('ideals', ideals.length, JSON.stringify(ideals));
+
+      if (ideals.length) opts = ideals;
     }
 
     // TODO: for better-matching,
     // a) sort the best by stroke count, pick the closest (part of med?)
     // b) favor those which change a different character/part
-    let result = util.getWord(bests[random(bests.length) << 0]);
+    let result = util.getWord(opts[random(opts.length) << 0]);
+
     this.med = util.minEditDistance(this.word.literal, result.literal);
     this.memory.add(result.literal);
     this.target = result;
@@ -82,6 +94,7 @@ class Automachar {
         this.word.show(this.targetCharIdx, this.targetPartIdx == 1 ? 0 : 1);
         this.word.show(this.targetCharIdx == 1 ? 0 : 1);
         this.action = REPLACE_STROKE;
+        return;
       } else {
         this.wordCompleteCallback(); // stroke change
       }

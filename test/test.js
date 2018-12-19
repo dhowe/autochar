@@ -332,7 +332,7 @@ describe('CharUtils: utility functions for characters', function () {
       let word = util.getWord('拒');
       let wstr = JSON.stringify(word);
       //console.log(wstr);
-
+      
       let word2 = util.getWord('拒');
       let wstr2 = JSON.stringify(word2);
 
