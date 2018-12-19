@@ -233,7 +233,7 @@ class CharUtils {
     //console.log('bestEditDistance: '+literal);
 
     let med, meds = [];
-    let dbg = 0;
+    let bestMed = Number.MAX_SAFE_INTEGER;
 
     for (let i = 0; i < words.length; i++) {
 
@@ -243,18 +243,19 @@ class CharUtils {
         continue;
       }
 
-      //console.log(i, words[i], literal.length, words[i].length, literal.length == words[i].length);
       med = this.minEditDistance(literal, words[i]);
 
-      //      if (med < minAllowed) continue;
+      //console.log(i, words[i], med, 'best='+bestMed);
 
+      if (med < minAllowed || med > bestMed) continue;
+
+      if (med < bestMed) bestMed = med;
       if (!meds[med]) meds[med] = [];
-
       meds[med].push(words[i]);
     }
 
     // return the best list
-    for (var i = minAllowed; i < meds.length; i++) {
+    for (var i = 0; i < meds.length; i++) {
       if (meds[i] && meds[i].length) return meds[i];
     }
 
