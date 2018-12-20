@@ -4,6 +4,9 @@
 
 // LATER:
 // include stroke-count in med ???
+if (typeof module != 'undefined' && process.versions.hasOwnProperty('electron')) {
+  var Tone = require("Tone");
+}
 
 const REPLACE_ERASE = 0;
 const REPLACE_STROKE = 1;
