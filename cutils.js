@@ -220,19 +220,22 @@ class CharUtils {
     this.Word = Word; // class
     this.wordData = wordData; // TODO: remove defs?
     this.wordCache = {};
-    console.log("cutils[" + Object.keys(charData).length +
-      "," + Object.keys(wordData).length + "]");
+
     if (!disablePrecache) {
       this.prefillCache(charData);
     } else {
       this.charData = charData;
     }
+    console.log('cutils[' + Object.keys(charData).length + ',' +
+      Object.keys(wordData).length + (disablePrecache ? ',nc]' : ',pf]'));
+
+    this.DEFCOL = [0, 0, 0];
   }
 
   prefillCache(charData) {
     let that = this;
     Object.keys(this.wordData).forEach(function (lit) { that.getWord(lit, charData); });
-    console.log('Cache prefilled with '+Object.keys(this.wordCache).length+' words');
+    //console.log('Cache prefilled with ' + Object.keys(this.wordCache).length + ' words');
   }
 
   bestEditDistance(literal, words, hist, minAllowed) { // todo: only store bestSoFar
@@ -336,7 +339,7 @@ class CharUtils {
 
     if (typeof charData == 'undefined') {
       if (!this.hasOwnProperty('charData')) {
-        throw Error('getWord: no charData for '+literal);
+        throw Error('getWord: no charData for ' + literal);
       }
       charData = this.charData;
     }
@@ -390,17 +393,17 @@ class CharUtils {
     return str;
   }
 
-  renderPath(word, charIdx, renderer, scale, yoff, hexcol) {
+  renderPath(word, charIdx, renderer, scale, yoff, rgb) {
 
     var char = word.characters[charIdx]; // anything to draw?
     if (char.parts[0] < 0 && char.parts[1] < 0) return;
 
-    if (typeof scale === 'undefined') scale = 1;
-    if (typeof hexcol === 'undefined') hexcol = '#000';
+    if (!rgb || rgb.length != 3) rgb = this.DEFCOL;
+    if (typeof scale == 'undefined') scale = 1;
 
     var pg = renderer || this._renderer;
     var ctx = pg.drawingContext;
-    ctx.fillStyle = hexcol;
+    ctx.fillStyle = 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
 
     for (var j = 0; j < char.paths.length; j++) {
       for (var i = 0; i < char.paths[j].length; i++) {

@@ -5,26 +5,47 @@
   <meta charset="UTF-8">
   <title>Automachar</title>
   <script src="node_modules/p5/lib/p5.min.js"></script>
+  <script src="node_modules/p5/lib/addons/p5.sound.js"></script>
   <script src="cutils.js"></script>
   <script src="automachar.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css">
   <script>
-    var typer, word, tid, wmed='', def='';
-    var showDefs = 1, showMed = 1, eraseSpeed = 0;
-    var bg = 245, test = 0;
+    var bell, conf, typer, word, tid, strokes = [];
+    var wmed = '';
+    var def = '';
+    var showDefs = 1;
+    var showMed = 1;
+    var doSound = 1;
+    var invertText = 0;
+    var eraseSpeed = 0;
+    var bgcol = [245, 245, 245];
+    var hitcol = [0, 0, 0];
+    var txtcol = [0, 0, 0];
+    var rgb = [0, 0, 0];
 
     function preload()
     {
+      if (doSound)
+      {
+        bell = loadSound("res/chime.wav");
+        for (var i = 0; i <= 45; i++)
+        {
+          strokes[i] = loadSound('wav/stroke' + i + '.wav');
+        }
+      }
       charData = loadJSON('chardata.json');
       wordData = loadJSON('words-trad.json');
+      conf = loadJSON('config.json');
     }
 
     function setup()
     {
       createCanvas(680, 490);
+      parseconf();
       textAlign(CENTER);
       textSize(14);
 
-      util = new CharUtils(charData, wordData);
+      util = new CharUtils(charData, wordData,1);
       typer = new Automachar(onActionComplete);
       word = typer.word.literal;
       def = showDefs ? util.definition(word) : '';
@@ -34,40 +55,24 @@
 
     function draw()
     {
-      background(bg < 245 ? bg += 5 : bg);
-      typer.draw(this._renderer, toHex(255 - bg));
+      adjustColor();
+      background(rgb[0], rgb[1], rgb[2]);
+      typer.draw(this._renderer, txtcol);
       showDefs && text(def, width / 2, height - 10);
       showMed && text(wmed, width - 10, 15);
-      test && noLoop();
     }
 
     function next()
     {
       typer.step();
-      if (!test) {
-        if (typer.nextAction()) { // drawing
-          tid = setTimeout(next, random(400, 700));
-        }
-        else { // erasing
-          eraseSpeed ? (tid = setTimeout(next, eraseSpeed)) : next();
-        }
-      }
-    }
 
-    function keyReleased()//Disabled()
-    {
-      if (false && key == ' ')
-      {
-        clearTimeout(tid);
-        test = !test;
-        if (!test)
-        {
-          next();
-          loop();
-        }
+      if (typer.nextAction())
+      { // drawing
+        tid = setTimeout(next, 200); //random(400, 700));
       }
-      if (key == 's') {
-        eraseSpeed = eraseSpeed > 0 ? 0 : 35;
+      else
+      { // erasing
+        eraseSpeed ? (tid = setTimeout(next, eraseSpeed)) : next();
       }
     }
 
@@ -75,29 +80,74 @@
     {
       if (next)
       {
-        if (!test) bg = 0;
-        //bell.play();
+        for (var i = 0; i < rgb.length; i++)
+        {
+          rgb[i] = hitcol[i];
+          if (!invertText) txtcol[i] = 255;
+        }
+
+        doSound && bell.play(0, random(.6, .9), random(.5, .8));
         if (showDefs) def = util.definition(next);
+
         console.log(word + " -> " + next, med, def);
+
         wmed = med;
         word = next;
       }
       else
       {
-        //type.play();
+        // delay, rate, amp, cue, duration
+        doSound && strokes[random(strokes.length) << 0]
+          .play(0, random(.6, .9), random(.05, .3), 0, random(.01, 0.1));
       }
     }
 
-    function toHex(gs)
+    function keyReleased()
     {
-      var c = hex(gs, 2);
-      return "#" + c + c + c;
+      if (false && key == ' ')
+      {
+        clearTimeout(tid);
+      }
+      if (key == 's')
+      {
+        eraseSpeed = eraseSpeed > 0 ? 0 : 35;
+      }
     }
 
+    function adjustColor()
+    {
+      for (var i = 0; i < rgb.length; i++)
+      {
+        if (rgb[i] < bgcol[i] - 1) rgb[i] = lerp(rgb[i], bgcol[i], .05);
+        if (invertText)
+        {
+          txtcol[i] = 255 - floor(rgb[i]);
+        }
+        else
+        {
+          if (txtcol[i] > 0) txtcol[i] -= 5;
+        }
+      }
+    }
+
+    function parseconf()
+    {
+      if (conf)
+      {
+        if (conf.bgcol && conf.bgcol.length == 3) bgcol = conf.bgcol;
+        if (conf.hitcol && conf.hitcol.length == 3) hitcol = conf.hitcol;
+      }
+      for (var i = 0; i < rgb.length; i++)
+      {
+        rgb[i] = bgcol[i];
+        if (invertText) txtcol[i] = 255 - rgb[i];
+      }
+    }
   </script>
 </head>
 
 <body>
+  click for sound, type 's' to toggle slow-erase
 </body>
 
 </html>

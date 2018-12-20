@@ -1,6 +1,3 @@
-
-// NEXT: sound
-
 // EXTRA:
 // 3rd character
 
@@ -29,17 +26,16 @@ class Automachar {
     this.memory.add(this.word.literal);
   }
 
-  draw(renderer, hexcol) {
+  draw(renderer, rgb) {
 
-    this.renderWord(this.word, renderer, .65, 30, hexcol);
+    this.renderWord(this.word, renderer, .65, 30, rgb);
   }
 
   step() {
     if (!this.target) {
       this.pickNextTarget();
       this.findEditIndices();
-    }
-    else {
+    } else {
       this.doNextEdit();
     }
   }
@@ -91,7 +87,7 @@ class Automachar {
         this.action = REPLACE_STROKE;
         return;
       } else {
-        this.wordCompleteCallback(); // stroke change
+        //this.wordCompleteCallback(); // stroke change
       }
     }
 
@@ -135,19 +131,19 @@ class Automachar {
       this.action = INSERT_ACTION; // TODO
 
     } else if (this.target.length < this.word.length) {
-      this.action = DELETE_ACTION;  // TODO
+      this.action = DELETE_ACTION; // TODO
     }
 
     //console.log('target=' + this.target.literal[this.targetCharIdx]
     //+', charIdx=' + this.targetCharIdx + ', pIdx=' + this.targetPartIdx);
   }
 
-  renderWord(word, renderer, scale, yoff, hexcol) {
+  renderWord(word, renderer, scale, yoff, rgb) {
 
     if (word.characters) {
       for (var i = 0; i < word.characters.length; i++) {
         if (word.literal[i] !== ' ')
-          util.renderPath(word, i, renderer, scale, yoff, hexcol);
+          util.renderPath(word, i, renderer, scale, yoff, rgb);
       }
     }
   }
