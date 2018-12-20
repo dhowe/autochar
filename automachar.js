@@ -1,10 +1,9 @@
-// EXTRA:
-// 3rd character
+// TODO:
+// timing inversely proportional to number of strokes
+// 3rd character ??
 
-// OTHER: handle cases for med > 1 (need array of charIdx/partIdx?) *** ?
-// OTHER: timing inversely proportional to number of strokes ?
-
-// OPT: save decompostions in Word, and unload chardata after use
+// LATER:
+// include stroke-count in med ???
 
 const REPLACE_ERASE = 0;
 const REPLACE_STROKE = 1;

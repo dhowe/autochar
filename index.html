@@ -29,9 +29,7 @@
       {
         bell = new Tone.Player("res/chime.wav").toMaster();
         for (var i = 0; i <= 45; i++)
-        {
           strokes[i] = new Tone.Player('wav/stroke' + i + '.wav').toMaster();
-        }
       }
       charData = loadJSON('chardata.json');
       wordData = loadJSON('words-trad.json');
@@ -40,12 +38,11 @@
 
     function setup()
     {
-      console.log(bell);
       createCanvas(680, 490);
       textAlign(CENTER);
       textSize(14);
 
-      util = new CharUtils(charData, wordData,1);
+      util = new CharUtils(charData, wordData, 1);
       typer = new Automachar(onActionComplete);
       parseConf();
 
@@ -89,7 +86,8 @@
         }
 
         //doSound && bell.play(0, random(.6, .9), random(.5, .8));
-        if (doSound) {
+        if (doSound)
+        {
           bell.playbackRate = random(.6, .9);
           bell.volume.value = random(.7, 1);
           bell.restart();
@@ -105,26 +103,21 @@
       {
         // delay, rate, amp, cue, duration
         //doSound && strokes[random(strokes.length) << 0]
-          //.play(0, random(.6, .9), random(.05, .3), 0, random(.01, 0.1));
-        if (doSound) {
+        //.play(0, random(.6, .9), random(.05, .3), 0, random(.01, 0.1));
+        if (doSound)
+        {
           var stroke = strokes[random(strokes.length) << 0];
           stroke.playbackRate = random(.5, .8);
           stroke.volume.value = -10;
-          stroke.restart(undefined,0,random(.05,.1));//.05, 0.1));
+          stroke.restart(undefined, 0, random(.05, .1)); //.05, 0.1));
         }
       }
     }
 
     function keyReleased()
     {
-      if (false && key == ' ')
-      {
-        clearTimeout(tid);
-      }
-      if (key == 's')
-      {
-        eraseSpeed = eraseSpeed > 0 ? 0 : 35;
-      }
+      if (false && key == ' ') clearTimeout(tid);
+      if (key == 's') eraseSpeed = eraseSpeed > 0 ? 0 : 35;
     }
 
     function adjustColor()
@@ -133,13 +126,9 @@
       {
         if (rgb[i] < bgcol[i] - 1) rgb[i] = lerp(rgb[i], bgcol[i], .05);
         if (invertText)
-        {
           txtcol[i] = 255 - floor(rgb[i]);
-        }
         else
-        {
           if (txtcol[i] > 0) txtcol[i] -= 5;
-        }
       }
     }
 
@@ -147,24 +136,20 @@
     {
       if (conf)
       {
-        if (conf.bgcol && conf.bgcol.length == 3) {
+        if (conf.bgcol && conf.bgcol.length == 3)
+        {
           bgcol = conf.bgcol;
-          console.log('config.bgcol: '+bgcol);
+          console.log('config.bgcol: ' + bgcol);
         }
-        else {
-          console.log('default.bgcol: '+hitcol);
+        else console.log('default.bgcol: ' + hitcol);
 
+        if (conf.hitcol && conf.hitcol.length == 3)
+        {
+          console.log('config.hitcol: ' + hitcol);
         }
-        if (conf.hitcol && conf.hitcol.length == 3) {
-          console.log('config.hitcol: '+hitcol);
-        }
-        else {
-          console.log('default.hitcolor: '+hitcol);
-        }
+        else console.log('default.hitcolor: ' + hitcol);
       }
-      else {
-        console.log('config: not found!');
-      }
+
       for (var i = 0; i < rgb.length; i++)
       {
         rgb[i] = bgcol[i];
