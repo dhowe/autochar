@@ -5,12 +5,12 @@
   <meta charset="UTF-8">
   <title>Automachar</title>
   <script src="node_modules/p5/lib/p5.min.js"></script>
-  <script src="node_modules/p5/lib/addons/p5.sound.js"></script>
+  <script src="node_modules/p5/lib/addons/p5.sound.min.js"></script>
   <script src="cutils.js"></script>
   <script src="automachar.js"></script>
   <link rel="stylesheet" type="text/css" href="style.css">
   <script>
-    var bell, conf, typer, word, tid, strokes = [];
+    var bell, typer, conf, word, tid, strokes = [];
     var wmed = '';
     var def = '';
     var showDefs = 1;
@@ -41,12 +41,13 @@
     function setup()
     {
       createCanvas(680, 490);
-      parseconf();
       textAlign(CENTER);
       textSize(14);
 
       util = new CharUtils(charData, wordData,1);
       typer = new Automachar(onActionComplete);
+      parseConf();
+
       word = typer.word.literal;
       def = showDefs ? util.definition(word) : '';
       console.log("    -> " + word, def);
@@ -130,12 +131,27 @@
       }
     }
 
-    function parseconf()
+    function parseConf()
     {
       if (conf)
       {
-        if (conf.bgcol && conf.bgcol.length == 3) bgcol = conf.bgcol;
-        if (conf.hitcol && conf.hitcol.length == 3) hitcol = conf.hitcol;
+        if (conf.bgcol && conf.bgcol.length == 3) {
+          bgcol = conf.bgcol;
+          console.log('config.bgcol: '+bgcol);
+        }
+        else {
+          console.log('default.bgcol: '+hitcol);
+
+        }
+        if (conf.hitcol && conf.hitcol.length == 3) {
+          console.log('config.hitcol: '+hitcol);
+        }
+        else {
+          console.log('default.hitcolor: '+hitcol);
+        }
+      }
+      else {
+        console.log('config: not found!');
       }
       for (var i = 0; i < rgb.length; i++)
       {

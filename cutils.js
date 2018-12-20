@@ -226,7 +226,7 @@ class CharUtils {
     } else {
       this.charData = charData;
     }
-    console.log('cutils[' + Object.keys(charData).length + ',' +
+    console.log('cUtils[' + Object.keys(charData).length + ',' +
       Object.keys(wordData).length + (disablePrecache ? ',nc]' : ',pf]'));
 
     this.DEFCOL = [0, 0, 0];
