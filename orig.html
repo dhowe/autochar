@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <title>autochar</title>
   <script src="node_modules/p5/lib/p5.min.js"></script>
-  <script src="node_modules/tone/build/Tone.min.js"></script>
+  <script src="node_modules/p5/lib/addons/p5.sound.min.js"></script>
   <script src="cutils.js"></script>
   <script src="automachar.js"></script>
   <link rel="stylesheet" type="text/css" href="style.css">
@@ -27,10 +27,10 @@
     {
       if (doSound)
       {
-        bell = new Tone.Player("res/chime.wav").toMaster();
+        bell = loadSound("res/chime.wav");
         for (var i = 0; i <= 45; i++)
         {
-          strokes[i] = new Tone.Player('wav/stroke' + i + '.wav').toMaster();
+          strokes[i] = loadSound('wav/stroke' + i + '.wav');
         }
       }
       charData = loadJSON('chardata.json');
@@ -40,7 +40,6 @@
 
     function setup()
     {
-      console.log(bell);
       createCanvas(680, 490);
       textAlign(CENTER);
       textSize(14);
@@ -70,7 +69,7 @@
 
       if (typer.nextAction())
       { // drawing
-        tid = setTimeout(next, random(300, 600));
+        tid = setTimeout(next, 200); //random(400, 700));
       }
       else
       { // erasing
@@ -88,12 +87,7 @@
           if (!invertText) txtcol[i] = 255;
         }
 
-        //doSound && bell.play(0, random(.6, .9), random(.5, .8));
-        if (doSound) {
-          bell.playbackRate = random(.6, .9);
-          bell.volume.value = random(.7, 1);
-          bell.restart();
-        }
+        doSound && bell.play(0, random(.6, .9), random(.5, .8));
         if (showDefs) def = util.definition(next);
 
         console.log(word + " -> " + next, med, def);
@@ -104,14 +98,8 @@
       else
       {
         // delay, rate, amp, cue, duration
-        //doSound && strokes[random(strokes.length) << 0]
-          //.play(0, random(.6, .9), random(.05, .3), 0, random(.01, 0.1));
-        if (doSound) {
-          var stroke = strokes[random(strokes.length) << 0];
-          stroke.playbackRate = random(.5, .8);
-          stroke.volume.value = -10;
-          stroke.restart(undefined,0,random(.05,.1));//.05, 0.1));
-        }
+        doSound && strokes[random(strokes.length) << 0]
+          .play(0, random(.6, .9), random(.05, .3), 0, random(.01, 0.1));
       }
     }
 
@@ -179,4 +167,3 @@
 </body>
 
 </html>
-5

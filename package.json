@@ -24,7 +24,8 @@
   "homepage": "https://github.com/dhowe/Automachar#readme",
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^5.2.0"
+    "mocha": "^5.2.0",
+    "tone": "^0.12.80"
   },
   "optionalDependencies": {
     "electron": "^3.0.11"
