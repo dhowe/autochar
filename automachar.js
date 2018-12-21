@@ -1,11 +1,14 @@
+// NEXT: node,npm,electron on rpi
+
 // TODO:
-// timing inversely proportional to number of strokes
+// BUG: Zero-th stroke of new character has no sound
+  //(should draw the first character at same time as adjusting the other part);
 // 3rd character ??
 
 // LATER:
 // include stroke-count in med ???
 if (typeof module != 'undefined' && process.versions.hasOwnProperty('electron')) {
-  var Tone = require("Tone");
+  Tone = require("Tone");
 }
 
 const REPLACE_ERASE = 0;
@@ -15,17 +18,19 @@ const INSERT_ACTION = 3;
 
 class Automachar {
 
-  constructor(callback) {
+  constructor(wordCompleteCB, nextTargetCB) {
 
     this.tid = -1;
     this.med = -1;
     this.target = null;
     this.targetCharIdx = -1;
     this.targetPartIdx = -1;
+    this.currentStrokeCount = 0;
     this.word = util.randWord(2);
-    this.wordCompleteCallback = callback;
     this.memory = new util.HistQ(10);
     this.memory.add(this.word.literal);
+    this.wordCompleteCallback = wordCompleteCB;
+    this.nextTargetCallback = nextTargetCB;
   }
 
   draw(renderer, rgb) {
@@ -33,16 +38,21 @@ class Automachar {
     this.renderWord(this.word, renderer, .65, 30, rgb);
   }
 
+  // returns the next action to be done
   step() {
+
     if (!this.target) {
       this.pickNextTarget();
       this.findEditIndices();
-    } else {
-      this.doNextEdit();
+      if (this.nextTargetCallback) {
+        this.nextTargetCallback(this.target.literal, this.currentStrokeCount);
+      }
     }
-  }
 
-  nextAction() { return this.action; }
+    this.doNextEdit();
+
+    return this.action;
+  }
 
   pickNextTarget() {
 
@@ -78,7 +88,6 @@ class Automachar {
 
   doNextEdit() {
 
-    //console.log('doNextEdit',this.action);
     if (this.action == REPLACE_ERASE) {
       if (!this.word.eraseStroke(this.targetCharIdx, this.targetPartIdx)) {
         // erasing done, now replace
@@ -87,18 +96,17 @@ class Automachar {
         this.word.show(this.targetCharIdx, this.targetPartIdx == 1 ? 0 : 1);
         this.word.show(this.targetCharIdx == 1 ? 0 : 1);
         this.action = REPLACE_STROKE;
-        return;
-      } else {
-        //this.wordCompleteCallback(); // stroke change
+        //return;
       }
+      // else this.wordCompleteCallback(); // erase stroke change
     }
 
     if (this.action == REPLACE_STROKE) {
-      if (!this.word.nextStroke(this.targetCharIdx, this.targetPartIdx)) {
-        this.wordCompleteCallback(this.word.literal, this.med);
+      if (this.word.nextStroke(this.targetCharIdx, this.targetPartIdx)) {
+        this.wordCompleteCallback(); // draw stroke change
+      } else { // flash
+        this.wordCompleteCallback(this.word.literal, this.med); // word change
         this.target = null;
-      } else {
-        this.wordCompleteCallback(); // stroke change
       }
     }
   }
@@ -124,10 +132,18 @@ class Automachar {
             // if they don't match then this part needs updating
             if (wchr.cstrokes[j].length !== tchr.cstrokes[j].length) {
               this.targetPartIdx = j;
+
+              // compute the number of strokes that need to be drawn
+              if (j < 0) console.log('***pidx=' + j, this.word.literal, this.med);
+              if (i > -1 && j > -1) {
+                this.currentStrokeCount = tchr.paths[j].length;
+              }
             }
           }
         }
       }
+
+      //console.log('strokes: '+this.currentStrokeCount);
 
     } else if (this.target.length > this.word.length) {
       this.action = INSERT_ACTION; // TODO

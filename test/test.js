@@ -20,7 +20,7 @@ describe('Word', function () {
     }
 
     expect(word.characters[0].matches.length).to.equal
-      (word.characters[0].cstrokes[0].length+word.characters[0].cstrokes[1].length);
+      (word.characters[0].cstrokes[0].length + word.characters[0].cstrokes[1].length);
     expect(word.characters[0].cstrokes.length).to.equal(2);
     expect(word.characters[0].parts.length).to.equal(2);
 

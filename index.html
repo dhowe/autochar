@@ -18,6 +18,7 @@
     var doSound = 1;
     var invertText = 0;
     var eraseSpeed = 0;
+    var strokeDelay = 300;
     var bgcol = [245, 245, 245];
     var hitcol = [0, 0, 0];
     var txtcol = [0, 0, 0];
@@ -43,7 +44,7 @@
       textSize(14);
 
       util = new CharUtils(charData, wordData, 1);
-      typer = new Automachar(onActionComplete);
+      typer = new Automachar(onActionComplete, onNextTarget);
       parseConf();
 
       word = typer.word.literal;
@@ -63,16 +64,22 @@
 
     function next()
     {
-      typer.step();
-
-      if (typer.nextAction())
+      if (typer.step())
       { // drawing
-        tid = setTimeout(next, random(300, 600));
+        tid = setTimeout(next, strokeDelay); //random(300, 600));
       }
       else
       { // erasing
         eraseSpeed ? (tid = setTimeout(next, eraseSpeed)) : next();
       }
+    }
+
+    function onNextTarget(next, numStrokes)
+    {
+      var numStrokes = typer.currentStrokeCount;
+      var nSpeed = min(1, numStrokes / 12);
+      strokeDelay = map(nSpeed, 0, 1, 1000, 200);
+      //console.log(numStrokes, nSpeed, strokeDelay);
     }
 
     function onActionComplete(next, med)
@@ -85,13 +92,9 @@
           if (!invertText) txtcol[i] = 255;
         }
 
-        //doSound && bell.play(0, random(.6, .9), random(.5, .8));
-        if (doSound)
-        {
-          bell.playbackRate = random(.6, .9);
-          bell.volume.value = random(.7, 1);
-          bell.restart();
-        }
+        playStroke(true);
+        playBell()
+
         if (showDefs) def = util.definition(next);
 
         console.log(word + " -> " + next, med, def);
@@ -101,16 +104,30 @@
       }
       else
       {
-        // delay, rate, amp, cue, duration
-        //doSound && strokes[random(strokes.length) << 0]
-        //.play(0, random(.6, .9), random(.05, .3), 0, random(.01, 0.1));
-        if (doSound)
-        {
-          var stroke = strokes[random(strokes.length) << 0];
-          stroke.playbackRate = random(.5, .8);
-          stroke.volume.value = -10;
-          stroke.restart(undefined, 0, random(.05, .1)); //.05, 0.1));
-        }
+        playStroke();
+      }
+    }
+
+    function playBell() {
+      //doSound && bell.play(0, random(.6, .9), random(.5, .8));
+      if (doSound)
+      {
+        bell.playbackRate = random(.6, .9);
+        bell.volume.value = random(.7, 1);
+        bell.restart();
+      }
+    }
+
+    function playStroke(quiet) {
+      // delay, rate, amp, cue, duration
+      //doSound && strokes[random(strokes.length) << 0]
+      //.play(0, random(.6, .9), random(.05, .3), 0, random(.01, 0.1));
+      if (doSound)
+      {
+        var stroke = strokes[random(strokes.length) << 0];
+        stroke.playbackRate = random(.5, .8);
+        stroke.volume.value = quiet ? -20 : -10;
+        stroke.restart(undefined, 0, random(.1, .2)); //.05, 0.1));
       }
     }
 
@@ -128,7 +145,7 @@
         if (invertText)
           txtcol[i] = 255 - floor(rgb[i]);
         else
-          if (txtcol[i] > 0) txtcol[i] -= 5;
+        if (txtcol[i] > 0) txtcol[i] -= 5;
       }
     }
 

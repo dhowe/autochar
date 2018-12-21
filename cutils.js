@@ -94,7 +94,7 @@ class Word {
     //(chr.parts[partIdx]+1)+"/"+(chr.cstrokes[partIdx].length)); // keep
 
     return (++this.characters[charIdx].parts[partIdx] <
-      this.characters[charIdx].cstrokes[partIdx].length);
+      this.characters[charIdx].cstrokes[partIdx].length-1);
   }
 
   constrain(n, low, high) { return Math.max(Math.min(n, high), low); }
