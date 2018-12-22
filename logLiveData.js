@@ -2,7 +2,7 @@ if (typeof Path2D == 'undefined') Path2D = (class Path2DMock {});
 
 let fs = require('fs');
 let util = require('./cutils');
-let Automachar = require('./automachar');
+let Autochar = require('./autochar');
 
 let chars = JSON.parse(fs.readFileSync("chardata.json", 'utf8'));
 let trad = JSON.parse(fs.readFileSync('words-trad.json', 'utf8'));
@@ -40,5 +40,5 @@ step = function () {
   }
 }
 
-typer = new Automachar(util, onActionComplete);
+typer = new Autochar(util, onActionComplete);
 step();

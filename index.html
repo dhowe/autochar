@@ -8,7 +8,7 @@
   <script src="node_modules/tone/build/Tone.min.js"></script>
   <script src="node_modules/fast-levenshtein/levenshtein.js"></script>
   <script src="cutils.js"></script>
-  <script src="automachar.js"></script>
+  <script src="autochar.js"></script>
   <link rel="stylesheet" type="text/css" href="style.css">
   <script>
     function preload()
@@ -32,7 +32,7 @@
       textSize(14);
 
       util = new CharUtils(chars, trad, simp, Levenshtein, showDefs, 'traditional');
-      typer = new Automachar(util, onActionComplete, onNextTarget);
+      typer = new Autochar(util, onActionComplete, onNextTarget);
       parseConf();
 
       memt = millis() - 15000;
@@ -66,7 +66,7 @@
 
     function onNextTarget(next, numStrokes, trigger)
     {
-      trigger && console.log('onNextTarget',trigger);
+      //trigger && console.log('onNextTarget',trigger);
       triggered = trigger;
       var numStrokes = typer.currentStrokeCount;
       var nSpeed = min(1, numStrokes / 12);
@@ -90,7 +90,6 @@
 
         word = next.literal;
 
-        if (triggered) console.log('trigger -> '+false);
         triggered = false;
       }
       else

@@ -14,7 +14,7 @@ const REPLACE_STROKE = 1;
 const DELETE_ACTION = 2;
 const INSERT_ACTION = 3;
 
-class Automachar {
+class Autochar {
 
   constructor(util, wordCompleteCB, nextTargetCB) {
 
@@ -200,4 +200,4 @@ class Automachar {
 
 const TRIGGERS = '習习審审國国門门產产藝艺罰罚監监獄狱網网腦脑書书報报傳传黨党強强憲宪劉刘曉晓隸隶臉脸權权規规條条夢梦變变禮礼競竞爭争對对優优彎弯歷历復复萬万歲岁錯错謬谬惡恶壞坏愛爱護护衛卫華华賣卖讀读學学認认識识問问檢检驗验戰战鬥斗撥拨錢钱幣币異异雜杂亂乱歸归經经濟济';
 
-if (typeof module != 'undefined') module.exports = Automachar;
+if (typeof module != 'undefined') module.exports = Autochar;
