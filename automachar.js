@@ -1,4 +1,5 @@
 // NEXT: node,npm,electron on rpi
+let count = 0;
 
 // TODO:
 //   3rd character
@@ -77,21 +78,26 @@ class Automachar {
 
     let result;
     let triggered = false;
-    if (!this.memory.contains('trigger')) {
-      for (var i = 0; i < opts.length; i++) {
-        var cand = opts[i];
-        for (var j = 0; j < cand.length; j++) {
-          var char = cand[j];
-          if (TRIGGERS.indexOf(char) > -1) {
-            result = this.util.getWord(cand);
-            console.log('trigger: "'+char+'" in "' + result.literal + '"');
-            this.util.toggleLang();
-            triggered = true;
-            this.triggers++;
-            break;
+
+  // if (++count == 3) {
+  //    // TMP
+  //     opts[0] = '分曉';
+  //     console.log('forced trigger');
+
+      if (!this.memory.contains('trigger')) {
+        OUT: for (var i = 0; i < opts.length; i++) {
+          var cand = opts[i];
+          for (var j = 0; j < cand.length; j++) {
+            var char = cand[j];
+            if (TRIGGERS.indexOf(char) > -1) {
+              result = this.util.getWord(cand);
+              triggered = true;
+              this.triggers++;
+              break OUT;
+            }
           }
         }
-      }
+      //}
     }
     //else console.log('skip-trigger-check');
 
@@ -101,7 +107,11 @@ class Automachar {
     this.memory.add(result.literal);
     this.target = result;
 
-    if (triggered) this.memory.add('trigger');
+    if (triggered) {
+      console.log('trigger: "' + char + '" in "' + result.literal + '"');
+      this.util.toggleLang();
+      this.memory.add('trigger');
+    }
 
     return triggered;
     //console.log("WORD: ", this.word, "\nNEXT: ", this.target, "\nMED: ", this.med);

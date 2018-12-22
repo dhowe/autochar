@@ -64,12 +64,13 @@
       }
     }
 
-    function onNextTarget(next, numStrokes, triggered)
+    function onNextTarget(next, numStrokes, trigger)
     {
+      trigger && console.log('onNextTarget',trigger);
+      triggered = trigger;
       var numStrokes = typer.currentStrokeCount;
       var nSpeed = min(1, numStrokes / 12);
       strokeDelay = map(nSpeed, 0, 1, 1000, 200);
-      if (triggered) console.log('handle-trigger!');
       //console.log(numStrokes, nSpeed, strokeDelay);
     }
 
@@ -87,20 +88,23 @@
 
         console.log(word + " -> " + next.literal, wmed, def);
 
-
         word = next.literal;
+
+        if (triggered) console.log('trigger -> '+false);
+        triggered = false;
       }
       else
       {
         playStroke();
       }
+
     }
 
     function flashColors()
     {
       for (var i = 0; i < rgb.length; i++)
       {
-        rgb[i] = hitcol[i];
+        rgb[i] = triggered ? trgcol[i] : hitcol[i];
         if (!invertText) txtcol[i] = 255;
       }
     }
@@ -141,11 +145,12 @@
     {
       for (var i = 0; i < rgb.length; i++)
       {
-        if (rgb[i] < bgcol[i] - 1) rgb[i] = lerp(rgb[i], bgcol[i], .05);
-        if (invertText)
-          txtcol[i] = 255 - floor(rgb[i]);
-        else
-        if (txtcol[i] > 0) txtcol[i] -= 5;
+        if (rgb[i] < bgcol[i] - 1)
+        {
+          rgb[i] = lerp(rgb[i], bgcol[i], .05);
+        }
+        if (invertText) txtcol[i] = 255 - floor(rgb[i]);
+        else if (txtcol[i] > 0) txtcol[i] -= 5;
       }
     }
 
@@ -169,13 +174,19 @@
           bgcol = conf.bgcol;
           console.log('config.bgcol: ' + bgcol);
         }
-        else console.log('default.bgcol: ' + hitcol);
+        else console.log('default.bgcol: ' + bgcol);
 
         if (conf.hitcol && conf.hitcol.length == 3)
         {
           console.log('config.hitcol: ' + hitcol);
         }
         else console.log('default.hitcolor: ' + hitcol);
+
+        if (conf.trgcol && conf.trgcol.length == 3)
+        {
+          console.log('config.trgcol: ' + trgcol);
+        }
+        else console.log('default.trgcol: ' + trgcol);
       }
 
       for (var i = 0; i < rgb.length; i++)
@@ -191,20 +202,21 @@
     var def = '';
     var showDefs = 0;
     var showMed = 1;
-    var doSound = 1;
+    var doSound = 0;
     var doPerf = 1;
     var invertText = 0;
     var eraseSpeed = 0;
+    var triggered = 0;
     var strokeDelay = 300;
     var bgcol = [245, 245, 245];
     var hitcol = [0, 0, 0];
     var txtcol = [0, 0, 0];
+    var trgcol = [150, 0, 0];
     var rgb = [0, 0, 0];
   </script>
 </head>
 
 <body>
-  click for sound, type 's' to toggle slow-erase
 </body>
 
 </html>
