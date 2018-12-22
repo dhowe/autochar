@@ -16,6 +16,7 @@ console.log('Loaded '+keys.length+' words (med<='+maxAllowedMed+')');
 
 function minEditDist(l1, l2) {
   var cost = Math.max(0, memMED(l1, l2) - 1);
+  if (cost > maxAllowedMed) return Number.MAX_SAFE_INTEGER;;
   let e1 = util.getWord(l1).toEditStr();
   let e2 = util.getWord(l2).toEditStr();
   //console.log('minEditDistance', e1, 'vs', e2, cost);
