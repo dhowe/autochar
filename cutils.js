@@ -2,12 +2,12 @@ const BLACK = [0, 0, 0]; // BLACK
 
 class Word {
 
-  constructor(literal, chars, def, levenshtein) {
+  constructor(literal, chars, definition, levenshtein) {
 
     this.literal = literal;
     this.characters = chars;
     this.length = literal.length;
-    this.definition = def || '---';
+    this.definition = definition;
     this.editString = this.computeEditString();
     this.characters.forEach(this.computeParts); // 2-parts-per-char
     this.characters.forEach(this.computeStrokes); // strokes-per-path
@@ -218,7 +218,7 @@ class Word {
 
 class CharUtils {
 
-  constructor(charData, tradData, simpData, levenshtein, lang) {
+  constructor(charData, tradData, simpData, levenshtein, defs, lang) {
 
     this.lang = lang !== 'simplified' ? 'traditional' : lang;
 
@@ -226,8 +226,8 @@ class CharUtils {
     this.Word = Word; // class
     this.wordCache = {};
 
-    this.prefillCache(charData, (this.tradData = tradData));
-    this.prefillCache(charData, (this.simpData = simpData));
+    this.prefillCache(charData, (this.tradData = tradData), defs);
+    this.prefillCache(charData, (this.simpData = simpData), defs);
     //console.log("simp",simpData.length, this.simpData.length);
 
     this.language(lang);
@@ -236,7 +236,7 @@ class CharUtils {
     if (!levenshtein) throw Error('no levenshtein impl');
 
     console.log('cUtils[' + Object.keys(charData).length + ',' +
-      Object.keys(this.wordCache).length + '] '+this.lang);
+      Object.keys(this.wordCache).length + '] ' + this.lang);
   }
 
   toggleLang() {
@@ -253,16 +253,17 @@ class CharUtils {
           console.warn('[WARN] No simplified data, call ignored!');
         }
       }
-      console.log('Language: '+this.lang);
+      console.log('Language: ' + this.lang);
     }
     return type ? this : this.lang;
   }
 
-  prefillCache(chars, words) {
+  prefillCache(chars, words, useDefinitions) {
     if (words) {
       let that = this;
       Object.keys(words).forEach(function (lit) {
-        that.wordCache[lit] = that._createWord(lit, chars, words[lit]);
+        that.wordCache[lit] = that._createWord(lit, chars,
+            useDefinitions ? words[lit] : undefined);
       });
     }
   }
@@ -484,10 +485,15 @@ class HistQ {
 }
 
 if (typeof module != 'undefined') {
+
+  let useDefs = false;
+  let lang = 'traditional';
   let fs = require("fs");
   let lev = require('fast-levenshtein');
+
   module.exports = new CharUtils(
     JSON.parse(fs.readFileSync('chardata.json', 'utf8')),
     JSON.parse(fs.readFileSync('words-trad.json', 'utf8')),
-    JSON.parse(fs.readFileSync('words-simp.json', 'utf8')), 0, lev);
+    JSON.parse(fs.readFileSync('words-simp.json', 'utf8')),
+    lev, useDefs, lang);
 }

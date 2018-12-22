@@ -31,14 +31,13 @@
       textAlign(CENTER);
       textSize(14);
 
-      util = new CharUtils(chars, trad, simp, Levenshtein);
+      util = new CharUtils(chars, trad, simp, Levenshtein, showDefs, 'traditional');
       typer = new Automachar(util, onActionComplete, onNextTarget);
       parseConf();
 
       memt = millis();
       word = typer.word.literal;
-      def = showDefs ? typer.word.definition : '';
-      console.log("[ ] -> " + word, def);
+      console.log("[ ] -> " + word);
 
       next();
     }
@@ -81,7 +80,7 @@
         playStroke(true);
         playBell()
 
-        if (showDefs) def = next.definition +
+        if (showDefs && next.definition) def = next.definition +
           (util.language().startsWith('s') ? ' [s]' : '');
 
         console.log(word + " -> " + next.literal, med, def);
@@ -184,11 +183,11 @@
       }
     }
 
-    var chars, memt, simp, trad, bell, typer, conf, word, tid;
+    var lang, chars, memt, simp, trad, bell, typer, conf, word, tid;
     var strokes = [];
     var wmed = '';
     var def = '';
-    var showDefs = 1;
+    var showDefs = 0;
     var showMed = 1;
     var doSound = 1;
     var doPerf = 1;
