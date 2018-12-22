@@ -2,11 +2,13 @@
 let count = 0;
 
 // TODO:
+//   length of stroke to length of sound-sample
 //   3rd character
 //   sort bests by stroke count, pick the closest (part of med?)
 
 if (typeof module != 'undefined' && process.versions.hasOwnProperty('electron')) {
-  Tone = require("Tone");
+  //Tone = require("Tone");
+  Tone = require("./node_modules/tone/build/Tone.min.js");
 }
 
 const REPLACE_ERASE = 0;
@@ -198,6 +200,6 @@ class Autochar {
   }
 }
 
-const TRIGGERS = '習习審审國国門门產产藝艺罰罚監监獄狱網网腦脑書书報报傳传黨党強强憲宪劉刘曉晓隸隶臉脸權权規规條条夢梦變变禮礼競竞爭争對对優优彎弯歷历復复萬万歲岁錯错謬谬惡恶壞坏愛爱護护衛卫華华賣卖讀读學学認认識识問问檢检驗验戰战鬥斗撥拨錢钱幣币異异雜杂亂乱歸归經经濟济';
+const TRIGGERS = '屄妓刘陆肏毛嫖裸婊奸姦尻淫習习審审國国藝艺罰罚監监獄狱網网書书報报黨党強强憲宪權权規规夢梦變变競竞爭争錯错謬谬惡恶壞坏愛爱衛卫華华賣卖讀读學学檢检驗验戰战鬥斗敵錢钱異异雜杂亂乱法假反翻叛泄控官革斃毙民罪犯真信廉暴軍压壓迫逼毒獨独抗違违廢废捕皇';
 
 if (typeof module != 'undefined') module.exports = Autochar;

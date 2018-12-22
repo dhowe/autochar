@@ -16,7 +16,8 @@
       if (doSound)
       {
         bell = new Tone.Player("res/chime.wav").toMaster();
-        stroke = new Tone.Player("res/stroke.wav").toMaster();
+        for (var i = 0; i <= 45; i++)
+          strokes[i] = new Tone.Player('wav/stroke' + i + '.wav').toMaster();
       }
       chars = loadJSON('chardata.json');
       trad = loadJSON('words-trad.json');
@@ -125,9 +126,10 @@
       //.play(0, random(.6, .9), random(.05, .3), 0, random(.01, 0.1));
       if (doSound)
       {
-        stroke.playbackRate = random(.5, .7);
-        stroke.volume.value = quiet ? -24 : -12;
-        stroke.restart(undefined, 0, random(.05, .1)); //.05, 0.1));
+        var stroke = strokes[random(strokes.length) << 0];
+        stroke.playbackRate = random(.5, .8);
+        stroke.volume.value = quiet ? -20 : -10;
+        stroke.restart(undefined, 0, random(.1, .2)); //.05, 0.1));
       }
     }
 
@@ -193,7 +195,8 @@
       }
     }
 
-    var lang, chars, memt, simp, trad, bell, typer, conf, word, tid, stroke;
+    var lang, chars, memt, simp, trad, bell, typer, conf, word, tid;
+    var strokes = [];
     var wmed = '';
     var def = '';
     var showDefs = 0;
