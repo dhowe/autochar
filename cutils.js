@@ -220,6 +220,8 @@ class CharUtils {
 
   constructor(charData, tradData, simpData, levenshtein, loadDefs, lang) {
 
+    if (!levenshtein) throw Error('no levenshtein impl');
+
     this.lang = lang !== 'simplified' ? 'traditional' : lang;
 
     this.HistQ = HistQ; // class
@@ -228,32 +230,16 @@ class CharUtils {
 
     this.tradData = tradData;
     this.simpData = simpData;
+    this.levenshtein = levenshtein;
 
     this.prefillCache(charData, tradData, loadDefs);
     this.prefillCache(charData, simpData, loadDefs);
     //console.log("simp",simpData.length, this.simpData.length);
 
-    // this.triggerData = {};
-    // let keys = Object.keys(TRIGGERS);
-    // for (var i = 0; i < keys.length; i++) {
-    //   let word = keys[i];
-    //   for (var j = 0; j < word.length; j++) {
-    //     if (!wordCache.hasOwnProperty(word[j])) {
-    //       console.log('No chardata for ';
-    //       continue;
-    //     }
-    //   }
-    //   if (charData.)
-    //   triggerData{}
-    // }
-
     this.language(lang);
-    this.levenshtein = levenshtein;
-
-    if (!levenshtein) throw Error('no levenshtein impl');
 
     console.log('cUtils[' + Object.keys(charData).length + ',' +
-      Object.keys(this.wordCache).length + '] ' + this.lang);
+      Object.keys(this.wordCache).length + ']');
   }
 
   toggleLang() {
