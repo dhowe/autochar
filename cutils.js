@@ -218,7 +218,7 @@ class Word {
 
 class CharUtils {
 
-  constructor(charData, tradData, simpData, levenshtein, defs, lang) {
+  constructor(charData, tradData, simpData, levenshtein, loadDefs, lang) {
 
     this.lang = lang !== 'simplified' ? 'traditional' : lang;
 
@@ -226,9 +226,26 @@ class CharUtils {
     this.Word = Word; // class
     this.wordCache = {};
 
-    this.prefillCache(charData, (this.tradData = tradData), defs);
-    this.prefillCache(charData, (this.simpData = simpData), defs);
+    this.tradData = tradData;
+    this.simpData = simpData;
+
+    this.prefillCache(charData, tradData, loadDefs);
+    this.prefillCache(charData, simpData, loadDefs);
     //console.log("simp",simpData.length, this.simpData.length);
+
+    // this.triggerData = {};
+    // let keys = Object.keys(TRIGGERS);
+    // for (var i = 0; i < keys.length; i++) {
+    //   let word = keys[i];
+    //   for (var j = 0; j < word.length; j++) {
+    //     if (!wordCache.hasOwnProperty(word[j])) {
+    //       console.log('No chardata for ';
+    //       continue;
+    //     }
+    //   }
+    //   if (charData.)
+    //   triggerData{}
+    // }
 
     this.language(lang);
     this.levenshtein = levenshtein;
@@ -253,7 +270,7 @@ class CharUtils {
           console.warn('[WARN] No simplified data, call ignored!');
         }
       }
-      console.log('Language: ' + this.lang);
+      console.log('language: ' + this.lang);
     }
     return type ? this : this.lang;
   }
@@ -263,7 +280,7 @@ class CharUtils {
       let that = this;
       Object.keys(words).forEach(function (lit) {
         that.wordCache[lit] = that._createWord(lit, chars,
-            useDefinitions ? words[lit] : undefined);
+          useDefinitions ? words[lit] : undefined);
       });
     }
   }
@@ -325,7 +342,7 @@ class CharUtils {
     for (let i = 0; i < literal.length; i++) {
       if (literal[i] !== ' ') {
         if (!charData.hasOwnProperty(literal[i])) {
-          throw Error('getWord() fail: ' + literal[i]);
+          throw Error('_createWord() failed for ' + literal[i] + ' in '+literal);
         }
         chars.push(charData[literal[i]]);
       } else {

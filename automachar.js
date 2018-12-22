@@ -1,8 +1,8 @@
 // NEXT: node,npm,electron on rpi
 
 // TODO:
-// swapping lang
-// 3rd character
+//   3rd character
+//   sort bests by stroke count, pick the closest (part of med?)
 
 if (typeof module != 'undefined' && process.versions.hasOwnProperty('electron')) {
   Tone = require("Tone");
@@ -20,6 +20,7 @@ class Automachar {
     this.tid = -1;
     this.med = -1;
     this.util = util;
+    this.triggers = 0;
     this.target = null;
     this.targetCharIdx = -1;
     this.targetPartIdx = -1;
@@ -29,6 +30,8 @@ class Automachar {
     this.memory.add(this.word.literal);
     this.wordCompleteCallback = wordCompleteCB;
     this.nextTargetCallback = nextTargetCB;
+
+    console.log('loaded ' + TRIGGERS.length + ' trigger chars');
   }
 
   draw(renderer, rgb) {
@@ -39,10 +42,10 @@ class Automachar {
   // returns the next action to be done
   step() {
     if (!this.target) {
-      this.pickNextTarget();
+      let trigd = this.pickNextTarget();
       this.findEditIndices();
       if (this.nextTargetCallback) {
-        this.nextTargetCallback(this.target.literal, this.currentStrokeCount);
+        this.nextTargetCallback(this.target.literal, this.currentStrokeCount, trigd);
       }
     }
 
@@ -72,20 +75,35 @@ class Automachar {
       if (ideals.length) opts = ideals;
     }
 
-    // TODO: for better-matching,
-    // a) sort the best by stroke count, pick the closest (part of med?)
-    // b) favor those which change a different character/part
-    let result = this.util.getWord(opts[(Math.random()*opts.length) << 0]);
-
-    if (TRIGGER_WORDS.hasOwnProperty(result.literal)) {
-      console.log("TRIGGER: "+result.literal + '***');
-      this.util.toggleLang();
-
+    let result;
+    let triggered = false;
+    if (!this.memory.contains('trigger')) {
+      for (var i = 0; i < opts.length; i++) {
+        var cand = opts[i];
+        for (var j = 0; j < cand.length; j++) {
+          var char = cand[j];
+          if (TRIGGERS.indexOf(char) > -1) {
+            result = this.util.getWord(cand);
+            console.log('trigger: "'+char+'" in "' + result.literal + '"');
+            this.util.toggleLang();
+            triggered = true;
+            this.triggers++;
+            break;
+          }
+        }
+      }
     }
+    //else console.log('skip-trigger-check');
+
+    if (!result) result = this.util.getWord(opts[(Math.random() * opts.length) << 0]);
 
     this.med = this.util.minEditDistance(this.word.literal, result.literal);
     this.memory.add(result.literal);
     this.target = result;
+
+    if (triggered) this.memory.add('trigger');
+
+    return triggered;
     //console.log("WORD: ", this.word, "\nNEXT: ", this.target, "\nMED: ", this.med);
   }
 
@@ -170,70 +188,6 @@ class Automachar {
   }
 }
 
-const TRIGGER_WORDS = {
-    '習习': '(xi)',
-    '審审': 'to review/censor/interrogate/judge',
-    '國国': 'country',
-    '門门': '("men" as in tianan"men" square',
-    '產产': 'product/produce',
-    '藝艺': 'art',
-    '罰罚': 'punish',
-    '監监': 'surveil/jail/oversee',
-    '獄狱': 'prison',
-    '網网': 'net/web',
-    '腦脑': 'brain',
-    '書书': 'book',
-    '報报': 'report',
-    '傳传': 'spread',
-    '黨党': 'gang/party',
-    '強强': 'strong',
-    '憲宪': 'constitution/ charter',
-    '劉刘': 'as in "liu"',
-    '曉晓': '(xiao) dawn/understand',
-    '隸隶': 'subordinate',
-    '臉脸': 'face',
-    '權权': 'power /right',
-    '規规': 'rule/regulation',
-    '條条': 'rule/article/line',
-    '夢梦': 'dream',
-    '變变': 'change',
-    '禮礼': 'gift/custom/courtesy/manners',
-    '競竞': 'compete/race',
-    '爭争': 'fight/struggle',
-    '對对': 'correct/ pair /opposite',
-    '優优': 'excellence',
-    '彎弯': 'bent/crooked',
-    '歷历': 'history/experience',
-    '復复': 'recover/regain/revive',
-    '萬万': '10/000',
-    '歲岁': 'age',
-    '錯错': 'wrong',
-    '謬谬': 'wrong/absurd/fallacy',
-    '惡恶': 'evil/aggro/loathe',
-    '壞坏': 'bad/broken',
-    '愛爱': 'love',
-    '護护': 'protect',
-    '衛卫': 'guard',
-    '華华': 'china/bloom/dazzling',
-    '賣卖': 'sell',
-    '讀读': 'read',
-    '學学': 'learn',
-    '認认': 'recognise/acknowledge/admit',
-    '識识': 'knowledge/know/understand',
-    '問问': 'ask',
-    '檢检': 'check',
-    '驗验': 'test',
-    '戰战': 'war/battle/challenge',
-    '鬥斗': 'fight/struggle',
-    '撥拨': 'stir/set aside',
-    '錢钱': 'money',
-    '幣币': 'currency/coin',
-    '異异': 'different',
-    '雜杂': 'complicated',
-    '亂乱': 'chaos/messy',
-    '歸归': 'return',
-    '經经': 'pass/regular',
-    '濟济': 'aid /help'
-  };
+const TRIGGERS = '習习審审國国門门產产藝艺罰罚監监獄狱網网腦脑書书報报傳传黨党強强憲宪劉刘曉晓隸隶臉脸權权規规條条夢梦變变禮礼競竞爭争對对優优彎弯歷历復复萬万歲岁錯错謬谬惡恶壞坏愛爱護护衛卫華华賣卖讀读學学認认識识問问檢检驗验戰战鬥斗撥拨錢钱幣币異异雜杂亂乱歸归經经濟济';
 
-  if (typeof module != 'undefined') module.exports = Automachar;
+if (typeof module != 'undefined') module.exports = Automachar;

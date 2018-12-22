@@ -12,7 +12,7 @@ textWidth = function () { return -1; }
 textAscent = function () { return -1; }
 textDescent = function () { return -1; }
 millis = function () { return +new Date(); }
-elapsed = function (t) { return millis()-t; };
+elapsed = function (t) { return millis() - t; };
 
 let word;
 let count = 0;
@@ -23,7 +23,7 @@ let timer = millis();
 
 onActionComplete = function (next, med) {
   if (next) {
-    if (word) console.log(word + ',' + next.literal+' '+med);
+    if (word) console.log(word + ',' + next.literal + ',' + med);
     word = next.literal;
     count++;
   }
@@ -32,11 +32,11 @@ onActionComplete = function (next, med) {
 step = function () {
   typer.step();
   if (count < numlines) {
-    setTimeout(step,1);
-  }
-  else {
+    setTimeout(step, 1);
+  } else {
     var e = elapsed(timer);
-    console.log('Processed '+count+' steps in '+Math.round(e/1000)+"s at "+(e/count)+'ms per-step');
+    console.log('Processed ' + count + ' steps in ' +
+      Math.round(e / 1000) + "s at " + (e / count) + 'ms per-step, '+typer.triggers+' triggers');
   }
 }
 
