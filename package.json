@@ -24,6 +24,7 @@
   "homepage": "https://github.com/dhowe/Automachar#readme",
   "devDependencies": {
     "chai": "^4.2.0",
+    "fast-memoize": "^2.5.1",
     "mocha": "^5.2.0",
     "tone": "^0.12.80"
   },
@@ -31,7 +32,6 @@
     "electron": "^3.0.11"
   },
   "dependencies": {
-    "p5": "^0.7.2",
-    "update": "^0.7.4"
+    "p5": "^0.7.2"
   }
 }

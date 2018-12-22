@@ -2,7 +2,7 @@ const CCDICT = "data/cc-cedict.json";
 const HANZI = "chardata.json";
 const MAXLEN = 2;
 
-let TYPE = 'traditional'; //'simplified';
+let TYPE = 'simplified';//'traditional'; 
 
 //////////////////////////////////////////////////////////////////////
 
