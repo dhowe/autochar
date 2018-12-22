@@ -1,5 +1,5 @@
 // NEXT: node,npm,electron on rpi
-let count = 0;
+let count = 0; // TMP
 
 // TODO:
 //   length of stroke to length of sound-sample
@@ -81,27 +81,31 @@ class Autochar {
     let result;
     let triggered = false;
 
-  // if (++count == 3) {
-  //    // TMP
-  //     opts[0] = '分曉';
-  //     console.log('forced trigger');
+    // if (++count == 3) {
+    //    // TMP
+    //     opts[0] = '分曉';
+    //     console.log('forced trigger');
+    //     result = this.util.getWord(opts[0]);
+    //     triggered = true;
+    //     this.triggers++;
+    //
+    //   }
+    //else console.log('skip-trigger-check');
 
-      if (!this.memory.contains('trigger')) {
-        OUT: for (var i = 0; i < opts.length; i++) {
-          var cand = opts[i];
-          for (var j = 0; j < cand.length; j++) {
-            var char = cand[j];
-            if (TRIGGERS.indexOf(char) > -1) {
-              result = this.util.getWord(cand);
-              triggered = true;
-              this.triggers++;
-              break OUT;
-            }
+    if (!this.memory.contains('trigger')) {
+      OUT: for (var i = 0; i < opts.length; i++) {
+        var cand = opts[i];
+        for (var j = 0; j < cand.length; j++) {
+          var char = cand[j];
+          if (TRIGGERS.indexOf(char) > -1) {
+            result = this.util.getWord(cand);
+            triggered = true;
+            this.triggers++;
+            break OUT;
           }
         }
-      //}
+      }
     }
-    //else console.log('skip-trigger-check');
 
     if (!result) result = this.util.getWord(opts[(Math.random() * opts.length) << 0]);
 

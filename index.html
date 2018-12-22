@@ -34,9 +34,8 @@
       typer = new Autochar(util, onActionComplete, onNextTarget);
       parseConf();
 
-      memt = millis() - 15000;
       word = typer.word.literal;
-      console.log("[ ] -> " + word);
+      console.log("1) [ ] -> " + word);
 
       next();
     }
@@ -85,7 +84,7 @@
 
         wmed = med + (util.language().startsWith('s') ? 's' : '');
 
-        console.log(word + " -> " + next.literal, wmed, def);
+        console.log(++steps+') '+ word + " -> " + next.literal, wmed, def);
 
         word = next.literal;
 
@@ -109,20 +108,22 @@
 
     function playBell()
     {
-      //doSound && bell.play(0, random(.6, .9), random(.5, .8));
       if (doSound)
       {
         bell.playbackRate = random(.6, .9);
         bell.volume.value = random(.7, 1);
         bell.restart();
+        if (triggered)
+        {
+          bell.playbackRate = random(.5, .7);
+          bell.volume.value = 5;
+          bell.start(200, 0, .1);
+        }
       }
     }
 
     function playStroke(quiet)
     {
-      // delay, rate, amp, cue, duration
-      //doSound && strokes[random(strokes.length) << 0]
-      //.play(0, random(.6, .9), random(.05, .3), 0, random(.01, 0.1));
       if (doSound)
       {
         stroke.playbackRate = random(.5, .7);
@@ -153,12 +154,12 @@
 
     function logPerf()
     {
-      if (performance && performance.memory && millis() - memt > 20000)
+      if (performance && performance.memory && steps - memt >= 20)
       {
         console.log('Perf: ' + round(frameRate()) + ' fps, ' +
           round(performance.memory.usedJSHeapSize / 1000000) +
           '/' + round(performance.memory.jsHeapSizeLimit / 1000000) + ' MB heap');
-        memt = millis();
+        memt = steps;
       }
     }
 
@@ -193,9 +194,11 @@
       }
     }
 
-    var lang, chars, memt, simp, trad, bell, typer, conf, word, tid, stroke;
+    var lang, chars, simp, trad, bell, typer, conf, word, tid, stroke;
+    var memt = -15;
     var wmed = '';
     var def = '';
+    var steps = 1;
     var showDefs = 0;
     var showMed = 1;
     var doSound = 1;
