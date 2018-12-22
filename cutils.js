@@ -1,10 +1,14 @@
+const BLACK = [0, 0, 0]; // BLACK
+
 class Word {
 
-  constructor(literal, chars) {
+  constructor(literal, chars, def, levenshtein) {
 
     this.literal = literal;
     this.characters = chars;
     this.length = literal.length;
+    this.definition = def || '---';
+    this.editString = this.computeEditString();
     this.characters.forEach(this.computeParts); // 2-parts-per-char
     this.characters.forEach(this.computeStrokes); // strokes-per-path
     this.characters.forEach(this.computePaths); // path2Ds-per-stroke
@@ -49,7 +53,7 @@ class Word {
     }
   }
 
-  toEditStr() {
+  computeEditString() {
     var es = '';
     for (var i = 0; i < this.characters.length; i++) {
       es += this.characters[i].decomposition;
@@ -70,7 +74,7 @@ class Word {
       throw Error('bad partIdx: ' + partIdx);
     }
 
-    chr.parts[partIdx] = min(chr.parts[partIdx], chr.cstrokes[partIdx].length - 1);
+    chr.parts[partIdx] = Math.min(chr.parts[partIdx], chr.cstrokes[partIdx].length - 1);
 
     if (--chr.parts[partIdx] >= -1) {
       //console.log("eraseStroke:char[" + charIdx + "][" + partIdx + "] = " +
@@ -94,7 +98,7 @@ class Word {
     //(chr.parts[partIdx]+1)+"/"+(chr.cstrokes[partIdx].length)); // keep
 
     return (++this.characters[charIdx].parts[partIdx] <
-      this.characters[charIdx].cstrokes[partIdx].length-1);
+      this.characters[charIdx].cstrokes[partIdx].length - 1);
   }
 
   constrain(n, low, high) { return Math.max(Math.min(n, high), low); }
@@ -214,39 +218,65 @@ class Word {
 
 class CharUtils {
 
-  constructor(charData, wordData, disablePrecache) {
+  constructor(charData, tradData, simpData, levenshtein, lang) {
+
+    this.lang = lang !== 'simplified' ? 'traditional' : lang;
 
     this.HistQ = HistQ; // class
     this.Word = Word; // class
-    this.wordData = wordData; // TODO: remove defs?
     this.wordCache = {};
 
-    if (!disablePrecache) {
-      this.prefillCache(charData);
-    } else {
-      this.charData = charData;
-    }
+    this.prefillCache(charData, (this.tradData = tradData));
+    this.prefillCache(charData, (this.simpData = simpData));
+    //console.log("simp",simpData.length, this.simpData.length);
+
+    this.language(lang);
+    this.levenshtein = levenshtein;
+
+    if (!levenshtein) throw Error('no levenshtein impl');
+
     console.log('cUtils[' + Object.keys(charData).length + ',' +
-      Object.keys(wordData).length + (disablePrecache ? ',nc]' : ',pf]'));
-
-    this.DEFCOL = [0, 0, 0];
+      Object.keys(this.wordCache).length + '] '+this.lang);
   }
 
-  prefillCache(charData) {
-    let that = this;
-    Object.keys(this.wordData).forEach(function (lit) { that.getWord(lit, charData); });
-    //console.log('Cache prefilled with ' + Object.keys(this.wordCache).length + ' words');
+  toggleLang() {
+    this.language(this.lang === 'simplified' ? 'traditional' : 'simplified');
   }
 
-  bestEditDistance(literal, words, hist, minAllowed) { // todo: only store bestSoFar
+  language(type) {
+    if (type) {
+      this.lang = 'traditional';
+      if (type === 'simplified') {
+        if (this.simpData) {
+          this.lang = type;
+        } else {
+          console.warn('[WARN] No simplified data, call ignored!');
+        }
+      }
+      console.log('Language: '+this.lang);
+    }
+    return type ? this : this.lang;
+  }
 
-    words = words || Object.keys(this.wordData);
+  prefillCache(chars, words) {
+    if (words) {
+      let that = this;
+      Object.keys(words).forEach(function (lit) {
+        that.wordCache[lit] = that._createWord(lit, chars, words[lit]);
+      });
+    }
+  }
+
+  bestEditDistance(literal, words, hist, minAllowed) {
+
+    words = words || Object.keys(this.currentWords());
     if (typeof minAllowed == 'undefined') minAllowed = 1;
 
     //console.log('bestEditDistance: '+literal);
 
     let med, meds = [];
     let bestMed = Number.MAX_SAFE_INTEGER;
+    let wes = this.getWord(literal).editString;
 
     for (let i = 0; i < words.length; i++) {
 
@@ -256,7 +286,11 @@ class CharUtils {
         continue;
       }
 
-      med = this.minEditDistance(literal, words[i]);
+      let wes2 = this.getWord(words[i]).editString;
+
+      let raw = this.levenshtein.get(literal, words[i]);
+      med = Math.max(0, raw) + this.levenshtein.get(wes, wes2);
+      //med = this.minEditDistance(literal, words[i]);
 
       //console.log(i, words[i], med, 'best='+bestMed);
 
@@ -276,59 +310,29 @@ class CharUtils {
   };
 
   minEditDistance(l1, l2) {
-    var cost = Math.max(0, this.rawEditDistance(l1, l2) - 1);
-    let e1 = this.getWord(l1).toEditStr();
-    let e2 = this.getWord(l2).toEditStr();
-    //console.log('minEditDistance', e1, 'vs', e2, cost);
-    return this.rawEditDistance(e1, e2) + cost;
-  }
-
-  rawEditDistance(source, target) {
-
-    function min3(a, b, c) {
-      var min = a;
-      if (b < min) min = b;
-      if (c < min) min = c;
-      return min;
-    }
-
-    if (!source.length && !target.length) return 0;
-
-    var cost, matrix = [];
-    var sI; // ith character of s
-    var tJ; // jth character of t
-
-    var sourceLength = source.length;
-    var targetLength = target.length;
-
-    if (!source.length) return target.length;
-    if (!target.length) return source.length;
-
-    for (var i = 0; i <= source.length; i++) {
-      matrix[i] = [];
-      matrix[i][0] = i;
-    }
-
-    for (var j = 0; j <= target.length; j++) {
-      matrix[0][j] = j;
-    }
-
-    for (var i = 1; i <= source.length; i++) {
-      sI = source.charAt(i - 1);
-      for (var j = 1; j <= target.length; j++) {
-        tJ = target.charAt(j - 1);
-        cost = (sI == tJ) ? 0 : 1;
-        matrix[i][j] = min3(
-          matrix[i - 1][j] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j - 1] + cost);
-      }
-    }
-    return matrix[source.length][target.length];
+    return this.levenshtein.get(this.getWord(l1).editString,
+      this.getWord(l2).editString) + Math.max(0, this.levenshtein.get(l1, l2) - 1);
   }
 
   cacheSize() {
     return Object.keys(this.wordCache).length;
+  }
+
+  _createWord(literal, charData, definition) {
+
+    let chars = [];
+    for (let i = 0; i < literal.length; i++) {
+      if (literal[i] !== ' ') {
+        if (!charData.hasOwnProperty(literal[i])) {
+          throw Error('getWord() fail: ' + literal[i]);
+        }
+        chars.push(charData[literal[i]]);
+      } else {
+        chars.push([]);
+      }
+    }
+
+    return new Word(literal, chars, definition);
   }
 
   getWord(literal, charData) {
@@ -344,19 +348,9 @@ class CharUtils {
       charData = this.charData;
     }
 
-    let chars = [];
-    for (let i = 0; i < literal.length; i++) {
-      if (literal[i] !== ' ') {
-        if (!charData.hasOwnProperty(literal[i])) {
-          throw Error('getWord() fail: ' + literal[i]);
-        }
-        chars.push(charData[literal[i]]);
-      } else {
-        chars.push([]);
-      }
-    }
+    console.log("[WARN] creating word object for " + litera);
 
-    let word = new Word(literal, chars);
+    var word = this._createWord(literal, charData);
 
     if (this.wordCache) this.wordCache[literal] = word;
 
@@ -364,16 +358,22 @@ class CharUtils {
   }
 
   definition(literal) {
-    return this.wordData.hasOwnProperty(literal) ? this.wordData[literal] : '---';
+    var words = this.currentWords();
+    return words.hasOwnProperty(literal) ? words[literal] : '---';
   }
 
-  randWord(num) {
-    if (typeof num == 'undefined') throw Error('no num');
+  currentWords() {
+    return this.lang == 'simplified' ? this.simpData : this.tradData;
+  }
+
+  randWord(length) {
+    if (typeof length == 'undefined') throw Error('no length');
 
     let word = null;
-    while (!word || word.length != num) {
+    let words = this.currentWords();
+    while (!word || word.length != length) {
       // keep going until we get the right length
-      word = this.getWord(this.randKey(this.wordData));
+      word = this.getWord(this.randKey(words));
     }
     return word;
   }
@@ -398,7 +398,7 @@ class CharUtils {
     var char = word.characters[charIdx]; // anything to draw?
     if (char.parts[0] < 0 && char.parts[1] < 0) return;
 
-    if (!rgb || rgb.length != 3) rgb = this.DEFCOL;
+    if (!rgb || rgb.length != 3) rgb = BLACK;
     if (typeof scale == 'undefined') scale = 1;
 
     var pg = renderer || this._renderer;
@@ -485,7 +485,9 @@ class HistQ {
 
 if (typeof module != 'undefined') {
   let fs = require("fs");
+  let lev = require('fast-levenshtein');
   module.exports = new CharUtils(
     JSON.parse(fs.readFileSync('chardata.json', 'utf8')),
-    JSON.parse(fs.readFileSync('words-trad.json', 'utf8')));
+    JSON.parse(fs.readFileSync('words-trad.json', 'utf8')),
+    JSON.parse(fs.readFileSync('words-simp.json', 'utf8')), 0, lev);
 }

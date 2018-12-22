@@ -4,11 +4,8 @@ function createWindow () {
 
   // add w:17 w:45 for electron chrome
   win = new BrowserWindow({ width: 697, height: 535 });
+  win.setFullScreen(process.platform !== 'darwin');
   win.loadFile('index.html');
-  if (process.platform !== 'darwin') {
-    win.setFullScreen(true);
-  }
-  //win.webContents.openDevTools();
 }
 
 app.on('ready', createWindow);

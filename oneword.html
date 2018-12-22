@@ -7,13 +7,13 @@
   <script src="node_modules/p5/lib/p5.min.js"></script>
   <script src="cutils.js"></script>
   <script>
-    let charData, wordData, util, word, charIdx, partIdx;
+    let chars, words, util, word, charIdx, partIdx;
     let autostep = 1, tid = 0, dir = 1; // 0 = pause
 
     function preload()
     {
-      charData = loadJSON('chardata.json');
-      wordData = loadJSON('words-trad.json');
+      chars = loadJSON('chardata.json');
+      words = loadJSON('words-trad.json');
     }
 
     function setup()
@@ -22,7 +22,7 @@
       createCanvas(680, 490);
 
       textSize(18);
-      util = new CharUtils(charData, wordData);
+      util = new CharUtils(chars, words);
       word = util.randWord(2);
       //word = util.getWord("璨");
       step();

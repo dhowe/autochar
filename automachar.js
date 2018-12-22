@@ -1,12 +1,9 @@
 // NEXT: node,npm,electron on rpi
 
 // TODO:
-// BUG: Zero-th stroke of new character has no sound
-  //(should draw the first character at same time as adjusting the other part);
-// 3rd character ??
+// swapping lang
+// 3rd character
 
-// LATER:
-// include stroke-count in med ???
 if (typeof module != 'undefined' && process.versions.hasOwnProperty('electron')) {
   Tone = require("Tone");
 }
@@ -18,10 +15,11 @@ const INSERT_ACTION = 3;
 
 class Automachar {
 
-  constructor(wordCompleteCB, nextTargetCB) {
+  constructor(util, wordCompleteCB, nextTargetCB) {
 
     this.tid = -1;
     this.med = -1;
+    this.util = util;
     this.target = null;
     this.targetCharIdx = -1;
     this.targetPartIdx = -1;
@@ -40,7 +38,6 @@ class Automachar {
 
   // returns the next action to be done
   step() {
-
     if (!this.target) {
       this.pickNextTarget();
       this.findEditIndices();
@@ -56,7 +53,7 @@ class Automachar {
 
   pickNextTarget() {
 
-    let opts = util.bestEditDistance(this.word.literal, null, this.memory);
+    let opts = this.util.bestEditDistance(this.word.literal, null, this.memory);
     if (!opts || !opts.length) {
       throw Error('Died on ' + this.word.literal, this.word);
     }
@@ -78,9 +75,15 @@ class Automachar {
     // TODO: for better-matching,
     // a) sort the best by stroke count, pick the closest (part of med?)
     // b) favor those which change a different character/part
-    let result = util.getWord(opts[random(opts.length) << 0]);
+    let result = this.util.getWord(opts[(Math.random()*opts.length) << 0]);
 
-    this.med = util.minEditDistance(this.word.literal, result.literal);
+    if (TRIGGER_WORDS.hasOwnProperty(result.literal)) {
+      console.log("TRIGGER: "+result.literal + '***');
+      this.util.toggleLang();
+
+    }
+
+    this.med = this.util.minEditDistance(this.word.literal, result.literal);
     this.memory.add(result.literal);
     this.target = result;
     //console.log("WORD: ", this.word, "\nNEXT: ", this.target, "\nMED: ", this.med);
@@ -105,7 +108,7 @@ class Automachar {
       if (this.word.nextStroke(this.targetCharIdx, this.targetPartIdx)) {
         this.wordCompleteCallback(); // draw stroke change
       } else { // flash
-        this.wordCompleteCallback(this.word.literal, this.med); // word change
+        this.wordCompleteCallback(this.word, this.med); // word change
         this.target = null;
       }
     }
@@ -161,8 +164,76 @@ class Automachar {
     if (word.characters) {
       for (var i = 0; i < word.characters.length; i++) {
         if (word.literal[i] !== ' ')
-          util.renderPath(word, i, renderer, scale, yoff, rgb);
+          this.util.renderPath(word, i, renderer, scale, yoff, rgb);
       }
     }
   }
 }
+
+const TRIGGER_WORDS = {
+    '習习': '(xi)',
+    '審审': 'to review/censor/interrogate/judge',
+    '國国': 'country',
+    '門门': '("men" as in tianan"men" square',
+    '產产': 'product/produce',
+    '藝艺': 'art',
+    '罰罚': 'punish',
+    '監监': 'surveil/jail/oversee',
+    '獄狱': 'prison',
+    '網网': 'net/web',
+    '腦脑': 'brain',
+    '書书': 'book',
+    '報报': 'report',
+    '傳传': 'spread',
+    '黨党': 'gang/party',
+    '強强': 'strong',
+    '憲宪': 'constitution/ charter',
+    '劉刘': 'as in "liu"',
+    '曉晓': '(xiao) dawn/understand',
+    '隸隶': 'subordinate',
+    '臉脸': 'face',
+    '權权': 'power /right',
+    '規规': 'rule/regulation',
+    '條条': 'rule/article/line',
+    '夢梦': 'dream',
+    '變变': 'change',
+    '禮礼': 'gift/custom/courtesy/manners',
+    '競竞': 'compete/race',
+    '爭争': 'fight/struggle',
+    '對对': 'correct/ pair /opposite',
+    '優优': 'excellence',
+    '彎弯': 'bent/crooked',
+    '歷历': 'history/experience',
+    '復复': 'recover/regain/revive',
+    '萬万': '10/000',
+    '歲岁': 'age',
+    '錯错': 'wrong',
+    '謬谬': 'wrong/absurd/fallacy',
+    '惡恶': 'evil/aggro/loathe',
+    '壞坏': 'bad/broken',
+    '愛爱': 'love',
+    '護护': 'protect',
+    '衛卫': 'guard',
+    '華华': 'china/bloom/dazzling',
+    '賣卖': 'sell',
+    '讀读': 'read',
+    '學学': 'learn',
+    '認认': 'recognise/acknowledge/admit',
+    '識识': 'knowledge/know/understand',
+    '問问': 'ask',
+    '檢检': 'check',
+    '驗验': 'test',
+    '戰战': 'war/battle/challenge',
+    '鬥斗': 'fight/struggle',
+    '撥拨': 'stir/set aside',
+    '錢钱': 'money',
+    '幣币': 'currency/coin',
+    '異异': 'different',
+    '雜杂': 'complicated',
+    '亂乱': 'chaos/messy',
+    '歸归': 'return',
+    '經经': 'pass/regular',
+    '濟济': 'aid /help'
+  };
+
+  if (typeof module != 'undefined') module.exports = Automachar;
