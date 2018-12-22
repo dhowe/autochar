@@ -39,7 +39,8 @@ class Autochar {
 
   draw(renderer, rgb) {
 
-    this.renderWord(this.word, renderer, .65, 30, rgb);
+    //this.renderWord(this.word, renderer, .65, 30, rgb);
+    this.renderWord(this.word, renderer, .95, 50, rgb);
   }
 
   // returns the next action to be done
