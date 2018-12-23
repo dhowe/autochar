@@ -3,7 +3,7 @@ let count = 0; // TMP
 
 // TODO:
 //   length of stroke to length of sound-sample
-//   3rd character
+//   add 3rd character
 //   sort bests by stroke count, pick the closest (part of med?)
 
 if (typeof module != 'undefined' && process.versions.hasOwnProperty('electron')) {
@@ -18,7 +18,7 @@ const INSERT_ACTION = 3;
 
 class Autochar {
 
-  constructor(util, wordCompleteCB, nextTargetCB) {
+  constructor(util, wordCompleteCB, nextTargetCB, testChars) {
 
     this.tid = -1;
     this.med = -1;
@@ -28,6 +28,12 @@ class Autochar {
     this.targetCharIdx = -1;
     this.targetPartIdx = -1;
     this.currentStrokeCount = 0;
+
+    if (testChars) {
+      this.word = this.mockWord(testChars);
+      return;
+    }
+
     this.word = util.randWord(2);
     this.memory = new util.HistQ(10);
     this.memory.add(this.word.literal);
@@ -37,14 +43,21 @@ class Autochar {
     console.log('loaded ' + TRIGGERS.length + ' trigger chars');
   }
 
+  mockWord(chars)
+  {
+    var c1 = util.randKey(chars);
+    var c2 = util.randKey(chars);
+    return util._createWord(c1 + c2, chars);
+  }
+
   draw(renderer, rgb) {
 
     //this.renderWord(this.word, renderer, .65, 30, rgb);
     this.renderWord(this.word, renderer, .85, 30, rgb);
   }
 
-  // returns the next action to be done
-  step() {
+  step() {   // returns the next action to be done
+
     if (!this.target) {
       let trigd = this.pickNextTarget();
       this.findEditIndices();
@@ -195,7 +208,6 @@ class Autochar {
   }
 
   renderWord(word, renderer, scale, yoff, rgb) {
-
     if (word.characters) {
       for (var i = 0; i < word.characters.length; i++) {
         if (word.literal[i] !== ' ')

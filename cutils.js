@@ -234,11 +234,12 @@ class CharUtils {
 
     this.prefillCache(charData, tradData, loadDefs);
     this.prefillCache(charData, simpData, loadDefs);
+
     //console.log("simp",simpData.length, this.simpData.length);
 
     this.language(lang);
 
-    console.log('cUtils[' + Object.keys(charData).length + ',' +
+    console.log('cUtils[' + (charData ? (Object.keys(charData).length + ',') : '') +
       Object.keys(this.wordCache).length + ']');
   }
 
@@ -262,7 +263,7 @@ class CharUtils {
   }
 
   prefillCache(chars, words, useDefinitions) {
-    if (words) {
+    if (chars && words) {
       let that = this;
       Object.keys(words).forEach(function (lit) {
         that.wordCache[lit] = that._createWord(lit, chars,
@@ -370,8 +371,10 @@ class CharUtils {
     return this.lang == 'simplified' ? this.simpData : this.tradData;
   }
 
-  randWord(length) {
+  randWord(length, testMode) {
     if (typeof length == 'undefined') throw Error('no length');
+
+    if (testMode) return this.randKey(this.currentWords());
 
     let word = null;
     let words = this.currentWords();
@@ -411,6 +414,8 @@ class CharUtils {
 
     for (var j = 0; j < char.paths.length; j++) {
       for (var i = 0; i < char.paths[j].length; i++) {
+
+        //ctx.translate(500,0);
 
         var shift = renderer.width / 2;
         ctx.translate(0, shift + yoff); // shift for mirror

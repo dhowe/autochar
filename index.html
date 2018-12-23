@@ -12,6 +12,7 @@
   <script src="autochar.js"></script>
   <link rel="stylesheet" type="text/css" href="style.css">
   <script>
+
     function preload()
     {
       if (doSound)
@@ -20,10 +21,12 @@
         stroke = new Tone.Player("res/stroke.wav").toMaster();
       }
       chars = loadJSON('chardata.json');
-      trad = loadJSON('words-trad.json');
-      simp = loadJSON('words-simp.json');
+      //trad = loadJSON('words-trad.json'); // comment for testmode
+      //simp = loadJSON('words-simp.json'); // comment for testmode
       conf = loadJSON('config.json');
     }
+
+
 
     function setup()
     {
@@ -33,14 +36,18 @@
 
       textAlign(CENTER);
       textSize(14);
-
-      util = new CharUtils(chars, trad, simp, Levenshtein, showDefs, 'traditional');
-      typer = new Autochar(util, onActionComplete, onNextTarget);
       parseConf();
 
+      testing = !(trad || simp);
+      util = new CharUtils(chars, trad, simp, Levenshtein, showDefs, 'traditional');
+      typer = new Autochar(util, onActionComplete, onNextTarget, testing ? chars : null);
       word = typer.word.literal;
       console.log("1) [ ] -> " + word);
 
+      if (testing) {
+        noLoop();
+        return;
+      }
       next();
     }
 
@@ -180,18 +187,21 @@
 
         if (conf.hitcol && conf.hitcol.length == 3)
         {
+          hitcol = conf.hitcol;
           console.log('config.hitcol: ' + hitcol);
         }
         else console.log('default.hitcolor: ' + hitcol);
 
         if (conf.trgcol && conf.trgcol.length == 3)
         {
+          trgcol = conf.trgcol;
           console.log('config.trgcol: ' + trgcol);
         }
         else console.log('default.trgcol: ' + trgcol);
 
         if (conf.prod && conf.prod == 'true')
         {
+          prod = conf.prod;
           console.log('config.prod: ' + true);
         }
         else console.log('default.prod: ' + true);
@@ -211,7 +221,7 @@
     var steps = 1;
     var showDefs = 0;
     var showMed = 1;
-    var doSound = 1;
+    var doSound = 0;
     var doPerf = 1;
     var invertText = 0;
     var eraseSpeed = 0;
@@ -222,7 +232,7 @@
     var txtcol = [0, 0, 0];
     var trgcol = [150, 0, 0];
     var rgb = [0, 0, 0];
-    var PROD = false;
+    var prod = false;
   </script>
 </head>
 
