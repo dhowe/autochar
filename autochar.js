@@ -2,6 +2,7 @@
 let count = 0; // TMP
 
 // TODO:
+//   bug: displayed med is not in sync (shows after word completes)
 //   length of stroke to length of sound-sample
 //   add 3rd character
 //   sort bests by stroke count, pick the closest (part of med?)
@@ -53,7 +54,7 @@ class Autochar {
   draw(renderer, rgb) {
 
     //this.renderWord(this.word, renderer, .65, 30, rgb);
-    this.renderWord(this.word, renderer, .85, 30, rgb);
+    this.renderWord(this.word, renderer, .85, 0, 30, rgb);
   }
 
   step() {   // returns the next action to be done
@@ -207,11 +208,11 @@ class Autochar {
     //+', charIdx=' + this.targetCharIdx + ', pIdx=' + this.targetPartIdx);
   }
 
-  renderWord(word, renderer, scale, yoff, rgb) {
+  renderWord(word, renderer, scale, xoff, yoff, rgb) {
     if (word.characters) {
       for (var i = 0; i < word.characters.length; i++) {
         if (word.literal[i] !== ' ')
-          this.util.renderPath(word, i, renderer, scale, yoff, rgb);
+          this.util.renderPath(word, i, renderer, scale, xoff, yoff, rgb);
       }
     }
   }

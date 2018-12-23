@@ -21,8 +21,8 @@
         stroke = new Tone.Player("res/stroke.wav").toMaster();
       }
       chars = loadJSON('chardata.json');
-      //trad = loadJSON('words-trad.json'); // comment for testmode
-      //simp = loadJSON('words-simp.json'); // comment for testmode
+      trad = loadJSON('words-trad.json'); // comment for testmode
+      simp = loadJSON('words-simp.json'); // comment for testmode
       conf = loadJSON('config.json');
     }
 
@@ -42,6 +42,7 @@
       util = new CharUtils(chars, trad, simp, Levenshtein, showDefs, 'traditional');
       typer = new Autochar(util, onActionComplete, onNextTarget, testing ? chars : null);
       word = typer.word.literal;
+
       console.log("1) [ ] -> " + word);
 
       if (testing) {
@@ -202,9 +203,9 @@
         if (conf.prod && conf.prod == 'true')
         {
           prod = conf.prod;
-          console.log('config.prod: ' + true);
+          console.log('config.prod: ' + prod);
         }
-        else console.log('default.prod: ' + true);
+        else console.log('default.prod: ' + prod);
       }
 
       for (var i = 0; i < rgb.length; i++)
@@ -220,8 +221,8 @@
     var def = '';
     var steps = 1;
     var showDefs = 0;
-    var showMed = 1;
-    var doSound = 0;
+    var showMed = 0;
+    var doSound = 1;
     var doPerf = 1;
     var invertText = 0;
     var eraseSpeed = 0;

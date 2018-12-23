@@ -8,7 +8,9 @@
   <script src="cutils.js"></script>
   <script>
     let chars, words, util, word, charIdx, partIdx;
-    let autostep = 1, tid = 0, dir = 1; // 0 = pause
+    let autostep = 1,
+      tid = 0,
+      dir = 1; // 0 = pause
 
     function preload()
     {
@@ -31,7 +33,7 @@
     function draw()
     {
       background(240);
-      renderWord(word, .65, 30);
+      renderWord(word, .65, 0, 30);
       textAlign(CENTER);
       text(util.definition(word.literal), width / 2, height - 10);
       textAlign(LEFT);
@@ -182,7 +184,7 @@
       }
     }
 
-    function renderWord(word, scale, yOffset)
+    function renderWord(word, scale, xOffset, yOffset)
     {
       //console.log('renderWord', word);
       if (word.characters)
@@ -191,7 +193,7 @@
         {
           //if (i != 1) continue;
           if (word.literal[i] !== ' ')
-            util.renderPath(word, i, this._renderer, scale, yOffset);
+            util.renderPath(word, i, this._renderer, scale, xOffset, yOffset);
         }
       }
       else

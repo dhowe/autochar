@@ -400,7 +400,7 @@ class CharUtils {
     return str;
   }
 
-  renderPath(word, charIdx, renderer, scale, yoff, rgb) {
+  renderPath(word, charIdx, renderer, scale, xoff, yoff, rgb) {
 
     var char = word.characters[charIdx]; // anything to draw?
     if (char.parts[0] < 0 && char.parts[1] < 0) return;
