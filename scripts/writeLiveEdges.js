@@ -1,13 +1,17 @@
 if (typeof Path2D == 'undefined') Path2D = (class Path2DMock {});
 
-let lang = 'trad';
-
 let fs = require('fs');
-let words = JSON.parse(fs.readFileSync('../words-'+lang+'.json', 'utf8'));
-let chars = JSON.parse(fs.readFileSync('../chardata.json', 'utf8'));
-
+let lev = require('fast-levenshtein');
 let CharUtils  = require('../cutils.js');
 let Autochar  = require('../autochar.js');
+
+let chars = JSON.parse(fs.readFileSync("../chardata.json", 'utf8'));
+
+// comment either to disable -> let trad; //
+let trad = JSON.parse(fs.readFileSync('../words-trad.json', 'utf8')); // comment
+let simp = JSON.parse(fs.readFileSync('../words-simp.json', 'utf8')); // comment
+
+let util = new CharUtils(chars, trad ? trad : 0, simp ? simp : 0, lev);
 
 millis = function () { return +Date.now(); }
 textWidth = function () { return -1; }
@@ -21,9 +25,8 @@ let writeFile = (args && args.length > 1 && args[1] == '-f');
 let edgeFile = 'live-edges-'+numlines+'.'+millis()+'.csv';
 let edgeData = 'source,target,med,step\n';
 
-util = new CharUtils(chars, words, null, require('fast-levenshtein'), 0, lang);
-typer = new Autochar(util, onActionComplete, null, false);
-typer.disableTriggers();
+typer = new Autochar(util, onActionComplete, null);
+if (!(trad && simp)) typer.disableTriggers();
 
 if (writeFile) console.log('target: ' + edgeFile)
 
