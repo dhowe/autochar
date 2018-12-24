@@ -1,12 +1,13 @@
 if (typeof Path2D == 'undefined') Path2D = (class Path2DMock {});
 
 let fs = require('fs');
-let util = require('./cutils');
-let Autochar = require('./autochar');
+let CharUtils  = require('./cutils.js');
+let Autochar  = require('./autochar.js');
 
 let chars = JSON.parse(fs.readFileSync("chardata.json", 'utf8'));
 let trad = JSON.parse(fs.readFileSync('words-trad.json', 'utf8'));
 let simp = JSON.parse(fs.readFileSync('words-simp.json', 'utf8'));
+let util = new CharUtils(chars, trad, simp, require('fast-levenshtein'), 0, 'traditional');
 
 textWidth = function () { return -1; }
 textAscent = function () { return -1; }
@@ -35,8 +36,8 @@ step = function () {
     setTimeout(step, 1);
   } else {
     var e = elapsed(timer);
-    console.log('Processed ' + count + ' steps in ' +
-      Math.round(e / 1000) + "s at " + (e / count) + 'ms per-step, '+typer.triggers+' triggers');
+    console.log('\nProcessed ' + count + ' steps in ' +
+      Math.round(e / 1000) + "s at " + (e / count) + 'ms per-step, '+typer.numTriggers+' triggers');
   }
 }
 
