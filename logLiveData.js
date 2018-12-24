@@ -7,7 +7,7 @@ let Autochar  = require('./autochar.js');
 let chars = JSON.parse(fs.readFileSync("chardata.json", 'utf8'));
 let trad = JSON.parse(fs.readFileSync('words-trad.json', 'utf8'));
 let simp = JSON.parse(fs.readFileSync('words-simp.json', 'utf8'));
-let util = new CharUtils(chars, trad, simp, require('fast-levenshtein'), 0, 'traditional');
+let util = new CharUtils(chars, trad, simp, require('fast-levenshtein'));
 
 textWidth = function () { return -1; }
 textAscent = function () { return -1; }

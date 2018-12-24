@@ -222,7 +222,7 @@ class CharUtils {
 
     if (!levenshtein) throw Error('no levenshtein impl');
 
-    this.lang = lang !== 'simplified' ? 'traditional' : lang;
+    this.lang = lang !== 'simp' ? 'trad' : lang;
 
     this.HistQ = HistQ; // class
     this.Word = Word; // class
@@ -244,13 +244,13 @@ class CharUtils {
   }
 
   toggleLang() {
-    this.language(this.lang === 'simplified' ? 'traditional' : 'simplified');
+    this.language(this.lang === 'simp' ? 'trad' : 'simp');
   }
 
   language(type) {
     if (type) {
-      this.lang = 'traditional';
-      if (type === 'simplified') {
+      this.lang = 'trad';
+      if (type === 'simp') {
         if (this.simpData) {
           this.lang = type;
         } else {
@@ -368,7 +368,7 @@ class CharUtils {
   }
 
   currentWords() {
-    return this.lang == 'simplified' ? this.simpData : this.tradData;
+    return this.lang == 'simp' ? this.simpData : this.tradData;
   }
 
   randWord(length, testMode) {
@@ -496,7 +496,7 @@ if (typeof module != 'undefined') {
 
   module.exports = CharUtils;
   /*let useDefs = false;
-  let lang = 'traditional';
+  let lang = 'trad';
   let fs = require("fs");
   let lev = require('fast-levenshtein');*/
   /*module.exports = new CharUtils(

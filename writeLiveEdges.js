@@ -3,9 +3,9 @@ if (typeof Path2D == 'undefined') Path2D = (class Path2DMock {});
 let lang = 'trad';
 
 let fs = require('fs');
-
 let words = JSON.parse(fs.readFileSync('words-'+lang+'.json', 'utf8'));
 let chars = JSON.parse(fs.readFileSync('chardata.json', 'utf8'));
+
 let CharUtils  = require('./cutils.js');
 let Autochar  = require('./autochar.js');
 
@@ -21,7 +21,7 @@ let writeFile = (args && args.length > 1 && args[1] == '-f');
 let edgeFile = 'live-edges-'+numlines+'.'+millis()+'.csv';
 let edgeData = 'source,target,med,step\n';
 
-util = new CharUtils(chars, words, null, require('fast-levenshtein'), 0, 'traditional');
+util = new CharUtils(chars, words, null, require('fast-levenshtein'), 0, lang);
 typer = new Autochar(util, onActionComplete, null, false);
 typer.disableTriggers();
 
@@ -60,4 +60,3 @@ function onActionComplete(next, med) {
     }
   }
 }
-

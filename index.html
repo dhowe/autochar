@@ -26,8 +26,6 @@
       conf = loadJSON('config.json');
     }
 
-
-
     function setup()
     {
       noCursor();
@@ -38,14 +36,14 @@
       textSize(14);
       parseConf();
 
-      testing = !(trad || simp);
-      util = new CharUtils(chars, trad, simp, Levenshtein, showDefs, 'traditional');
-      typer = new Autochar(util, onActionComplete, onNextTarget, testing ? chars : null);
+      let testOnly = !(trad || simp);
+      util = new CharUtils(chars, trad, simp, Levenshtein, showDefs);
+      typer = new Autochar(util, onAction, onTarget, testOnly ? chars : null);
       word = typer.word.literal;
 
       console.log("1) [ ] -> " + word);
 
-      if (testing) {
+      if (testOnly) {
         noLoop();
         return;
       }
@@ -65,18 +63,17 @@
     function next()
     {
       if (typer.step())
-      { // drawing
-        tid = setTimeout(next, strokeDelay); //random(300, 600));
+      {
+        tid = setTimeout(next, strokeDelay); // drawing
       }
       else
-      { // erasing
-        eraseSpeed ? (tid = setTimeout(next, eraseSpeed)) : next();
+      {
+        next(); // erasing
       }
     }
 
-    function onNextTarget(next, numStrokes, trigger)
+    function onTarget(next, numStrokes, trigger)
     {
-      //trigger && console.log('onNextTarget',trigger);
       triggered = trigger;
       var numStrokes = typer.currentStrokeCount;
       var nSpeed = min(1, numStrokes / 12);
@@ -84,7 +81,7 @@
       //console.log(numStrokes, nSpeed, strokeDelay);
     }
 
-    function onActionComplete(next, med)
+    function onAction(next, med)
     {
       if (next)
       {
@@ -147,7 +144,6 @@
     function keyReleased()
     {
       if (false && key == ' ') clearTimeout(tid);
-      if (key == 's') eraseSpeed = eraseSpeed > 0 ? 0 : 35;
       if (key == 'l') util.toggleLang();
     }
 
@@ -225,7 +221,6 @@
     var doSound = 1;
     var doPerf = 1;
     var invertText = 0;
-    var eraseSpeed = 0;
     var triggered = 0;
     var strokeDelay = 300;
     var bgcol = [245, 245, 245];

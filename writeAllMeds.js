@@ -6,7 +6,7 @@ let CharUtils = require('./cutils');
 
 let words = JSON.parse(fs.readFileSync('words-'+lang+'.json', 'utf8'));
 let chars = JSON.parse(fs.readFileSync('chardata.json', 'utf8'));
-let util = new CharUtils(chars, words, null, require('fast-levenshtein'), 0, 'traditional');
+let util = new CharUtils(chars, words, null, require('fast-levenshtein'));
 
 let args = process.argv.slice(2);
 let maxAllowedMed = args && Math.min(args[0],10) || 10;
