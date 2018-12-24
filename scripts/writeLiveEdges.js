@@ -6,11 +6,11 @@ let CharUtils  = require('../cutils.js');
 let Autochar  = require('../autochar.js');
 
 let chars = JSON.parse(fs.readFileSync("../chardata.json", 'utf8'));
-let trad,simp;
+let trad, simp;
 
-// comment either to disable -> let trad; //
+// both langs by default -- to use one, comment either below
 trad = JSON.parse(fs.readFileSync('../words-trad.json', 'utf8')); // comment
-simp = JSON.parse(fs.readFileSync('../words-simp.json', 'utf8')); // comment
+//simp = JSON.parse(fs.readFileSync('../words-simp.json', 'utf8')); // comment
 
 let util = new CharUtils(chars, trad ? trad : 0, simp ? simp : 0, lev);
 
@@ -23,7 +23,7 @@ let word, count = 1;
 let args = process.argv.slice(2);
 let numlines = args && args[0] || 10;
 let writeFile = (args && args.length > 1 && args[1] == '-f');
-let edgeFile = 'live-edges-'+numlines+'.'+millis()+'.csv';
+let edgeFile = 'live-edges-'+util.language()+'-'+numlines+'.'+millis()+'.csv';
 let edgeData = 'source,target,med,step\n';
 
 typer = new Autochar(util, onActionComplete, null);
