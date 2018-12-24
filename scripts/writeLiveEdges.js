@@ -9,8 +9,8 @@ let chars = JSON.parse(fs.readFileSync("../chardata.json", 'utf8'));
 let trad, simp;
 
 // both langs by default -- to use one, comment either below
-trad = JSON.parse(fs.readFileSync('../words-trad.json', 'utf8')); // comment
-//simp = JSON.parse(fs.readFileSync('../words-simp.json', 'utf8')); // comment
+//trad = JSON.parse(fs.readFileSync('../words-trad.json', 'utf8')); // comment
+simp = JSON.parse(fs.readFileSync('../words-simp.json', 'utf8')); // comment
 
 let util = new CharUtils(chars, trad ? trad : 0, simp ? simp : 0, lev);
 
@@ -61,6 +61,7 @@ function onActionComplete(next, med) {
     if (++count % 200 == 0) {
       fs.appendFileSync(edgeFile, edgeData);
       console.log(Math.floor((count / numlines) * 1000) / 10 + '% complete');
+      edgeData = '';
     }
   }
 }
