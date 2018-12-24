@@ -6,10 +6,11 @@ let CharUtils  = require('../cutils.js');
 let Autochar  = require('../autochar.js');
 
 let chars = JSON.parse(fs.readFileSync("../chardata.json", 'utf8'));
+let trad,simp;
 
 // comment either to disable -> let trad; //
-let trad = JSON.parse(fs.readFileSync('../words-trad.json', 'utf8')); // comment
-let simp = JSON.parse(fs.readFileSync('../words-simp.json', 'utf8')); // comment
+trad = JSON.parse(fs.readFileSync('../words-trad.json', 'utf8')); // comment
+simp = JSON.parse(fs.readFileSync('../words-simp.json', 'utf8')); // comment
 
 let util = new CharUtils(chars, trad ? trad : 0, simp ? simp : 0, lev);
 
