@@ -10,4 +10,9 @@ function createWindow () {
   win.loadFile('index.html');
 }
 
+/*app.setLoginItemSettings({
+  openAtLogin: arg.settings.startOnStartup,
+  path: electron.app.getPath("exe")
+});*/
+
 app.on('ready', createWindow);
