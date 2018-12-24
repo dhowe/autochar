@@ -14,6 +14,7 @@ let keys = Object.keys(words);
 if (writeFile) console.log('Target file: '+edgeFile);
 
 let edgeData = 'source,target,med\n';
+
 for (var i = 0; i < keys.length; i++) {
   for (var j = 0; j < keys.length; j++) {
     if (i == j) continue;
@@ -24,17 +25,14 @@ for (var i = 0; i < keys.length; i++) {
         var line = word1+','+word2+','+med;
         if (writeFile) {
           edgeData += line + "\n";
-          if (edgeData.length > 10*1024*1024) {
-            console.log('Appending to: '+edgeFile);
-  	    fs.appendFileSync(edgeFile, edgeData);
-            edgeData = '';
-          }
         }
         else console.log(line);
     }
   }
   if (writeFile && i%100==0) {
     console.log(Math.floor((i/keys.length)*1000)/10+'% complete');
+    fs.appendFileSync(edgeFile, edgeData);
+    edgeData = '';
   }
 }
 
