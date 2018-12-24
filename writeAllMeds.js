@@ -17,6 +17,7 @@ let keys = Object.keys(JSON.parse(fs.readFileSync('words-'+lang+'.json', 'utf8')
 if (writeFile) console.log('Target file: '+edgeFile);
 
 let edgeData = 'source,target,med\n';
+
 for (var i = 0; i < keys.length; i++) {
   for (var j = 0; j < keys.length; j++) {
     if (i == j) continue;
