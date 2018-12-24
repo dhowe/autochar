@@ -40,8 +40,6 @@ class Autochar {
     this.memory.add(this.word.literal);
     this.wordCompleteCallback = wordCompleteCB;
     this.nextTargetCallback = nextTargetCB;
-
-    //console.log('loaded ' + TRIGGERS.length + ' trigger chars');
   }
 
   disableTriggers()

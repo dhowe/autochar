@@ -222,7 +222,7 @@ class CharUtils {
 
     if (!levenshtein) throw Error('no levenshtein impl');
 
-    this.lang = lang !== 'simp' ? 'trad' : lang;
+    lang = (lang != 'simp') ? 'trad' : lang;
 
     this.HistQ = HistQ; // class
     this.Word = Word; // class
@@ -235,29 +235,34 @@ class CharUtils {
     this.prefillCache(charData, tradData, loadDefs);
     this.prefillCache(charData, simpData, loadDefs);
 
-    //console.log("simp",simpData.length, this.simpData.length);
+    this.language(lang, 1);
 
-    this.language(lang);
-
-    console.log('cUtils[' + (charData ? (Object.keys(charData).length + ',') : '') +
-      Object.keys(this.wordCache).length + ']');
+    console.log('cUtils[' + (charData ? (Object.keys(charData).length +
+     ',') : '') + Object.keys(this.wordCache).length + '] '+this.lang);
   }
 
   toggleLang() {
     this.language(this.lang === 'simp' ? 'trad' : 'simp');
   }
 
-  language(type) {
+  language(type, quiet) {
     if (type) {
       this.lang = 'trad';
       if (type === 'simp') {
         if (this.simpData) {
           this.lang = type;
         } else {
-          console.warn('[WARN] No simplified data, call ignored!');
+          !quiet && console.warn('[WARN] No simp. data, call ignored');
         }
       }
-      console.log('language: ' + this.lang);
+      else if (type === 'trad') {
+        if (this.tradData) {
+          this.lang = type;
+        } else {
+          !quiet && console.warn('[WARN] No trad. data, call ignored');
+          this.lang = 'simp';
+        }
+      }
     }
     return type ? this : this.lang;
   }
