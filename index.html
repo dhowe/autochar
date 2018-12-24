@@ -196,7 +196,7 @@
         }
         else console.log('default.trgcol: ' + trgcol);
 
-        if (conf.prod && conf.prod == 'true')
+        if (conf.hasOwnProperty('prod') && conf.prod)
         {
           prod = conf.prod;
           console.log('config.prod: ' + prod);

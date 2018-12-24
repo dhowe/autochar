@@ -35,20 +35,20 @@ class Autochar {
       return;
     }
 
+    this.wordCompleteCallback = wordCompleteCB;
+    this.nextTargetCallback = nextTargetCB;
+
     this.word = util.randWord(2);
     this.memory = new util.HistQ(10);
     this.memory.add(this.word.literal);
-    this.wordCompleteCallback = wordCompleteCB;
-    this.nextTargetCallback = nextTargetCB;
+    this.memory.add('trigger');
   }
 
-  disableTriggers()
-  {
+  disableTriggers() {
     this.triggers = undefined;
   }
 
-  mockWord(chars)
-  {
+  mockWord(chars) {
     var c1 = util.randKey(chars);
     var c2 = util.randKey(chars);
     return util._createWord(c1 + c2, chars);
@@ -60,7 +60,7 @@ class Autochar {
     this.renderWord(this.word, renderer, .85, 0, 30, rgb);
   }
 
-  step() {   // returns the next action to be done
+  step() { // returns the next action to be done
 
     if (!this.target) {
       let trigd = this.pickNextTarget();
@@ -132,7 +132,8 @@ class Autochar {
     this.target = result;
 
     if (triggered) {
-      console.log('trigger: "' + char + '" in "' + result.literal + '"');
+      console.log('trigger: "' + char + '" in "' + result.literal + '" -> ' +
+        (this.util.lang === 'simp' ? 'trad' : 'simp'));
       this.util.toggleLang();
       this.memory.add('trigger');
     }
