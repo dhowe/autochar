@@ -494,14 +494,14 @@ class HistQ {
 
 if (typeof module != 'undefined') {
 
-  let useDefs = false;
+  module.exports = CharUtils;
+  /*let useDefs = false;
   let lang = 'traditional';
   let fs = require("fs");
-  let lev = require('fast-levenshtein');
-
-  module.exports = new CharUtils(
+  let lev = require('fast-levenshtein');*/
+  /*module.exports = new CharUtils(
     JSON.parse(fs.readFileSync('chardata.json', 'utf8')),
     JSON.parse(fs.readFileSync('words-trad.json', 'utf8')),
     JSON.parse(fs.readFileSync('words-simp.json', 'utf8')),
-    lev, useDefs, lang);
+    lev, useDefs, lang);*/
 }

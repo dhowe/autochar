@@ -1,11 +1,10 @@
-// NEXT: node,npm,electron on rpi
-let count = 0; // TMP
-
 // TODO:
 //   bug: displayed med is not in sync (shows after word completes)
 //   length of stroke to length of sound-sample
 //   add 3rd character
 //   sort bests by stroke count, pick the closest (part of med?)
+
+//let count = 0; // TMP
 
 if (typeof module != 'undefined' && process.versions.hasOwnProperty('electron')) {
   //Tone = require("Tone");
@@ -21,14 +20,15 @@ class Autochar {
 
   constructor(util, wordCompleteCB, nextTargetCB, testChars) {
 
+    this.target;
     this.tid = -1;
     this.med = -1;
     this.util = util;
-    this.triggers = 0;
-    this.target = null;
+    this.numTriggers = 0;
     this.targetCharIdx = -1;
     this.targetPartIdx = -1;
     this.currentStrokeCount = 0;
+    this.triggers = TRIGGERS;
 
     if (testChars) {
       this.word = this.mockWord(testChars);
@@ -41,7 +41,12 @@ class Autochar {
     this.wordCompleteCallback = wordCompleteCB;
     this.nextTargetCallback = nextTargetCB;
 
-    console.log('loaded ' + TRIGGERS.length + ' trigger chars');
+    //console.log('loaded ' + TRIGGERS.length + ' trigger chars');
+  }
+
+  disableTriggers()
+  {
+    this.triggers = undefined;
   }
 
   mockWord(chars)
@@ -102,20 +107,20 @@ class Autochar {
     //     console.log('forced trigger');
     //     result = this.util.getWord(opts[0]);
     //     triggered = true;
-    //     this.triggers++;
+    //     this.numTriggers++;
     //
     //   }
     //else console.log('skip-trigger-check');
 
-    if (!this.memory.contains('trigger')) {
+    if (this.triggers && !this.memory.contains('trigger')) {
       OUT: for (var i = 0; i < opts.length; i++) {
         var cand = opts[i];
         for (var j = 0; j < cand.length; j++) {
           var char = cand[j];
-          if (TRIGGERS.indexOf(char) > -1) {
+          if (this.triggers.indexOf(char) > -1) {
             result = this.util.getWord(cand);
             triggered = true;
-            this.triggers++;
+            this.numTriggers++;
             break OUT;
           }
         }
