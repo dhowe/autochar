@@ -420,11 +420,9 @@ class CharUtils {
     for (var j = 0; j < char.paths.length; j++) {
       for (var i = 0; i < char.paths[j].length; i++) {
 
-        //ctx.translate(500,0);
-
         var shift = renderer.width / 2;
-        ctx.translate(0, shift + yoff); // shift for mirror
-        if (charIdx > 0) ctx.translate(shift, 0); // shift for mirror
+        ctx.translate(xoff, shift + yoff); // shift for mirror
+        if (charIdx > 0) ctx.translate(shift*.8, 0); // shift for mirror
         ctx.scale(.5, -.5); // mirror-vertically
 
         if (char.parts[j] >= i) {
@@ -437,7 +435,6 @@ class CharUtils {
         ctx.lineWidth = 6;
         ctx.stroke(char.paths[i]);
         */
-
         ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
       }
     }
