@@ -12,7 +12,6 @@
   <script src="autochar.js"></script>
   <link rel="stylesheet" type="text/css" href="style.css">
   <script>
-
     function preload()
     {
       if (doSound)
@@ -34,7 +33,6 @@
 
       textAlign(CENTER);
       textSize(14);
-      parseConf();
 
       let testOnly = !(trad || simp);
       util = new CharUtils(chars, trad, simp, Levenshtein, showDefs);
@@ -43,7 +41,8 @@
 
       console.log("1) [ ] -> " + word);
 
-      if (testOnly) {
+      if (testOnly)
+      {
         noLoop();
         return;
       }
@@ -93,7 +92,7 @@
 
         wmed = med + (util.language().startsWith('s') ? 's' : '');
 
-        console.log(++steps+') '+ word + " -> " + next.literal, wmed, def);
+        console.log(++steps + ') ' + word + " -> " + next.literal, wmed, def);
 
         word = next.literal;
 
@@ -111,7 +110,7 @@
       for (var i = 0; i < rgb.length; i++)
       {
         rgb[i] = triggered ? trgcol[i] : hitcol[i];
-        if (!invertText) txtcol[i] = 255;
+        txtcol[i] = whiteOnColor ? 0 : 255;
       }
     }
 
@@ -144,19 +143,36 @@
     function keyReleased()
     {
       if (false && key == ' ') clearTimeout(tid);
-      if (key == 'l') util.toggleLang();
+      if (key == 't')
+      {
+        triggered = true;
+        flashColors();
+        playStroke(true);
+        playBell();
+      }
     }
 
     function adjustColor()
     {
+      if (!rgb)
+      {
+        rgb = [0, 0, 0];
+        for (var i = 0; i < rgb.length; i++)
+        {
+          rgb[i] = bgcol[i];
+        }
+      }
       for (var i = 0; i < rgb.length; i++)
       {
-        if (rgb[i] < bgcol[i] - 1)
-        {
-          rgb[i] = lerp(rgb[i], bgcol[i], .05);
-        }
-        if (invertText) txtcol[i] = 255 - floor(rgb[i]);
-        else if (txtcol[i] > 0) txtcol[i] -= 5;
+        if (rgb[i] != bgcol[i]) rgb[i] = lerp(rgb[i], bgcol[i], .05);
+        //if (invertText) txtcol[i] = 255 - round(rgb[i]); else
+        //txtcol[i] = 255 - round(rgb[i]);
+        if (whiteOnColor && txtcol[i] < 255) txtcol[i] += 5;
+        if (!whiteOnColor && txtcol[i] > -1) txtcol[i] -= 5;
+        //txtcol[i] = lerp(txtcol[i], bgcol[i], .05);
+        //else if (txtcol[i] > 0) txtcol[i] += 5;
+        //if (invertText) txtcol[i] = 255 - floor(rgb[i]);
+        //else if (txtcol[i] > 0) txtcol[i] += 5;
       }
     }
 
@@ -171,64 +187,28 @@
       }
     }
 
-    function parseConf()
-    {
-      if (conf)
-      {
-        if (conf.bgcol && conf.bgcol.length == 3)
-        {
-          bgcol = conf.bgcol;
-          console.log('config.bgcol: ' + bgcol);
-        }
-        else console.log('default.bgcol: ' + bgcol);
+    var lang, chars, simp, trad, bell;
+    var typer, conf, word, tid, stroke;
 
-        if (conf.hitcol && conf.hitcol.length == 3)
-        {
-          hitcol = conf.hitcol;
-          console.log('config.hitcol: ' + hitcol);
-        }
-        else console.log('default.hitcolor: ' + hitcol);
-
-        if (conf.trgcol && conf.trgcol.length == 3)
-        {
-          trgcol = conf.trgcol;
-          console.log('config.trgcol: ' + trgcol);
-        }
-        else console.log('default.trgcol: ' + trgcol);
-
-        if (conf.hasOwnProperty('prod') && conf.prod)
-        {
-          prod = conf.prod;
-          console.log('config.prod: ' + prod);
-        }
-        else console.log('default.prod: ' + prod);
-      }
-
-      for (var i = 0; i < rgb.length; i++)
-      {
-        rgb[i] = bgcol[i];
-        if (invertText) txtcol[i] = 255 - rgb[i];
-      }
-    }
-
-    var lang, chars, simp, trad, bell, typer, conf, word, tid, stroke;
     var memt = -15;
     var wmed = '';
     var def = '';
     var steps = 1;
+    var triggered = 0;
+    var strokeDelay = 300;
+
     var showDefs = 0;
     var showMed = 0;
     var doSound = 1;
     var doPerf = 1;
-    var invertText = 0;
-    var triggered = 0;
-    var strokeDelay = 300;
-    var bgcol = [245, 245, 245];
-    var hitcol = [0, 0, 0];
+    var prod = false;
+
+    var whiteOnColor = true;
+    var bgcol = [46, 127, 192	];
+    var hitcol = [255, 255, 255];
     var txtcol = [0, 0, 0];
     var trgcol = [150, 0, 0];
     var rgb = [0, 0, 0];
-    var prod = false;
   </script>
 </head>
 
