@@ -11,7 +11,7 @@ for (let i = 0; i < entries.length; i++) {
   var sidx = triggers.indexOf(simp);
   var tidx = triggers.indexOf(simp);
   if (tidx > -1) console.log(trad + ' : '+entries[i].definitions.join(', ') +'  ['+entries[i].pinyinDiacritic+']');
-  else if (sidx > -1) console.log(i + ') SIMP: ' + simp + ' -> ' + entries[i].definitions.join(','));
+  else if (sidx > -1) console.log(simp + ' -> ' + entries[i].definitions.join(','));
 
 }
 
