@@ -147,14 +147,16 @@ class Autochar {
 
   pickNextTarget() {
 
-    var opts = this.candidates();
+    // get our MED candidates
+    let result, opts = this.candidates();
     //console.log('BEDs: ' + opts.length+"\n");
 
-    let result;
+    // select any trigger words if we have them
     let triggered = false;
     if (this.triggers && !this.memory.contains('trigger')) {
-      OUT: for (var i = 0; i < opts.length; i++) {
-        var cand = opts[i];
+      var startIdx = (Math.random() * opts.length) << 0;
+      OUT: for (var i = startIdx; i < opts.length+startIdx; i++) {
+        var cand = opts[i % opts.length];
         for (var j = 0; j < cand.length; j++) {
           var char = cand[j];
           if (this.triggers.indexOf(char) > -1) {
@@ -167,18 +169,21 @@ class Autochar {
       }
     }
 
-    if (!result) result = this.util.getWord(opts[(Math.random() * opts.length) << 0]);
-
-    //console.log('PICKED: ' +result.literal);
+    // otherwise pick a random element from the list
+    if (!result) {
+      result = this.util.getWord(opts[(Math.random() * opts.length) << 0]);
+    }
 
     // check neither character has stayed the same for too long
     this.rightStatics = result.literal[1] === this.word.literal[1] ? this.rightStatics + 1 : 0;
     this.leftStatics = result.literal[0] === this.word.literal[0] ? this.leftStatics + 1 : 0;
 
+    // update the new target and MED
     this.med = this.util.minEditDistance(this.word.literal, result.literal);
     this.memory.add(result.literal);
     this.target = result;
 
+    // if its a trigger word, swap languages
     if (triggered) {
       console.log('trigger: "' + char + '" in "' + result.literal + '" -> ' +
         (this.util.lang === 'simp' ? 'trad' : 'simp'));
