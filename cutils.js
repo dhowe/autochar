@@ -279,8 +279,9 @@ class CharUtils {
 
   bestEditDistance(literal, words, hist, minAllowed) {
 
+
     words = words || Object.keys(this.currentWords());
-    if (typeof minAllowed == 'undefined') minAllowed = 1;
+    if (typeof minAllowed == 'undefined' || minAllowed < 1) minAllowed = 1;
 
     //console.log('bestEditDistance: '+literal);
 
@@ -291,16 +292,19 @@ class CharUtils {
     for (let i = 0; i < words.length; i++) {
 
       // no dups and nothing in history, maintain length
-      if (literal === words[i] || words[i].length != literal.length ||
-        (typeof hist != 'undefined' && hist && hist.contains(words[i]))) {
+      if (literal === words[i] || words[i].length != literal.length) {
+        continue;
+      }
+
+      if (typeof hist != 'undefined' && hist.contains(words[i])) {
         continue;
       }
 
       let wes2 = this.getWord(words[i]).editString;
 
-      let raw = this.levenshtein.get(literal, words[i]);
-      med = Math.max(0, raw) + this.levenshtein.get(wes, wes2);
-      //med = this.minEditDistance(literal, words[i]);
+      // chinese min-edit-dist
+      let cost = this.levenshtein.get(literal, words[i]) - 1;
+      med = Math.max(0, cost) + this.levenshtein.get(wes, wes2);
 
       //console.log(i, words[i], med, 'best='+bestMed);
 
@@ -313,7 +317,10 @@ class CharUtils {
 
     // return the best list
     for (var i = 0; i < meds.length; i++) {
-      if (meds[i] && meds[i].length) return meds[i];
+      if (meds[i] && meds[i].length) {
+        //console.log('     '+meds[i]+' for '+i);
+        return meds[i];
+      }
     }
 
     return []; // or nothing
@@ -387,6 +394,7 @@ class CharUtils {
       // keep going until we get the right length
       word = this.getWord(this.randKey(words));
     }
+
     return word;
   }
 

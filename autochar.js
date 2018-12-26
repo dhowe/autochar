@@ -29,6 +29,8 @@ class Autochar {
     this.targetPartIdx = -1;
     this.currentStrokeCount = 0;
     this.triggers = TRIGGERS;
+    this.leftStatics = 0;
+    this.rightStatics = 0;
 
     if (testChars) {
       this.word = this.mockWord(testChars);
@@ -39,6 +41,7 @@ class Autochar {
     this.nextTargetCallback = nextTargetCB;
 
     this.word = util.randWord(2);
+    // tmp this.word = this.util.getWord('葉縣');
     this.memory = new util.HistQ(10);
     this.memory.add(this.word.literal);
     this.memory.add('trigger');
@@ -75,41 +78,80 @@ class Autochar {
     return this.action;
   }
 
-  pickNextTarget() {
+  candidates(minAllowed) {
 
-    let opts = this.util.bestEditDistance(this.word.literal, null, this.memory);
-    if (!opts || !opts.length) {
-      throw Error('Died on ' + this.word.literal, this.word);
-    }
+    let opts = [];
+    let minMed = minAllowed || 1;
 
-    if (this.targetCharIdx > -1) { // alternate characters when possible
-      let ideals = [];
-      let justChanged = this.word.literal[this.targetCharIdx];
-      //console.log('justChanged', justChanged);
-      for (var i = 0; i < opts.length; i++) {
-        if (opts[i][this.targetCharIdx] === justChanged) {
-          ideals.push(opts[i]);
+    let rightSideFail = this.rightStatics > this.memory.size();
+    let leftSideFail = this.leftStatics > this.memory.size();
+
+    while (!opts || !opts.length) {
+
+      opts = this.util.bestEditDistance(this.word.literal, 0, this.memory, minMed);
+
+
+      if (!opts || !opts.length) {
+        throw Error('Died on ' + this.word.literal, this.word);
+      }
+
+      // alternate characters when possible
+      if (!rightSideFail && !leftSideFail) {
+        if (this.targetCharIdx > -1) {
+          let ideals = [];
+          let justChanged = this.word.literal[this.targetCharIdx];
+          //console.log('justChanged', justChanged);
+          for (var i = 0; i < opts.length; i++) {
+            if (opts[i][this.targetCharIdx] === justChanged) {
+              ideals.push(opts[i]);
+            }
+          }
+          //console.log('opts  ', opts.length, JSON.stringify(ideals));
+          //console.log('ideals', ideals.length, JSON.stringify(ideals));
+          if (ideals.length) opts = ideals;
         }
       }
-      //console.log('opts  ', opts.length, JSON.stringify(ideals));
-      //console.log('ideals', ideals.length, JSON.stringify(ideals));
-      if (ideals.length) opts = ideals;
+      else {
+        var repairs = [];
+        if (rightSideFail) {
+          console.error('!!! VIOLATION(R) '+ this.word.literal);
+          for (var i = 0; i < opts.length; i++) {
+            if (opts[i][1] !== this.word.literal[1]) {
+              repairs.push(opts[i]);
+            }
+          }
+          console.log('repairs: '+repairs);
+        }
+        else if (leftSideFail) {
+          console.error('!!! VIOLATION(L) ' +this.word.literal);
+          for (var i = 0; i < opts.length; i++) {
+            if (opts[i][0] !== this.word.literal[0]) {
+              repairs.push(opts[i]);
+            }
+          }
+          console.log('repairs: '+repairs);
+        }
+        if (repairs.length) {
+           opts = repairs;
+        }
+        else {
+          minMed++;
+          opts = undefined;
+          console.log('Failed to find repair: incrementing MED to '+minMed);
+        }
+      }
     }
+
+    return opts;
+  }
+
+  pickNextTarget() {
+
+    var opts = this.candidates();
+    //console.log('BEDs: ' + opts.length+"\n");
 
     let result;
     let triggered = false;
-
-    // if (++count == 3) {
-    //    // TMP
-    //     opts[0] = '分曉';
-    //     console.log('forced trigger');
-    //     result = this.util.getWord(opts[0]);
-    //     triggered = true;
-    //     this.numTriggers++;
-    //
-    //   }
-    //else console.log('skip-trigger-check');
-
     if (this.triggers && !this.memory.contains('trigger')) {
       OUT: for (var i = 0; i < opts.length; i++) {
         var cand = opts[i];
@@ -126,6 +168,12 @@ class Autochar {
     }
 
     if (!result) result = this.util.getWord(opts[(Math.random() * opts.length) << 0]);
+
+    //console.log('PICKED: ' +result.literal);
+
+    // check neither character has stayed the same for too long
+    this.rightStatics = result.literal[1] === this.word.literal[1] ? this.rightStatics + 1 : 0;
+    this.leftStatics = result.literal[0] === this.word.literal[0] ? this.leftStatics + 1 : 0;
 
     this.med = this.util.minEditDistance(this.word.literal, result.literal);
     this.memory.add(result.literal);
