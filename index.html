@@ -167,8 +167,8 @@
         if (rgb[i] != bgcol[i]) rgb[i] = lerp(rgb[i], bgcol[i], .05);
         //if (invertText) txtcol[i] = 255 - round(rgb[i]); else
         //txtcol[i] = 255 - round(rgb[i]);
-        if (whiteOnColor && txtcol[i] < 255) txtcol[i] += 5;
-        if (!whiteOnColor && txtcol[i] > -1) txtcol[i] -= 5;
+        if (whiteOnColor && txtcol[i] < 255) txtcol[i] += 10;
+        if (!whiteOnColor && txtcol[i] > -1) txtcol[i] -= 10;
         //txtcol[i] = lerp(txtcol[i], bgcol[i], .05);
         //else if (txtcol[i] > 0) txtcol[i] += 5;
         //if (invertText) txtcol[i] = 255 - floor(rgb[i]);
@@ -203,10 +203,10 @@
     var doPerf = 1;
     var prod = false;
 
-    var whiteOnColor = true;
-    var bgcol = [137,172,198];
-    var hitcol = [ 76,87,96];
-    var txtcol = [255, 255, 255];
+    var whiteOnColor = false;
+    var bgcol = [137, 172, 198];
+    var hitcol = [76, 87, 96];
+    var txtcol = [0, 0, 0];
     var trgcol = [150, 0, 0];
     var rgb = [0, 0, 0];
   </script>
