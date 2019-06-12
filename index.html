@@ -30,6 +30,12 @@
       noCursor();
       frameRate(30);
       createCanvas(1024, 768);
+
+      if (window.innerWidth < 600) {
+        var canvas = document.getElementById("defaultCanvas0");
+        canvas.style.width = "";
+        canvas.style.height = "";
+      }
       //createCanvas(680, 490);
 
       textAlign(CENTER);
@@ -59,6 +65,15 @@
       showMed && text(wmed, width - 12, 15);
       doPerf && logPerf();
     }
+
+    function toggleMute(event) {
+
+      if (typeof event === 'boolean') doSound = event ? 0:1;
+      else doSound = doSound == 0 ? 1: 0;
+      console.log("Sound", doSound);
+      document.getElementById("mute").innerText = doSound == 0 ? 'unmute' : ' mute ';
+    }
+
 
     function next()
     {
@@ -214,6 +229,10 @@
 </head>
 
 <body>
+  <button id="mute">mute</button>
+  <script>
+  document.getElementById("mute").onclick = toggleMute;
+  </script>
 </body>
 
 </html>
