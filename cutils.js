@@ -366,11 +366,8 @@ class CharUtils {
     }
 
     console.log("[WARN] creating word object for " + litera);
-
     var word = this._createWord(literal, charData);
-
     if (this.wordCache) this.wordCache[literal] = word;
-
     return word;
   }
 

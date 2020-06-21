@@ -11,6 +11,8 @@ if (typeof module != 'undefined' && process.versions.hasOwnProperty('electron'))
   Tone = require("./node_modules/tone/build/Tone.min.js");
 }
 
+const FORCE_CHARACTER = false; // '和諧';
+
 const REPLACE_ERASE = 0;
 const REPLACE_STROKE = 1;
 const DELETE_ACTION = 2;
@@ -41,7 +43,7 @@ class Autochar {
     this.nextTargetCallback = nextTargetCB;
 
     this.word = util.randWord(2);
-    // tmp this.word = this.util.getWord('葉縣');
+    // tmp this.word = this.util.getWord('和諧');
     this.memory = new util.HistQ(10);
     this.memory.add(this.word.literal);
     this.memory.add('trigger');
@@ -59,7 +61,6 @@ class Autochar {
 
   draw(renderer, rgb) {
 
-    //this.renderWord(this.word, renderer, .65, 30, rgb);
     this.renderWord(this.word, renderer, .85, 80, 30, rgb);
   }
 
@@ -173,6 +174,8 @@ class Autochar {
     if (!result) {
       result = this.util.getWord(opts[(Math.random() * opts.length) << 0]);
     }
+
+    FORCE_CHARACTER && (result = this.util.getWord('和諧'));
 
     // check neither character has stayed the same for too long
     this.rightStatics = result.literal[1] === this.word.literal[1] ? this.rightStatics + 1 : 0;
