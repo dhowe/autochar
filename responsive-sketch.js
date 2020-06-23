@@ -3,7 +3,7 @@ let w = window.innerWidth;
 let h = window.innerHeight;
 
 function setup() {
-  canvas = createCanvas(w, h-1000);
+  canvas = createCanvas(w, h * .99);
 }
 
 function draw() {
@@ -16,5 +16,5 @@ function draw() {
 window.onresize = function () {
   w = window.innerWidth;
   h = window.innerHeight;
-  canvas.size(w, h);
+  canvas.size(w, h * .99);
 }
