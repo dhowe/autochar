@@ -25,12 +25,12 @@ class Word {
 
     // a char has ~2 parts, each with a list of strokes
     chr.cstrokes = [];
-    for (var i = 0; i < chr.parts.length; i++) {
+    for (let i = 0; i < chr.parts.length; i++) {
       chr.cstrokes[i] = [];
     }
 
-    for (var j = 0; j < chr.matches.length; j++) {
-      var strokeIdx = chr.matches[j][0];
+    for (let j = 0; j < chr.matches.length; j++) {
+      let strokeIdx = chr.matches[j][0];
       if (strokeIdx === 0) { // part 0
         chr.cstrokes[0].push(chr.strokes[j]);
       } else if (strokeIdx === 1) { // part 1
@@ -44,18 +44,18 @@ class Word {
   computePaths(chr) { // TODO: make sure this happens only once per char
 
     chr.paths = [];
-    for (var i = 0; i < chr.parts.length; i++) chr.paths[i] = [];
+    for (let i = 0; i < chr.parts.length; i++) chr.paths[i] = [];
 
-    for (var j = 0; j < chr.parts.length; j++) {
-      for (var i = 0; i < chr.cstrokes[j].length; i++) {
+    for (let j = 0; j < chr.parts.length; j++) {
+      for (let i = 0; i < chr.cstrokes[j].length; i++) {
         chr.paths[j].push(new Path2D(chr.cstrokes[j][i]));
       }
     }
   }
 
   computeEditString() {
-    var es = '';
-    for (var i = 0; i < this.characters.length; i++) {
+    let es = '';
+    for (let i = 0; i < this.characters.length; i++) {
       es += this.characters[i].decomposition;
       if (i < this.characters.length - 1) es += ' ';
     }
@@ -67,7 +67,7 @@ class Word {
     if (typeof charIdx === 'undefined') throw Error('no charIdx');
     if (typeof partIdx === 'undefined') throw Error('no partIdx');
 
-    var chr = this.characters[charIdx];
+    let chr = this.characters[charIdx];
     partIdx = this.constrain(partIdx, 0, chr.parts.length - 1);
 
     if (partIdx < 0 || partIdx >= chr.parts.length) {
@@ -92,7 +92,7 @@ class Word {
     charIdx = Math.max(charIdx, 0); // if -1, show first char
     partIdx = Math.max(partIdx, 0); // if -1, show first part
 
-    var chr = this.characters[charIdx];
+    let chr = this.characters[charIdx];
 
     //console.log("char["+ charIdx+"]["+partIdx+"] = " +
     //(chr.parts[partIdx]+1)+"/"+(chr.cstrokes[partIdx].length)); // keep
@@ -106,23 +106,23 @@ class Word {
   ///////////////////////// visibility (redo) ///////////////////////////////
 
   isVisible() { // true if word is fully drawn
-    for (var i = 0; i < this.characters.length; i++) {
+    for (let i = 0; i < this.characters.length; i++) {
       if (!this.isCharVisible(i)) return false;
     }
     return true;
   }
 
   isHidden() { // true if all strokes are hidden
-    for (var i = 0; i < this.characters.length; i++) {
+    for (let i = 0; i < this.characters.length; i++) {
       if (!this.isCharHidden(i)) return false;
     }
     return true;
   }
 
   isCharVisible(charIdx) { // true if character is fully drawn
-    var chr = this.characters[charIdx];
+    let chr = this.characters[charIdx];
     if (!chr) throw Error('no charIdx for: ' + charIdx);
-    for (var i = 0; i < chr.parts.length; i++) {
+    for (let i = 0; i < chr.parts.length; i++) {
       if (!this.isPartVisible(charIdx, i))
         return false;
     }
@@ -130,9 +130,9 @@ class Word {
   }
 
   isCharHidden(charIdx) { // true if character is fully drawn
-    var chr = this.characters[charIdx];
+    let chr = this.characters[charIdx];
     if (!chr) throw Error('no charIdx for: ' + charIdx);
-    for (var i = 0; i < chr.parts.length; i++) {
+    for (let i = 0; i < chr.parts.length; i++) {
       if (!this.isPartHidden(charIdx, i))
         return false;
     }
@@ -142,7 +142,7 @@ class Word {
   isPartVisible(charIdx, partIdx) { // true if part is fully drawn
     if (typeof charIdx === 'undefined') throw Error('no charIdx');
     if (typeof partIdx === 'undefined') throw Error('no partIdx');
-    var chr = this.characters[charIdx];
+    let chr = this.characters[charIdx];
     //console.log('check '+chr.parts[partIdx]+ " >=? "+(chr.cstrokes[partIdx].length-1));
     return (chr.parts[partIdx] >= chr.cstrokes[partIdx].length - 1);
   }
@@ -150,18 +150,18 @@ class Word {
   isPartHidden(charIdx, partIdx) { // true if part is fully drawn
     if (typeof charIdx === 'undefined') throw Error('no charIdx');
     if (typeof partIdx === 'undefined') throw Error('no partIdx');
-    var chr = this.characters[charIdx];
+    let chr = this.characters[charIdx];
     //console.log('check '+chr.parts[partIdx]+ " >=? "+(chr.cstrokes[partIdx].length-1));
     return (chr.parts[partIdx] < 0);
   }
 
   show(charIdx, partIdx) {
-    var ALL = Number.MAX_SAFE_INTEGER;
+    let ALL = Number.MAX_SAFE_INTEGER;
     if (typeof charIdx === 'undefined') {
       this.setVisible(0, ALL); // show both chars
       this.setVisible(1, ALL);
     } else {
-      var chr = this.characters[charIdx];
+      let chr = this.characters[charIdx];
       if (!chr) throw Error('show: no charIdx for: ' + charIdx);
       if (typeof partIdx === 'undefined') {
         this.setVisible(charIdx, ALL); // show one char
@@ -173,7 +173,7 @@ class Word {
 
   hide(charIdx, partIdx) {
     if (typeof charIdx === 'undefined') {
-      for (var i = 0; i < this.characters.length; i++) {
+      for (let i = 0; i < this.characters.length; i++) {
         this.setVisible(i, -1); // hide all chars
       }
 
@@ -194,11 +194,11 @@ class Word {
 
     if (typeof charIdx === 'undefined') throw Error('no charIdx');
 
-    var ALL = Number.MAX_SAFE_INTEGER;
+    let ALL = Number.MAX_SAFE_INTEGER;
 
-    var chr = this.characters[charIdx];
+    let chr = this.characters[charIdx];
     //console.log('setVisible', charIdx, value);
-    for (var i = 0; i < chr.parts.length; i++) chr.parts[i] = ALL;
+    for (let i = 0; i < chr.parts.length; i++) chr.parts[i] = ALL;
 
     if (value == 0) { // show left-only
       if (chr.parts.length > 0) chr.parts[1] = -1;
@@ -316,7 +316,7 @@ class CharUtils {
     }
 
     // return the best list
-    for (var i = 0; i < meds.length; i++) {
+    for (let i = 0; i < meds.length; i++) {
       if (meds[i] && meds[i].length) {
         //console.log('     '+meds[i]+' for '+i);
         return meds[i];
@@ -366,13 +366,13 @@ class CharUtils {
     }
 
     console.log("[WARN] creating word object for " + litera);
-    var word = this._createWord(literal, charData);
+    let word = this._createWord(literal, charData);
     if (this.wordCache) this.wordCache[literal] = word;
     return word;
   }
 
   definition(literal) {
-    var words = this.currentWords();
+    let words = this.currentWords();
     return words.hasOwnProperty(literal) ? words[literal] : '---';
   }
 
@@ -411,21 +411,21 @@ class CharUtils {
   }
 
   renderPath(word, charIdx, renderer, scale, xoff, yoff, rgb) {
-    var char = word.characters[charIdx]; // anything to draw?
+    let char = word.characters[charIdx]; // anything to draw?
     if (char.parts[0] < 0 && char.parts[1] < 0) return;
-
+    
     if (!rgb || rgb.length != 3) rgb = BLACK;
     if (typeof scale == 'undefined') scale = 1;
 
-    var pg = renderer || this._renderer;
-    var ctx = pg.drawingContext;
+    let pg = renderer || this._renderer;
+    let ctx = pg.drawingContext;
     ctx.fillStyle = 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
 
-    for (var j = 0; j < char.paths.length; j++) {
-      for (var i = 0; i < char.paths[j].length; i++) {
+    for (let j = 0; j < char.paths.length; j++) {
+      for (let i = 0; i < char.paths[j].length; i++) {
         ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
 
-        var shift = renderer.width / 2;
+        let shift = renderer.width / 2;
         ctx.translate(xoff, shift + yoff); // shift for mirror
         if (charIdx > 0) ctx.translate(shift*.8, 0); // shift for mirror
         ctx.scale(.5, -.5); // mirror-vertically
@@ -443,6 +443,9 @@ class CharUtils {
 
       }
     }
+    ctx.strokeStyle = 'rgb(0,0,0)';
+    ctx.strokeRect(xoff, 0, 2, renderer.height);
+
   }
 }
 

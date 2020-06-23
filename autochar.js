@@ -54,14 +54,24 @@ class Autochar {
   }
 
   mockWord(chars) {
-    var c1 = util.randKey(chars);
-    var c2 = util.randKey(chars);
+    let c1 = util.randKey(chars);
+    let c2 = util.randKey(chars);
     return util._createWord(c1 + c2, chars);
   }
 
-  draw(renderer, rgb) {
-
-    this.renderWord(this.word, renderer, .85, 80, 30, rgb);
+  /*   draw(renderer, rgb) {
+      this.renderWord(this.word, renderer, .85, 80, 30, rgb);
+    } */
+  draw(renderer, scale, xoff, yoff, rgb) {
+    //renderWord(word, renderer, scale, xoff, yoff, rgb) {
+    let word = this.word;
+    if (word.characters) {
+      for (let i = 0; i < word.characters.length; i++) {
+        if (word.literal[i] !== ' ') {
+          this.util.renderPath(word, i, renderer, scale, xoff, yoff, rgb);
+        }
+      }
+    }
   }
 
   step() { // returns the next action to be done
@@ -102,7 +112,7 @@ class Autochar {
           let ideals = [];
           let justChanged = this.word.literal[this.targetCharIdx];
           //console.log('justChanged', justChanged);
-          for (var i = 0; i < opts.length; i++) {
+          for (let i = 0; i < opts.length; i++) {
             if (opts[i][this.targetCharIdx] === justChanged) {
               ideals.push(opts[i]);
             }
@@ -113,32 +123,32 @@ class Autochar {
         }
       }
       else {
-        var repairs = [];
+        let repairs = [];
         if (rightSideFail) {
-          console.error('!!! VIOLATION(R) '+ this.word.literal);
-          for (var i = 0; i < opts.length; i++) {
+          console.error('!!! VIOLATION(R) ' + this.word.literal);
+          for (let i = 0; i < opts.length; i++) {
             if (opts[i][1] !== this.word.literal[1]) {
               repairs.push(opts[i]);
             }
           }
-          console.log('repairs: '+repairs);
+          console.log('repairs: ' + repairs);
         }
         else if (leftSideFail) {
-          console.error('!!! VIOLATION(L) ' +this.word.literal);
-          for (var i = 0; i < opts.length; i++) {
+          console.error('!!! VIOLATION(L) ' + this.word.literal);
+          for (let i = 0; i < opts.length; i++) {
             if (opts[i][0] !== this.word.literal[0]) {
               repairs.push(opts[i]);
             }
           }
-          console.log('repairs: '+repairs);
+          console.log('repairs: ' + repairs);
         }
         if (repairs.length) {
-           opts = repairs;
+          opts = repairs;
         }
         else {
           minMed++;
           opts = undefined;
-          console.log('Failed to find repair: incrementing MED to '+minMed);
+          console.log('Failed to find repair: incrementing MED to ' + minMed);
         }
       }
     }
@@ -155,11 +165,11 @@ class Autochar {
     // select any trigger words if we have them
     let triggered = false;
     if (this.triggers && !this.memory.contains('trigger')) {
-      var startIdx = (Math.random() * opts.length) << 0;
-      OUT: for (var i = startIdx; i < opts.length+startIdx; i++) {
-        var cand = opts[i % opts.length];
-        for (var j = 0; j < cand.length; j++) {
-          var char = cand[j];
+      let startIdx = (Math.random() * opts.length) << 0;
+      OUT: for (let i = startIdx; i < opts.length + startIdx; i++) {
+        let cand = opts[i % opts.length];
+        for (let j = 0; j < cand.length; j++) {
+          let char = cand[j];
           if (this.triggers.indexOf(char) > -1) {
             result = this.util.getWord(cand);
             triggered = true;
@@ -232,13 +242,13 @@ class Autochar {
 
       this.action = REPLACE_ERASE;
 
-      for (var i = 0; i < this.word.length; i++) {
+      for (let i = 0; i < this.word.length; i++) {
         if (this.word.literal[i] !== this.target.literal[i]) {
           this.targetCharIdx = i;
           let wchr = this.word.characters[i];
           let tchr = this.target.characters[i];
           //console.log('wchr',wchr);
-          for (var j = 0; j < wchr.parts.length; j++) {
+          for (let j = 0; j < wchr.parts.length; j++) {
 
             // check the number of strokes in each part
             // if they don't match then this part needs updating
@@ -266,15 +276,6 @@ class Autochar {
 
     //console.log('target=' + this.target.literal[this.targetCharIdx]
     //+', charIdx=' + this.targetCharIdx + ', pIdx=' + this.targetPartIdx);
-  }
-
-  renderWord(word, renderer, scale, xoff, yoff, rgb) {
-    if (word.characters) {
-      for (var i = 0; i < word.characters.length; i++) {
-        if (word.literal[i] !== ' ')
-          this.util.renderPath(word, i, renderer, scale, xoff, yoff, rgb);
-      }
-    }
   }
 }
 
