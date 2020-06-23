@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+  TODO:
+    Shorten all definitions to a max length
+    Use responsive canvas setup 
+    Fit by width - largest font-sz that can fit the 2 biggest characters
+    Options: Adjust aesthetic - add title - add char definitions ?
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <title>Radical of the Vertical Heart</title>
+  <script src="node_modules/p5/lib/p5.min.js"></script>
+  <!--script src="node_modules/tone/build/Tone.min.js"></script-->
+  <!--script src="./audioshim.js"></script-->
+  <script src="node_modules/fast-levenshtein/levenshtein.js"></script>
+  <script src="cutils.js"></script>
+  <script src="autochar.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script>
+
+    window.onresize = updateSize;
+
+    function preload() {
+      if (doSound) {
+        bell = new Tone.Player("res/chime.wav").toMaster();
+        strk = new Tone.Player("res/strk.wav").toMaster();
+      }
+      chars = loadJSON('chardata.json');
+      trad = loadJSON('words-trad.json');
+      simp = loadJSON('words-simp.json');
+      conf = loadJSON('config.json');
+    }
+
+    function setup() {
+      noCursor();
+      frameRate(30);
+      createCanvas(w, h * .99);
+      updateSize();
+
+      textAlign(CENTER);
+      textSize(14);
+
+      util = new CharUtils(chars, trad, simp, Levenshtein, showDefs);
+      typer = new Autochar(util, onAction, onTarget);
+      word = typer.word.literal;
+      console.log("1) [ ] -> " + word);
+
+      next();
+    }
+
+    function draw() {
+      if (!sized) return;
+
+      //console.log(xo, yo, sw, sh);
+
+      adjustColor();
+      background(rgb[0], rgb[1], rgb[2]);
+
+      // scale, xoff, yoff -> .85, 80, 30
+      push();
+      typer.draw(this._renderer, .85, 80, 30, txtcol);
+      pop();
+      if (showDefs) {
+        push();
+        textSize(defSz);
+        fill(txtcol);
+        text(def, width / 2, yo + defSz * 1.7);
+        pop();
+      }
+      showMed && text(wmed, width - 12, 15);
+      stroke(txtcol);
+      noFill();
+      rect(xo, yo, sw, sh);
+      doPerf && logPerf();
+    }
+
+    function toggleMute(event) {
+
+      if (typeof event === 'boolean') doSound = event ? 0 : 1;
+      else doSound = doSound == 0 ? 1 : 0;
+      console.log("Sound", doSound);
+      document.getElementById("mute").innerText = doSound == 0 ? 'unmute' : ' mute ';
+    }
+
+    function next() {
+      if (typer.step()) {
+        tid = setTimeout(next, strokeDelay); // drawing
+      }
+      else {
+        next(); // erasing
+      }
+    }
+
+    function onTarget(next, numStrokes, trigger) {
+      triggered = trigger;
+      //let numStrokes = typer.currentStrokeCount;
+      let nSpeed = min(1, numStrokes / 12);
+      strokeDelay = map(nSpeed, 0, 1, 1000, 200);
+      //console.log(numStrokes, nSpeed, strokeDelay);
+    }
+
+    function onAction(nextWord, med) {
+      if (nextWord) {
+        flashColors();
+        playStroke(true);
+        playBell()
+        if (showDefs && nextWord.definition) def = nextWord.definition;
+        wmed = med + (util.language().startsWith('s') ? 's' : '');
+        console.log(++steps + ') ' + word + " -> " + nextWord.literal, wmed, def);
+        word = nextWord.literal;
+        triggered = false;
+      }
+      else {
+        playStroke();
+      }
+    }
+
+    function flashColors() {
+      for (let i = 0; i < rgb.length; i++) {
+        rgb[i] = triggered ? trgcol[i] : hitcol[i];
+        txtcol[i] = whiteOnColor ? 0 : 255;
+      }
+    }
+
+    function playBell() {
+      if (doSound) {
+        bell.playbackRate = random(.6, .9);
+        bell.volume.value = random(.7, 1);
+        bell.restart();
+        if (triggered) {
+          bell.playbackRate = random(.5, .7);
+          bell.volume.value = 5;
+          bell.start(200, 0, .1);
+        }
+      }
+    }
+
+    function playStroke(quiet) {
+      if (doSound) {
+        strk.playbackRate = random(.5, .7);
+        strk.volume.value = quiet ? -24 : -12;
+        strk.restart(undefined, 0, random(.05, .1)); //.05, 0.1));
+      }
+    }
+
+    function keyReleased() {
+      if (key == ' ') clearTimeout(tid);
+      if (key == 't') {
+        triggered = true;
+        flashColors();
+        playStroke(true);
+        playBell();
+      }
+    }
+
+    function adjustColor() {
+      if (!rgb) {
+        rgb = [0, 0, 0];
+        for (let i = 0; i < rgb.length; i++) {
+          rgb[i] = bgcol[i];
+        }
+      }
+      for (let i = 0; i < rgb.length; i++) {
+        if (rgb[i] != bgcol[i]) rgb[i] = lerp(rgb[i], bgcol[i], .05);
+        //if (invertText) txtcol[i] = 255 - round(rgb[i]); else
+        //txtcol[i] = 255 - round(rgb[i]);
+        if (whiteOnColor && txtcol[i] < 255) txtcol[i] += 10;
+        if (!whiteOnColor && txtcol[i] > -1) txtcol[i] -= 10;
+        //txtcol[i] = lerp(txtcol[i], bgcol[i], .05);
+        //else if (txtcol[i] > 0) txtcol[i] += 5;
+        //if (invertText) txtcol[i] = 255 - floor(rgb[i]);
+        //else if (txtcol[i] > 0) txtcol[i] += 5;
+      }
+    }
+
+    function logPerf() {
+      if (performance && performance.memory && steps - memt >= 20) {
+        console.log('Perf: ' + round(frameRate()) + ' fps, ' +
+          round(performance.memory.usedJSHeapSize / 1000000) +
+          '/' + round(performance.memory.jsHeapSizeLimit / 1000000) + ' MB heap');
+        memt = steps;
+      }
+    }
+
+    function updateSize() {
+      w = window.innerWidth;
+      h = window.innerHeight;
+      resizeCanvas(w, h * .99);
+      if (width * 3 > height * 4) { // wider
+        sh = height - border * 2;
+        sw = sh * (4 / 3);
+        //print('updateSize=wider');
+      } else {                     // taller
+        sw = width - border * 2;
+        sh = sw * (3 / 4);
+        //print('updateSize=taller');
+      }
+      xo = (width - sw) / 2;
+      yo = (height - sh) / 2;
+      defSz = sh / 18;
+      sized = true;
+    }
+
+    let sw, sh, xo, yo, defSz, w, h;
+    let lang, chars, simp, trad, bell;
+    let typer, conf, word, tid, strk;
+
+    let memt = -15;
+    let wmed = '';
+    let def = '';
+    let steps = 1;
+    let triggered = 0;
+    let strokeDelay = 300;
+    let sized = false, border = 10;
+
+    let showDefs = 1;
+    let showMed = 0;
+    let doSound = 0;
+    let doPerf = 1;
+    let prod = false;
+
+    let whiteOnColor = false;
+    let bgcol = [137, 172, 198];
+    let hitcol = [76, 87, 96];
+    let txtcol = [0, 0, 0];
+    let trgcol = [150, 0, 0];
+    let rgb = [0, 0, 0];
+  </script>
+</head>
+
+<body>
+</body>
+
+</html>
