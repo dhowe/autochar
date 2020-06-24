@@ -409,44 +409,6 @@ class CharUtils {
     while (str.length < len) str += '？';
     return str;
   }
-
-  renderPath(word, charIdx, renderer, scale, xoff, yoff, rgb) {
-    let char = word.characters[charIdx]; // anything to draw?
-    if (char.parts[0] < 0 && char.parts[1] < 0) return;
-    
-    if (!rgb || rgb.length != 3) rgb = BLACK;
-    if (typeof scale == 'undefined') scale = 1;
-
-    let pg = renderer || this._renderer;
-    let ctx = pg.drawingContext;
-    ctx.fillStyle = 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
-
-    for (let j = 0; j < char.paths.length; j++) {
-      for (let i = 0; i < char.paths[j].length; i++) {
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
-
-        let shift = renderer.width / 2;
-        ctx.translate(xoff, shift + yoff); // shift for mirror
-        if (charIdx > 0) ctx.translate(shift*.8, 0); // shift for mirror
-        ctx.scale(.5, -.5); // mirror-vertically
-
-        if (char.parts[j] >= i) {
-          ctx.scale(scale, scale);
-          ctx.fill(char.paths[j][i]);
-        } // else console.log('skip', j, i);
-
-        /* // draw stroke
-        ctx.strokeStyle = "#777";
-        ctx.lineWidth = 6;
-        ctx.stroke(char.paths[i]);
-        */
-
-      }
-    }
-    ctx.strokeStyle = 'rgb(0,0,0)';
-    ctx.strokeRect(xoff, 0, 2, renderer.height);
-
-  }
 }
 
 class HistQ {

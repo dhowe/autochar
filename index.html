@@ -6,74 +6,121 @@
     Shorten all definitions to a max length
     Use responsive canvas setup 
     Fit by width - largest font-sz that can fit the 2 biggest characters
-    Adjust aesthetic - add title
-    Add char definitions ?
+    Options: Adjust aesthetic - add title - add char definitions ?
 -->
 
 <head>
   <meta charset="UTF-8">
   <title>Radical of the Vertical Heart</title>
-  <script src="node_modules/p5/lib/p5.min.js"></script>
-  <script src="node_modules/tone/build/Tone.min.js"></script>
-  <script src="./audioshim.js"></script>
+  <script src="lib/p5.min.js"></script>
+  <script src="lib/p5.dom.min.js"></script>
+  <!--script src="node_modules/tone/build/Tone.min.js"></script-->
+  <!--script src="./audioshim.js"></script-->
   <script src="node_modules/fast-levenshtein/levenshtein.js"></script>
   <script src="cutils.js"></script>
   <script src="autochar.js"></script>
   <link rel="stylesheet" type="text/css" href="style.css">
   <script>
 
+    window.onresize = updateSize;
+
     function preload() {
-      if (1) {
+      if (doSound) {
         bell = new Tone.Player("res/chime.wav").toMaster();
-        stroke = new Tone.Player("res/stroke.wav").toMaster();
+        strk = new Tone.Player("res/strk.wav").toMaster();
       }
       chars = loadJSON('chardata.json');
-      trad = loadJSON('words-trad.json'); // comment for testmode
-      simp = loadJSON('words-simp.json'); // comment for testmode
+      trad = loadJSON('words-trad.json');
+      simp = loadJSON('words-simp.json');
       conf = loadJSON('config.json');
     }
 
     function setup() {
       noCursor();
       frameRate(30);
-      createCanvas(1024, 768);
+      cnv = createCanvas(800, 600);
+      updateSize();
+
       textAlign(CENTER);
       textSize(14);
 
-      if (window.innerWidth < 600) {
-        var canvas = document.getElementById("defaultCanvas0");
-        canvas.style.width = "";
-        canvas.style.height = "";
-      }
-
-      let testOnly = !(trad || simp);
       util = new CharUtils(chars, trad, simp, Levenshtein, showDefs);
-      typer = new Autochar(util, onAction, onTarget, testOnly ? chars : null);
+      typer = new Autochar(util, onAction, onTarget);
       word = typer.word.literal;
       console.log("1) [ ] -> " + word);
 
-      if (testOnly) {
-        noLoop();
-        return;
-      }
       next();
     }
 
     function draw() {
+      if (!sized) return;
       adjustColor();
       background(rgb[0], rgb[1], rgb[2]);
-      push();
-      typer.draw(this._renderer, txtcol);
-      pop();
+      drawWord(this._renderer.drawingContext, typer.word);
       if (showDefs) {
-        push();
-        textSize(40);
+        textSize(defSz);
         fill(txtcol);
-        text(def, width / 2, 100);
-        pop();
+        text(def, width / 2, 2 * defSz);
       }
       showMed && text(wmed, width - 12, 15);
       doPerf && logPerf();
+    }
+
+    function drawWord(ctx, word) {
+      let scale = 1;
+      for (let k = 0; k < word.characters.length; k++) {
+        let char = word.characters[k];
+        push();
+        //noFill();
+        //rect(0 + (k ? width / 2 : 0), 0, width / 2, height);
+        //ellipse(0 + (k ? width / 2 : 0), 0, 10);
+        for (let j = 0; j < char.paths.length; j++) {
+          for (let i = 0; i < char.paths[j].length; i++) {
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            //ctx.translate(xo + (k ? width / 2 : 0), yo);
+
+            ctx.scale(.5, -.5); // mirror-vertically 
+            ctx.translate(100 * scayl + (k ? width : 0), -1220 * scayl);
+            if (char.parts[j] >= i) {
+
+              ctx.scale(scayl , scayl);
+              ctx.fill(char.paths[j][i]);
+            }
+            //pop();
+          }
+        }
+        pop();
+      }
+    }
+
+    function updateSize() {
+      w = window.innerWidth;
+      h = window.innerHeight;
+      if (w * aspectH > h * aspectW) { // wider
+        sh = h - border * 2;
+        sw = sh * (aspectW / aspectH);
+        //print('updateSize=wider');
+      } else {                     // taller
+        sw = w - border * 2;
+        sh = sw * (aspectH / aspectW);
+        //print('updateSize=taller');
+      }
+      xo = (w - sw) / 2;
+      yo = (h - sh) / 2;
+      defSz = sh / 18;
+      scayl = sw / 1220;
+      
+      resizeCanvas(sw, sh);
+      cnv.position(xo, yo);
+      //console.log(defSz, scayl);
+      //console.log(w,h,sw,sh,Object.keys(cnv));
+      //console.log(sw + 'x' + sh, scayl);
+
+      sized = true;
+    }
+
+    function doubleClicked() {
+      noLoop();
     }
 
     function toggleMute(event) {
@@ -83,7 +130,6 @@
       console.log("Sound", doSound);
       document.getElementById("mute").innerText = doSound == 0 ? 'unmute' : ' mute ';
     }
-
 
     function next() {
       if (typer.step()) {
@@ -96,8 +142,8 @@
 
     function onTarget(next, numStrokes, trigger) {
       triggered = trigger;
-      var numStrokes = typer.currentStrokeCount;
-      var nSpeed = min(1, numStrokes / 12);
+      //let numStrokes = typer.currentStrokeCount;
+      let nSpeed = min(1, numStrokes / 12);
       strokeDelay = map(nSpeed, 0, 1, 1000, 200);
       //console.log(numStrokes, nSpeed, strokeDelay);
     }
@@ -116,11 +162,10 @@
       else {
         playStroke();
       }
-
     }
 
     function flashColors() {
-      for (var i = 0; i < rgb.length; i++) {
+      for (let i = 0; i < rgb.length; i++) {
         rgb[i] = triggered ? trgcol[i] : hitcol[i];
         txtcol[i] = whiteOnColor ? 0 : 255;
       }
@@ -141,9 +186,9 @@
 
     function playStroke(quiet) {
       if (doSound) {
-        stroke.playbackRate = random(.5, .7);
-        stroke.volume.value = quiet ? -24 : -12;
-        stroke.restart(undefined, 0, random(.05, .1)); //.05, 0.1));
+        strk.playbackRate = random(.5, .7);
+        strk.volume.value = quiet ? -24 : -12;
+        strk.restart(undefined, 0, random(.05, .1)); //.05, 0.1));
       }
     }
 
@@ -160,20 +205,14 @@
     function adjustColor() {
       if (!rgb) {
         rgb = [0, 0, 0];
-        for (var i = 0; i < rgb.length; i++) {
+        for (let i = 0; i < rgb.length; i++) {
           rgb[i] = bgcol[i];
         }
       }
-      for (var i = 0; i < rgb.length; i++) {
+      for (let i = 0; i < rgb.length; i++) {
         if (rgb[i] != bgcol[i]) rgb[i] = lerp(rgb[i], bgcol[i], .05);
-        //if (invertText) txtcol[i] = 255 - round(rgb[i]); else
-        //txtcol[i] = 255 - round(rgb[i]);
         if (whiteOnColor && txtcol[i] < 255) txtcol[i] += 10;
         if (!whiteOnColor && txtcol[i] > -1) txtcol[i] -= 10;
-        //txtcol[i] = lerp(txtcol[i], bgcol[i], .05);
-        //else if (txtcol[i] > 0) txtcol[i] += 5;
-        //if (invertText) txtcol[i] = 255 - floor(rgb[i]);
-        //else if (txtcol[i] > 0) txtcol[i] += 5;
       }
     }
 
@@ -186,36 +225,35 @@
       }
     }
 
-    var lang, chars, simp, trad, bell;
-    var typer, conf, word, tid, stroke;
+    let cnv, sw, sh, xo, yo, defSz, w, h;
+    let lang, chars, simp, trad, bell;
+    let typer, conf, word, tid, strk;
+    let scayl = 1, aspectW = 4.3, aspectH = 3;
 
-    var memt = -15;
-    var wmed = '';
-    var def = '';
-    var steps = 1;
-    var triggered = 0;
-    var strokeDelay = 300;
+    let memt = -15;
+    let wmed = '';
+    let def = '';
+    let steps = 1;
+    let triggered = 0;
+    let strokeDelay = 300;
+    let sized = false, border = 10;
 
-    var showDefs = 1;
-    var showMed = 0;
-    var doSound = 1;
-    var doPerf = 1;
-    var prod = false;
+    let showDefs = 1;
+    let showMed = 0;
+    let doSound = 0;
+    let doPerf = 1;
+    let prod = false;
 
-    var whiteOnColor = false;
-    var bgcol = [137, 172, 198];
-    var hitcol = [76, 87, 96];
-    var txtcol = [0, 0, 0];
-    var trgcol = [150, 0, 0];
-    var rgb = [0, 0, 0];
+    let whiteOnColor = false;
+    let bgcol = [137, 172, 198];
+    let hitcol = [76, 87, 96];
+    let txtcol = [0, 0, 0];
+    let trgcol = [150, 0, 0];
+    let rgb = [0, 0, 0];
   </script>
 </head>
 
 <body>
-  <!--   <button id="mute">mute</button>
-  <script>
-  document.getElementById("mute").onclick = toggleMute;
-  </script> -->
 </body>
 
 </html>

@@ -59,20 +59,6 @@ class Autochar {
     return util._createWord(c1 + c2, chars);
   }
 
-  /*   draw(renderer, rgb) {
-      this.renderWord(this.word, renderer, .85, 80, 30, rgb);
-    } */
-  draw(renderer, scale, xoff, yoff, rgb) {
-    //renderWord(word, renderer, scale, xoff, yoff, rgb) {
-    let word = this.word;
-    if (word.characters) {
-      for (let i = 0; i < word.characters.length; i++) {
-        if (word.literal[i] !== ' ') {
-          this.util.renderPath(word, i, renderer, scale, xoff, yoff, rgb);
-        }
-      }
-    }
-  }
 
   step() { // returns the next action to be done
 
