@@ -70,6 +70,8 @@
       let scale = 1;
       for (let k = 0; k < word.characters.length; k++) {
         let char = word.characters[k];
+        let xoff = k ? 20 * scayl + width : 140 * scayl;
+        let yoff = -1220 * scayl;
         push();
         //noFill();
         //rect(0 + (k ? width / 2 : 0), 0, width / 2, height);
@@ -77,10 +79,8 @@
         for (let j = 0; j < char.paths.length; j++) {
           for (let i = 0; i < char.paths[j].length; i++) {
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-            //ctx.translate(xo + (k ? width / 2 : 0), yo);
-
             ctx.scale(.5, -.5); // mirror-vertically 
-            ctx.translate(100 * scayl + (k ? width : 0), -1220 * scayl);
+            ctx.translate(xoff, yoff);
             if (char.parts[j] >= i) {
 
               ctx.scale(scayl , scayl);
@@ -108,7 +108,7 @@
       xo = (w - sw) / 2;
       yo = (h - sh) / 2;
       defSz = sh / 18;
-      scayl = sw / 1220;
+      scayl = sw / 1150;
       
       resizeCanvas(sw, sh);
       cnv.position(xo, yo);
