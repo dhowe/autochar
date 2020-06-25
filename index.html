@@ -36,13 +36,14 @@
     }
 
     function draw() {
-      if (!sized) { // first resize
-        sized = true;
+      if (!initalResize) {
+        initalResize = true;
         updateSize();
         let canvas = document.getElementsByTagName('canvas')[0];
-        window.onresize = updateSize;
         canvas.width = sw;
         canvas.height = sh;
+        pixelDensity(1);
+        window.onresize = updateSize;
         next();
         return;
       }
@@ -52,7 +53,7 @@
       if (showDefs) {
         textAlign(CENTER);
         textSize(defSz);
-        fill(txtcol);
+        fill(txtcol[0],txtcol[1],txtcol[2]);
         text(def, width / 2, 2 * defSz);
       }
       showMed && text(wmed, width - 12, 15);
@@ -60,6 +61,7 @@
     }
 
     function drawWord(ctx, word) {
+
       // draw each character
       for (let k = 0; k < word.characters.length; k++) {
         let char = word.characters[k];
@@ -93,15 +95,13 @@
       if (w * aspectH > h * aspectW) { // wider
         sh = Math.round(h - border * 2);
         sw = Math.round(sh * (aspectW / aspectH));
-        //print('updateSize=wider');
       } else {                     // taller
         sw = Math.round(w - border * 2);
         sh = Math.round(sw * (aspectH / aspectW));
-        //print('updateSize=taller');
       }
       xo = (w - sw) / 2;
       yo = (h - sh) / 2;
-      
+
       // strange constants
       defSz = sh / 18;
       scayl = sw / 1150;
@@ -110,9 +110,7 @@
       resizeCanvas(sw, sh);
       cnv.position(xo, yo);
 
-      console.log('inner: ' + w + 'x' + h, 
-        '\nresize: ' + sw + 'x' + sh + ' scale=' + scayl);
-        //'\nscreen: ' + window.screen.width + 'x' + window.screen.width,
+      console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
     }
 
     function mouseClicked() { updateSize() }
@@ -136,7 +134,6 @@
 
     function onTarget(next, numStrokes, trigger) {
       triggered = trigger;
-      //let numStrokes = typer.currentStrokeCount;
       let nSpeed = min(1, numStrokes / 12);
       strokeDelay = map(nSpeed, 0, 1, 1000, 200);
       //console.log(numStrokes, nSpeed, strokeDelay);
@@ -227,7 +224,7 @@
     let wmed = '', def = '';
     let steps = 1, triggered = 0;
     let strokeDelay = 300, memt = -15;
-    let sized = false, border = 10;
+    let initalResize = false, border = 10;
     let showDefs = 1, showMed = 0;
     let doSound = 1, doPerf = 1, prod = true;
 
