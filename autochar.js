@@ -149,14 +149,14 @@ class Autochar {
     //console.log('BEDs: ' + opts.length+"\n");
 
     // select any trigger words if we have them
-    let triggered = false;
+    let triggered = false, theChar;
     if (this.triggers && !this.memory.contains('trigger')) {
       let startIdx = (Math.random() * opts.length) << 0;
       OUT: for (let i = startIdx; i < opts.length + startIdx; i++) {
         let cand = opts[i % opts.length];
         for (let j = 0; j < cand.length; j++) {
-          let char = cand[j];
-          if (this.triggers.indexOf(char) > -1) {
+          theChar = cand[j];
+          if (this.triggers.indexOf(theChar) > -1) {
             result = this.util.getWord(cand);
             triggered = true;
             this.numTriggers++;
@@ -184,7 +184,7 @@ class Autochar {
 
     // if its a trigger word, swap languages
     if (triggered) {
-      console.log('trigger: "' + char + '" in "' + result.literal + '" -> ' +
+      console.log('trigger: "' + theChar + '" in "' + result.literal + '" -> ' +
         (this.util.lang === 'simp' ? 'trad' : 'simp'));
       this.util.toggleLang();
       this.memory.add('trigger');

@@ -14,8 +14,8 @@
   <title>Radical of the Vertical Heart</title>
   <script src="lib/p5.min.js"></script>
   <script src="lib/p5.dom.min.js"></script>
-  <!--script src="node_modules/tone/build/Tone.min.js"></script-->
-  <!--script src="./audioshim.js"></script-->
+  <script src="node_modules/tone/build/Tone.min.js"></script>
+  <script src="./audioshim.js"></script>
   <script src="node_modules/fast-levenshtein/levenshtein.js"></script>
   <script src="cutils.js"></script>
   <script src="autochar.js"></script>
@@ -60,6 +60,10 @@
       if (showDefs) {
         textSize(defSz);
         fill(txtcol);
+        /*        def = '';
+               for (let i = 0; i < 40; i++) {
+                 def += 'a';
+               } */
         text(def, width / 2, 2 * defSz);
       }
       showMed && text(wmed, width - 12, 15);
@@ -73,20 +77,15 @@
         let xoff = k ? 20 * scayl + width : 140 * scayl;
         let yoff = -1220 * scayl;
         push();
-        //noFill();
-        //rect(0 + (k ? width / 2 : 0), 0, width / 2, height);
-        //ellipse(0 + (k ? width / 2 : 0), 0, 10);
         for (let j = 0; j < char.paths.length; j++) {
           for (let i = 0; i < char.paths[j].length; i++) {
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.scale(.5, -.5); // mirror-vertically 
             ctx.translate(xoff, yoff);
             if (char.parts[j] >= i) {
-
-              ctx.scale(scayl , scayl);
+              ctx.scale(scayl, scayl);
               ctx.fill(char.paths[j][i]);
             }
-            //pop();
           }
         }
         pop();
@@ -109,7 +108,7 @@
       yo = (h - sh) / 2;
       defSz = sh / 18;
       scayl = sw / 1150;
-      
+
       resizeCanvas(sw, sh);
       cnv.position(xo, yo);
       //console.log(defSz, scayl);
@@ -155,7 +154,7 @@
         playBell()
         if (showDefs && nextWord.definition) def = nextWord.definition;
         wmed = med + (util.language().startsWith('s') ? 's' : '');
-        console.log(++steps + ') ' + word + " -> " + nextWord.literal, wmed, def);
+        console.log(++steps + ') ' + word + " -> " + nextWord.literal, wmed, "'" + def + "'");
         word = nextWord.literal;
         triggered = false;
       }
@@ -240,12 +239,13 @@
 
     let showDefs = 1;
     let showMed = 0;
-    let doSound = 0;
+    let doSound = 1;
     let doPerf = 1;
     let prod = false;
 
     let whiteOnColor = false;
-    let bgcol = [137, 172, 198];
+    //let bgcol = [137, 172, 198];
+    let bgcol = [114, 175, 215];
     let hitcol = [76, 87, 96];
     let txtcol = [0, 0, 0];
     let trgcol = [150, 0, 0];
