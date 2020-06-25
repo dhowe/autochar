@@ -3,9 +3,6 @@
 
 <!--
   TODO:
-    Shorten all definitions to a max length
-    Use responsive canvas setup 
-    Fit by width - largest font-sz that can fit the 2 biggest characters
     Options: Adjust aesthetic - add title - add char definitions ?
 -->
 
@@ -36,7 +33,7 @@
     }
 
     function setup() {
-      noCursor();
+      //noCursor();
       frameRate(30);
       cnv = createCanvas(800, 600);
       updateSize();
@@ -254,6 +251,10 @@
 </head>
 
 <body>
+  <div id="p5_loading" class="loadingClass">
+    <span id="title">Radical of the Vertical Heart</span> 
+    by <a id="author" href="https://rednoise.org/daniel" target="_new">Daniel C. Howe</a>
+  </div>
 </body>
 
 </html>
