@@ -15,6 +15,15 @@
   <link rel="stylesheet" type="text/css" href="style.css">
   <script>
 
+    /**
+     * TODO: Sally's changes
+     *   1) def appears earlier, or fades in (in progress)
+     *      NEXT: set countdown on flash, should hit 0 on next-flash
+     *   2) pause after word-completion
+     *   3) start next word with zero strokes after erasin (instead of 1)
+     *   4) add single word defs below
+     */
+
     function preload() {
       if (doSound) {
         bell = new Tone.Player("res/chime.wav").toMaster();
@@ -39,10 +48,12 @@
       if (!initalResize) {
         initalResize = true;
         updateSize();
+        // these 4 lines fix a bug in p5.resizeCanvas
         let canvas = document.getElementsByTagName('canvas')[0];
         canvas.width = sw;
         canvas.height = sh;
         pixelDensity(1);
+        // ---------------------------------------
         window.onresize = updateSize;
         next();
         return;
@@ -53,7 +64,7 @@
       if (showDefs) {
         textAlign(CENTER);
         textSize(defSz);
-        fill(txtcol[0],txtcol[1],txtcol[2]);
+        fill(txtcol[0],txtcol[1],txtcol[2]);//, defAlpha);
         text(def, width / 2, 2 * defSz);
       }
       showMed && text(wmed, width - 12, 15);
@@ -72,6 +83,7 @@
 
         // draw each path of the character
         push();
+        fill(txtcol);
         for (let j = 0; j < char.paths.length; j++) {
           for (let i = 0; i < char.paths[j].length; i++) {
             ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -95,7 +107,7 @@
       if (w * aspectH > h * aspectW) { // wider
         sh = Math.round(h - border * 2);
         sw = Math.round(sh * (aspectW / aspectH));
-      } else {                     // taller
+      } else {                        // taller
         sw = Math.round(w - border * 2);
         sh = Math.round(sw * (aspectH / aspectW));
       }
@@ -113,13 +125,12 @@
       console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
     }
 
-    function mouseClicked() { updateSize() }
+    function mouseClicked() { }
 
     function toggleMute(event) {
 
       if (typeof event === 'boolean') doSound = event ? 0 : 1;
       else doSound = doSound == 0 ? 1 : 0;
-      console.log("Sound", doSound);
       document.getElementById("mute").innerText = doSound == 0 ? 'unmute' : ' mute ';
     }
 
@@ -136,11 +147,12 @@
       triggered = trigger;
       let nSpeed = min(1, numStrokes / 12);
       strokeDelay = map(nSpeed, 0, 1, 1000, 200);
-      //console.log(numStrokes, nSpeed, strokeDelay);
+      //console.log("STROKE: "+numStrokes, nSpeed, strokeDelay, strokeDelay*numStrokes);
     }
 
     function onAction(nextWord, med) {
       if (nextWord) { // word complete
+        defAlpha = 0;
         flashColors();
         playStroke(true);
         playBell()
@@ -221,7 +233,7 @@
     let typer, conf, word, tid, strk;
     let scayl = 1, aspectW = 4.3, aspectH = 3;
 
-    let wmed = '', def = '';
+    let wmed = '', def = '', defAlpha = 0;
     let steps = 1, triggered = 0;
     let strokeDelay = 300, memt = -15;
     let initalResize = false, border = 10;
