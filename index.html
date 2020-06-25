@@ -44,8 +44,11 @@
       if (!sized) {
         sized = true;
         updateSize();
-        next();
+        let canvas = document.getElementsByTagName('canvas')[0];
         window.onresize = updateSize;
+        canvas.width = sw;
+        canvas.height = sh;
+        next();
         return;
       }
       adjustColor();
