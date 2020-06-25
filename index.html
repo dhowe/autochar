@@ -27,13 +27,8 @@
     }
 
     function setup() {
-
-      cnv = createCanvas(800, 600);
       frameRate(30);
-      //noCursor();
-      textAlign(CENTER);
-      textSize(14);
-
+      cnv = createCanvas(800, 600);
       util = new CharUtils(chars, trad, simp, Levenshtein, showDefs);
       typer = new Autochar(util, onAction, onTarget);
       word = typer.word.literal;
@@ -41,7 +36,7 @@
     }
 
     function draw() {
-      if (!sized) {
+      if (!sized) { // first resize
         sized = true;
         updateSize();
         let canvas = document.getElementsByTagName('canvas')[0];
@@ -55,6 +50,7 @@
       background(rgb[0], rgb[1], rgb[2]);
       drawWord(this._renderer.drawingContext, typer.word);
       if (showDefs) {
+        textAlign(CENTER);
         textSize(defSz);
         fill(txtcol);
         text(def, width / 2, 2 * defSz);
@@ -64,16 +60,16 @@
     }
 
     function drawWord(ctx, word) {
-      
       // draw each character
       for (let k = 0; k < word.characters.length; k++) {
         let char = word.characters[k];
 
-        // strange constants work ok on desktop, not mobile
+        // strange constants
         let xoff = k ? 20 * scayl + width : 140 * scayl;
         let yoff = -1220 * scayl;
 
-        push(); // draw each path of the character
+        // draw each path of the character
+        push();
         for (let j = 0; j < char.paths.length; j++) {
           for (let i = 0; i < char.paths[j].length; i++) {
             ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -106,14 +102,16 @@
       xo = (w - sw) / 2;
       yo = (h - sh) / 2;
       
-      // strange constants work on desktop, not mobile?
+      // strange constants
       defSz = sh / 18;
       scayl = sw / 1150;
 
+      // resize/position canvas
       resizeCanvas(sw, sh);
       cnv.position(xo, yo);
 
-      console.log('inner: ' + w + 'x' + h, '\nresize: ' + sw + 'x' + sh + ' scale=' + scayl);
+      console.log('inner: ' + w + 'x' + h, 
+        '\nresize: ' + sw + 'x' + sh + ' scale=' + scayl);
         //'\nscreen: ' + window.screen.width + 'x' + window.screen.width,
     }
 
@@ -145,7 +143,7 @@
     }
 
     function onAction(nextWord, med) {
-      if (nextWord) {
+      if (nextWord) { // word complete
         flashColors();
         playStroke(true);
         playBell()
@@ -226,19 +224,12 @@
     let typer, conf, word, tid, strk;
     let scayl = 1, aspectW = 4.3, aspectH = 3;
 
-    let memt = -15;
-    let wmed = '';
-    let def = '';
-    let steps = 1;
-    let triggered = 0;
-    let strokeDelay = 300;
+    let wmed = '', def = '';
+    let steps = 1, triggered = 0;
+    let strokeDelay = 300, memt = -15;
     let sized = false, border = 10;
-
-    let showDefs = 1;
-    let showMed = 0;
-    let doSound = 1;
-    let doPerf = 1;
-    let prod = false;
+    let showDefs = 1, showMed = 0;
+    let doSound = 1, doPerf = 1, prod = true;
 
     let whiteOnColor = false;
     let bgcol = [114, 175, 215]; // [137, 172, 198]

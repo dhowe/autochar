@@ -238,7 +238,7 @@ class CharUtils {
     this.language(lang, 1);
 
     console.log('cUtils[' + (charData ? (Object.keys(charData).length +
-     ',') : '') + Object.keys(this.wordCache).length + '] '+this.lang);
+      ',') : '') + Object.keys(this.wordCache).length + '] ' + this.lang);
   }
 
   toggleLang() {
@@ -341,7 +341,7 @@ class CharUtils {
     for (let i = 0; i < literal.length; i++) {
       if (literal[i] !== ' ') {
         if (!charData.hasOwnProperty(literal[i])) {
-          throw Error('_createWord() failed for ' + literal[i] + ' in '+literal);
+          throw Error('_createWord() failed for ' + literal[i] + ' in ' + literal);
         }
         chars.push(charData[literal[i]]);
       } else {
