@@ -1,10 +1,12 @@
+// to run: $ node scripts/prune-dicts
+
 const fs = require('fs');
 const simp = require('../words-simp-orig.json');
 const trad = require('../words-trad-orig.json');
 
 function check(w, lang) {
 
-  if (w.length !== 2) return;
+  if (w.length === 1) return;
   let data = lang.data;
   data[w] = data[w].replace(/ ,/g, ',');
   if (data[w].length > 40) {
