@@ -64,7 +64,6 @@
                } */
         text(def, width / 2, 2 * defSz);
       }
-      text(w+'x'+h, width - 100, 50);
       showMed && text(wmed, width - 12, 15);
       doPerf && logPerf();
     }
@@ -94,7 +93,8 @@
     function updateSize() {
       w = window.innerWidth;
       h = window.innerHeight;
-      console.log(w + 'x' + h, window.screen.width+'x'+ window.screen.width);
+
+      //console.log(w + 'x' + h, window.screen.width+'x'+ window.screen.width);
       
       if (w * aspectH > h * aspectW) { // wider
         sh = h - border * 2;
