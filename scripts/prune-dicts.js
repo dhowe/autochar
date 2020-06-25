@@ -1,6 +1,6 @@
 const fs = require('fs');
-const simp = require('./words-simp-orig.json');
-const trad = require('./words-trad-orig.json');
+const simp = require('../words-simp-orig.json');
+const trad = require('../words-trad-orig.json');
 
 function check(w, lang) {
 

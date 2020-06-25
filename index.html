@@ -8,6 +8,7 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,width=device-width">
   <title>Radical of the Vertical Heart</title>
   <script src="lib/p5.min.js"></script>
   <script src="lib/p5.dom.min.js"></script>
@@ -63,6 +64,7 @@
                } */
         text(def, width / 2, 2 * defSz);
       }
+      text(w+'x'+h, width - 100, 50);
       showMed && text(wmed, width - 12, 15);
       doPerf && logPerf();
     }
@@ -92,6 +94,8 @@
     function updateSize() {
       w = window.innerWidth;
       h = window.innerHeight;
+      console.log(w + 'x' + h, window.screen.width+'x'+ window.screen.width);
+      
       if (w * aspectH > h * aspectW) { // wider
         sh = h - border * 2;
         sw = sh * (aspectW / aspectH);
@@ -253,7 +257,7 @@
 <body>
   <div id="p5_loading" class="loadingClass">
     <span id="title">Radical of the Vertical Heart</span> 
-    by <a id="author" href="https://rednoise.org/daniel" target="_new">Daniel C. Howe</a>
+    &nbsp; by <a id="author" href="https://rednoise.org/daniel" target="_new">Daniel C. Howe</a>
   </div>
 </body>
 
