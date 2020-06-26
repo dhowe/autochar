@@ -2,17 +2,26 @@ const BLACK = [0, 0, 0]; // BLACK
 
 class Word {
 
-  constructor(literal, chars, definition, levenshtein) {
+  constructor(literal, chars, def) {
 
     this.literal = literal;
     this.characters = chars;
     this.length = literal.length;
-    this.definition = definition;
+    this.definition = def;
     this.editString = this.computeEditString();
     this.characters.forEach(this.computeParts); // 2-parts-per-char
     this.characters.forEach(this.computeStrokes); // strokes-per-path
     this.characters.forEach(this.computePaths); // path2Ds-per-stroke
+    //this.characters.forEach(this.computeCharDefs); // path2Ds-per-stroke
+
+    /* for (let i = 0; cdefs && i < cdefs.length; i++) {
+      this.characters[i].definition = cdefs[i]; // per-character-defs
+    } */
   }
+
+  /*   computeCharDefs(chr) {
+      chr.definition = 
+    } */
 
   computeParts(chr) {
     // assume 2 parts per char, otherwise check decomposition
@@ -218,7 +227,7 @@ class Word {
 
 class CharUtils {
 
-  constructor(charData, tradData, simpData, levenshtein, loadDefs, lang) {
+  constructor(charData, tradData, simpData, levenshtein, loadDefs, charDefs, lang) {
 
     if (!levenshtein) throw Error('no levenshtein impl');
 
@@ -230,12 +239,13 @@ class CharUtils {
 
     this.tradData = tradData;
     this.simpData = simpData;
+    this.charDefs = charDefs;
     this.levenshtein = levenshtein;
 
-    this.prefillCache(charData, tradData, loadDefs);
-    this.prefillCache(charData, simpData, loadDefs);
+    this.prefillCache(charData, tradData, loadDefs, 'trad');
+    this.prefillCache(charData, simpData, loadDefs, 'simp');
 
-    this.language(lang, 1);
+    this.language(lang, true);
 
     console.log('cUtils[' + (charData ? (Object.keys(charData).length +
       ',') : '') + Object.keys(this.wordCache).length + '] ' + this.lang);
@@ -267,18 +277,28 @@ class CharUtils {
     return type ? this : this.lang;
   }
 
-  prefillCache(chars, words, useDefinitions) {
+  prefillCache(chars, words, loadDefs, lang) {
     if (chars && words) {
       let that = this;
-      Object.keys(words).forEach(function (lit) {
-        that.wordCache[lit] = that._createWord(lit, chars,
-          useDefinitions ? words[lit] : undefined);
+      let mcdefs = [];
+      Object.keys(words).forEach(word => {
+        if (this.charDefs && word.length > 1) {
+          for (let i = 0; i < word.length; i++) {
+            if (!this.charDefs.hasOwnProperty(word[i])) {
+              mcdefs.push(word[i]);
+              //console.log('no-def: ' + word[i]);
+            }
+            chars[word[i]].definition = this.charDefs[word[i]] || '-';
+          }
+        }
+        that.wordCache[word] = that._createWord(word, chars,
+          loadDefs ? words[word] : undefined);;
       });
+      this.charDefs && console.log(mcdefs.length + ' missing ' + lang + ' char-defs');
     }
   }
 
   bestEditDistance(literal, words, hist, minAllowed) {
-
 
     words = words || Object.keys(this.currentWords());
     if (typeof minAllowed == 'undefined' || minAllowed < 1) minAllowed = 1;
@@ -335,7 +355,7 @@ class CharUtils {
     return Object.keys(this.wordCache).length;
   }
 
-  _createWord(literal, charData, definition) {
+  _createWord(literal, charData, def) {
 
     let chars = [];
     for (let i = 0; i < literal.length; i++) {
@@ -349,7 +369,7 @@ class CharUtils {
       }
     }
 
-    return new Word(literal, chars, definition);
+    return new Word(literal, chars, def);
   }
 
   getWord(literal, charData) {
@@ -367,7 +387,9 @@ class CharUtils {
 
     console.log("[WARN] creating word object for " + litera);
     let word = this._createWord(literal, charData);
+
     if (this.wordCache) this.wordCache[literal] = word;
+
     return word;
   }
 

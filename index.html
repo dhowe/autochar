@@ -30,6 +30,7 @@
         strk = new Tone.Player("res/strk.wav").toMaster();
       }
       chars = loadJSON('chardata.json');
+      cdefs = showCharDefs && loadJSON('char-defs.json');
       trad = loadJSON('words-trad.json');
       simp = loadJSON('words-simp.json');
       conf = loadJSON('config.json');
@@ -38,7 +39,7 @@
     function setup() {
       frameRate(30);
       cnv = createCanvas(800, 600);
-      util = new CharUtils(chars, trad, simp, Levenshtein, showDefs);
+      util = new CharUtils(chars, trad, simp, Levenshtein, showDefs, cdefs);
       typer = new Autochar(util, onAction, onTarget);
       word = typer.word.literal;
       console.log("1) [ ] -> " + word);
@@ -48,12 +49,7 @@
       if (!initalResize) {
         initalResize = true;
         updateSize();
-        // these 4 lines fix a bug in p5.resizeCanvas
-        let canvas = document.getElementsByTagName('canvas')[0];
-        canvas.width = sw;
-        canvas.height = sh;
-        pixelDensity(1);
-        // ---------------------------------------
+        repairCanvas();
         window.onresize = updateSize;
         next();
         return;
@@ -64,8 +60,15 @@
       if (showDefs) {
         textAlign(CENTER);
         textSize(defSz);
-        fill(txtcol[0],txtcol[1],txtcol[2]);//, defAlpha);
-        text(def, width / 2, 2 * defSz);
+        fill(txtcol[0], txtcol[1], txtcol[2]);//, defAlpha);
+        text(typer.word.definition, width / 2, 2 * defSz);
+      }
+      if (showCharDefs) {
+        textAlign(CENTER);
+        textSize(defSz*.6);
+        fill(txtcol[0], txtcol[1], txtcol[2]);//, defAlpha);
+        text(typer.word.characters[0].definition, width * .25, height - 2 * defSz);
+        text(typer.word.characters[1].definition, width * .75, height - 2 * defSz);
       }
       showMed && text(wmed, width - 12, 15);
       doPerf && logPerf();
@@ -156,9 +159,9 @@
         flashColors();
         playStroke(true);
         playBell()
-        if (showDefs && nextWord.definition) def = nextWord.definition;
+//console.log(nextWord);
         wmed = med + (util.language().startsWith('s') ? 's' : '');
-        console.log(++steps + ') ' + word + " -> " + nextWord.literal, wmed, "'" + def + "'");
+        console.log(++steps + ') ' + word + " -> " + nextWord.literal, wmed, "'" + nextWord.definition + "'");
         word = nextWord.literal;
         triggered = false;
       }
@@ -205,6 +208,14 @@
       }
     }
 
+    // fixes a bug in p5.resizeCanvas
+    function repairCanvas() {
+      let canvas = document.getElementsByTagName('canvas')[0];
+      canvas.width = sw;
+      canvas.height = sh;
+      pixelDensity(1);
+    }
+
     function adjustColor() {
       if (!rgb) {
         rgb = [0, 0, 0];
@@ -233,11 +244,11 @@
     let typer, conf, word, tid, strk;
     let scayl = 1, aspectW = 4.3, aspectH = 3;
 
-    let wmed = '', def = '', defAlpha = 0;
-    let steps = 1, triggered = 0;
+    let defAlpha = 0; 
+    let steps = 1, triggered = 0, wmed = '';
     let strokeDelay = 300, memt = -15;
     let initalResize = false, border = 10;
-    let showDefs = 1, showMed = 0;
+    let showDefs = 1, showCharDefs = 1, showMed = 0;
     let doSound = 1, doPerf = 1, prod = true;
 
     let whiteOnColor = false;
