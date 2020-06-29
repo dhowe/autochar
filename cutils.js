@@ -227,7 +227,7 @@ class Word {
 
 class CharUtils {
 
-  constructor(charData, tradData, simpData, levenshtein, loadDefs, charDefs, lang) {
+  constructor(jsonData, levenshtein, loadDefs, lang) {
 
     if (!levenshtein) throw Error('no levenshtein impl');
 
@@ -237,18 +237,19 @@ class CharUtils {
     this.Word = Word; // class
     this.wordCache = {};
 
-    this.tradData = tradData;
-    this.simpData = simpData;
-    this.charDefs = charDefs;
     this.levenshtein = levenshtein;
-
-    this.prefillCache(charData, tradData, loadDefs, 'trad');
-    this.prefillCache(charData, simpData, loadDefs, 'simp');
+    this.charData = jsonData.chars;
+    this.charDefs = jsonData.cdefs;
+    this.tradData = jsonData.trad;
+    this.simpData = jsonData.simp;
+    
+    this.prefillCache('trad', loadDefs);
+    this.prefillCache('simp', loadDefs);
 
     this.language(lang, true);
 
-    console.log('cUtils[' + (charData ? (Object.keys(charData).length +
-      ',') : '') + Object.keys(this.wordCache).length + '] ' + this.lang);
+    console.log('cUtils[' + Object.keys(this.charData).length + 
+      ',' + Object.keys(this.wordCache).length + '] ' + this.lang);
   }
 
   toggleLang() {
@@ -277,8 +278,11 @@ class CharUtils {
     return type ? this : this.lang;
   }
 
-  prefillCache(chars, words, loadDefs, lang) {
-    if (chars && words) {
+  prefillCache(lang, loadDefs) {
+    let words = lang === 'simp' ? this.simpData : this.tradData;
+    
+    
+    if (this.charData && words) {
       let that = this;
       let mcdefs = [];
       Object.keys(words).forEach(word => {
@@ -288,10 +292,10 @@ class CharUtils {
               mcdefs.push(word[i]);
               //console.log('no-def: ' + word[i]);
             }
-            chars[word[i]].definition = this.charDefs[word[i]] || '-';
+            this.charData[word[i]].definition = this.charDefs[word[i]] || '-';
           }
         }
-        that.wordCache[word] = that._createWord(word, chars,
+        that.wordCache[word] = that._createWord(word, this.charData,
           loadDefs ? words[word] : undefined);;
       });
       this.charDefs && console.log(mcdefs.length + ' missing ' + lang + ' char-defs');
@@ -385,7 +389,7 @@ class CharUtils {
       charData = this.charData;
     }
 
-    console.log("[WARN] creating word object for " + litera);
+    console.log("[WARN] creating word object for " + literal);
     let word = this._createWord(literal, charData);
 
     if (this.wordCache) this.wordCache[literal] = word;

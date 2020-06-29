@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,width=device-width">
   <title>Radical of the Vertical Heart</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
+  <link rel="stylesheet" type="text/css" href="style.css">
   <script src="lib/p5.min.js"></script>
   <script src="lib/p5.dom.min.js"></script>
   <script src="node_modules/tone/build/Tone.min.js"></script>
@@ -15,261 +17,8 @@
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"
     integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
-  <link rel="stylesheet" type="text/css" href="style.css">
-  <script>
 
-    /**
-     * TODO: Sally's changes
-     *   1) def appears earlier, or fades in (in progress)
-     *      NEXT: set countdown on flash, should hit 0 on next-flash
-     *   2) pause after word-completion
-     *   3) start next word with zero strokes after erasin (instead of 1)
-     *   4) add single word defs below
-     */
-
-    function preload() {
-      if (doSound) {
-        bell = new Tone.Player("res/chime.wav").toMaster();
-        strk = new Tone.Player("res/strk.wav").toMaster();
-      }
-      chars = loadJSON('chardata.json');
-      cdefs = showCharDefs && loadJSON('char-defs.json');
-      trad = loadJSON('words-trad.json');
-      simp = loadJSON('words-simp.json');
-      conf = loadJSON('config.json');
-    }
-
-    function setup() {
-      frameRate(30);
-      cnv = createCanvas(800, 600);
-      util = new CharUtils(chars, trad, simp, Levenshtein, showDefs, cdefs);
-      typer = new Autochar(util, onAction, onTarget);
-      word = typer.word.literal;
-      console.log("1) [ ] -> " + word);
-    }
-
-    function draw() {
-      if (!initalResize) {
-        initalResize = true;
-        updateSize();
-        repairCanvas();
-        window.onresize = updateSize;
-        next();
-        return;
-      }
-      adjustColor();
-      background(rgb[0], rgb[1], rgb[2]);
-      drawWord(this._renderer.drawingContext, typer.word);
-      if (showDefs) {
-        textAlign(CENTER);
-        textSize(defSz);
-        fill(txtcol[0], txtcol[1], txtcol[2]);//, defAlpha);
-        text(typer.word.definition, width / 2, 2 * defSz);
-        if (showCharDefs) {
-          textSize(defSz * .6);
-          text(typer.word.characters[0].definition, width * .25, height - 2 * defSz);
-          text(typer.word.characters[1].definition, width * .75, height - 2 * defSz);
-          let timer = Math.round((changeMs - (millis() - changeTs)) / 100) / 10;
-          text(//Math.round(strokeDelay) + '/' +
-           strokeCount-done + '  ' +
-            timer, width - 100, 2 * defSz);
-        }
-      }
-      showMed && text(wmed, width - 12, 15);
-      doPerf && logPerf();
-    }
-
-    function drawWord(ctx, word) {
-
-      // draw each character
-      for (let k = 0; k < word.characters.length; k++) {
-        let char = word.characters[k];
-
-        // strange constants
-        let xoff = k ? 20 * scayl + width : 140 * scayl;
-        let yoff = -1220 * scayl;
-
-        // draw each path of the character
-        push();
-        fill(txtcol);
-        for (let j = 0; j < char.paths.length; j++) {
-          for (let i = 0; i < char.paths[j].length; i++) {
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.scale(.5, -.5); // mirror-vertically 
-            ctx.translate(xoff, yoff);
-            if (char.parts[j] >= i) {
-              ctx.scale(scayl, scayl);
-              ctx.fill(char.paths[j][i]);
-            }
-          }
-        }
-        pop();
-      }
-    }
-
-    // computes size and position of canvas after resize (xo, yo, sw, sh)
-    // and size of en-translation font (defSz) and scaling of characters (scayl)
-    function updateSize() {
-      w = window.innerWidth;
-      h = window.innerHeight;
-      if (w * aspectH > h * aspectW) { // wider
-        sh = Math.round(h - border * 2);
-        sw = Math.round(sh * (aspectW / aspectH));
-      } else {                        // taller
-        sw = Math.round(w - border * 2);
-        sh = Math.round(sw * (aspectH / aspectW));
-      }
-      xo = (w - sw) / 2;
-      yo = (h - sh) / 2;
-
-      // strange constants
-      defSz = sh / 18;
-      scayl = sw / 1150;
-
-      // resize/position canvas
-      resizeCanvas(sw, sh);
-      cnv.position(xo, yo);
-
-      console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
-    }
-
-    function onTarget(next, numStrokes, trigger) {
-      triggered = trigger;
-      strokeCount = numStrokes;
-      let nSpeed = min(1, numStrokes / 12);
-      strokeDelay = map(nSpeed, 0, 1, 1000, 200);
-      changeMs = strokeDelay * strokeCount;
-      changeTs = millis();
-      //console.log("STROKE: "+numStrokes, nSpeed, strokeDelay, strokeDelay*numStrokes);
-    }
-    let done = 0;
-    function onAction(nextWord, med) {
-      if (nextWord) { // word complete
-        defAlpha = 0;
-        done = 0;
-        flashColors();
-        playStroke(true);
-        playBell();
-        //console.log(nextWord);
-        wmed = med + (util.language().startsWith('s') ? 's' : '');
-        console.log(++steps + ') ' + word + " -> " + nextWord.literal,
-          wmed, "'" + nextWord.definition + "'");
-        word = nextWord.literal;
-        triggered = false;
-      }
-      else {
-        done++;
-        playStroke();
-      }
-    }
-
-    function mouseClicked() { }
-
-    function toggleMute(event) {
-
-      if (typeof event === 'boolean') doSound = event ? 0 : 1;
-      else doSound = doSound == 0 ? 1 : 0;
-      document.getElementById("mute").innerText = doSound == 0 ? 'unmute' : ' mute ';
-    }
-
-    function next() {
-      if (typer.step()) {
-        tid = setTimeout(next, strokeDelay); // drawing
-      }
-      else {
-        next(); // erasing
-      }
-    }
-
-    function flashColors() {
-      for (let i = 0; i < rgb.length; i++) {
-        rgb[i] = triggered ? trgcol[i] : hitcol[i];
-        txtcol[i] = whiteOnColor ? 0 : 255;
-      }
-    }
-
-    function playBell() {
-      if (doSound) {
-        bell.playbackRate = random(.6, .9);
-        bell.volume.value = random(.7, 1);
-        bell.restart();
-        if (triggered) {
-          bell.playbackRate = random(.5, .7);
-          bell.volume.value = 5;
-          bell.start(200, 0, .1);
-        }
-      }
-    }
-
-    function playStroke(quiet) {
-      if (doSound) {
-        strk.playbackRate = random(.5, .7);
-        strk.volume.value = quiet ? -24 : -12;
-        strk.restart(undefined, 0, random(.05, .1)); //.05, 0.1));
-      }
-    }
-
-    function keyReleased() {
-      if (key == ' ') clearTimeout(tid);
-      if (key == 't') {
-        triggered = true;
-        flashColors();
-        playStroke(true);
-        playBell();
-      }
-    }
-
-    // fixes a bug in p5.resizeCanvas
-    function repairCanvas() {
-      let canvas = document.getElementsByTagName('canvas')[0];
-      canvas.width = sw;
-      canvas.height = sh;
-      pixelDensity(1);
-    }
-
-    function adjustColor() {
-      if (!rgb) {
-        rgb = [0, 0, 0];
-        for (let i = 0; i < rgb.length; i++) {
-          rgb[i] = bgcol[i];
-        }
-      }
-      for (let i = 0; i < rgb.length; i++) {
-        if (rgb[i] != bgcol[i]) rgb[i] = lerp(rgb[i], bgcol[i], .05);
-        if (whiteOnColor && txtcol[i] < 255) txtcol[i] += 10;
-        if (!whiteOnColor && txtcol[i] > -1) txtcol[i] -= 10;
-      }
-    }
-
-    function logPerf() {
-      if (performance && performance.memory && steps - memt >= 20) {
-        console.log('Perf: ' + round(frameRate()) + ' fps, ' +
-          round(performance.memory.usedJSHeapSize / 1000000) +
-          '/' + round(performance.memory.jsHeapSizeLimit / 1000000) + ' MB heap');
-        memt = steps;
-      }
-    }
-
-    let cnv, sw, sh, xo, yo, defSz, w, h;
-    let lang, chars, simp, trad, bell;
-    let typer, conf, word, tid, strk;
-    let scayl = 1, aspectW = 4.3, aspectH = 3;
-
-    let defAlpha = 0, strokeCount, changeMs, changeTs;
-    let steps = 1, triggered = 0, wmed = '';
-    let strokeDelay = 300, memt = -15;
-    let initalResize = false, border = 10;
-    let showDefs = 1, showCharDefs = 1, showMed = 0;
-    let doSound = 1, doPerf = 1, prod = true;
-
-    let whiteOnColor = false;
-    let bgcol = [114, 175, 215]; // [137, 172, 198]
-    let hitcol = [76, 87, 96];
-    let txtcol = [0, 0, 0];
-    let trgcol = [150, 0, 0];
-    let rgb = [0, 0, 0];
-  </script>
+  <script src="sketch.js"></script>
 </head>
 
 <body>
@@ -277,7 +26,8 @@
   <div id="SidebarBtn"><a href="#about" rel="modal:open">☰</a></div>
   <div id="page">
     <div id="p5_loading" class="loadingClass">
-      loading...<!--span id="title">Radical of the Vertical Heart</span>
+      
+      <!--loading...span id="title">Radical of the Vertical Heart</span>
       &nbsp; by <a id="author" href="https://rednoise.org/daniel" target="_new">Daniel C. Howe</a-->
     </div>
     <div id="about" class="modal">
@@ -285,7 +35,7 @@
       <div id="aboutDescription">
         <p>
           The newest in the <em>Atomic Language Machines</em> series, this reading machine searches the combination
-          space of Chinese words by repeatedly making the minimal allowable change to the sub-character components 
+          space of Chinese words by repeatedly making the minimal allowable change to the sub-character components
           of&nbsp;characters.</p>
         <p>Rather than evaluating letter mutations, as in alphabetic machines, this logographic reader uses a <em> novel
             algorithm</em> for distance based on analysis of the strokes, radicals, and subcomponents of characters.
@@ -308,7 +58,7 @@
         A reading machine that searches the possibility space of (simplified and traditional)
         Chinese, one word at a time. While alphabetic machines, like Automatype, move according to the mutation of letters, whether by deletion, addition or substitution, logographic machines, like the one shown on the project page analyse Chinese according to a unique algorithm for distance based on analysis of the strokes, radicals, and subcomponents of characters. -->
       </div>
-      <div id="aboutAuthor"><a href="https://rednoise.org/daniel" target="_blank">Daniel C Howe</a><br/>
+      <div id="aboutAuthor"><a href="https://rednoise.org/daniel" target="_blank">Daniel C Howe</a><br />
         <!--br><a href="https://www.twitter.com/@danielchowe" target="_blank">@danielchowe</a><br-->
         June 1, 2020</div>
 

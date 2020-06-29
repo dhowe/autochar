@@ -43,7 +43,6 @@ class Autochar {
     this.nextTargetCallback = nextTargetCB;
 
     this.word = util.randWord(2);
-    // tmp this.word = this.util.getWord('和諧');
     this.memory = new util.HistQ(10);
     this.memory.add(this.word.literal);
     this.memory.add('trigger');
@@ -64,7 +63,7 @@ class Autochar {
 
     if (!this.target) {
       let isTrigger = this.pickNextTarget();
-      console.log('NEXT: ',isTrigger);
+      //console.log('NEXT: ',isTrigger);
       this.findEditIndices();
       if (this.nextTargetCallback) {
         this.nextTargetCallback(this.target.literal,
@@ -89,10 +88,8 @@ class Autochar {
 
       opts = this.util.bestEditDistance(this.word.literal, 0, this.memory, minMed);
 
-
-      if (!opts || !opts.length) {
-        throw Error('Died on ' + this.word.literal, this.word);
-      }
+      if (!opts || !opts.length) throw Error
+        ('Died on ' + this.word.literal, this.word);
 
       // alternate characters when possible
       if (!rightSideFail && !leftSideFail) {
@@ -148,7 +145,6 @@ class Autochar {
 
     // get our MED candidates
     let result, opts = this.candidates();
-    //console.log('BEDs: ' + opts.length+"\n");
 
     // select any trigger words if we have them
     let triggered = false, theChar;
@@ -169,9 +165,7 @@ class Autochar {
     }
 
     // otherwise pick a random element from the list
-    if (!result) {
-      result = this.util.getWord(opts[(Math.random() * opts.length) << 0]);
-    }
+    result = result || this.util.getWord(opts[(Math.random() * opts.length) << 0]);
 
     FORCE_CHARACTER && (result = this.util.getWord('和諧'));
 
@@ -206,9 +200,7 @@ class Autochar {
         this.word.show(this.targetCharIdx, this.targetPartIdx == 1 ? 0 : 1);
         this.word.show(this.targetCharIdx == 1 ? 0 : 1);
         this.action = REPLACE_STROKE;
-        //return;
       }
-      // else this.wordCompleteCallback(); // erase stroke change
     }
 
     if (this.action == REPLACE_STROKE) {

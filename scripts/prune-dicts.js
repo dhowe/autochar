@@ -7,11 +7,12 @@ const trad = require('../data/words-trad-orig.json');
 function check(w, lang) {
   
   let data = lang.data;
-  data[w] = data[w].replace(/ ,/g, ',');
+  data[w] = data[w].replace(/ ,/g, ',').replace(/ +/g, ' ');
   if (w.length === 1) {
     lang.skips++;
     return;
   }
+
  /* if (w.length === 1) {
     lang.singles++;
     if (!data.hasOwnProperty(w)) {
@@ -20,11 +21,12 @@ function check(w, lang) {
     }
   }*/
   
-  if (w.length > 2 || data[w].length > 40) {
+  if (w.length > 2 || data[w].length > 40 || data[w].startsWith("-")) {
     //console.log(w + ': "' + data[w] + '"');
     lang.skips++;
     return;
   }
+ 
   if (w.length > 1 && !/^[A-Za-z ',.-]+$/.test(data[w])) {
     //console.log(w + ': "' + data[w] + '"');
     lang.skips++;
