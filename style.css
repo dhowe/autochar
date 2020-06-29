@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital@0;1&family=Playball&display=swap');
 html, body {
   margin: 0;
   padding: 0;
@@ -5,10 +6,10 @@ html, body {
 }
 
 button {
-  position:absolute;
-  top:700px;
-  left:930px;
-  width:55px;
+  position: absolute;
+  top: 700px;
+  left: 930px;
+  width: 55px;
 }
 
 #title {
@@ -17,9 +18,29 @@ button {
 }
 
 .loadingClass {
-  font-family: 'Segoe UI',Arial,sans-serif;
+  font-family: 'Segoe UI', Arial, sans-serif;
   font-size: 12px;
-  margin: 20px;
+  margin: 20px 0 0 40px;
+  animation: blinkingText 1.2s infinite;
+  color: #999;
+}
+
+@keyframes blinkingText {
+  0% {
+    color: #333;
+  }
+  49% {
+    color: #333;
+  }
+  60% {
+    color: transparent;
+  }
+  99% {
+    color: transparent;
+  }
+  100% {
+    color: #333;
+  }
 }
 
 .loadingClass a {
@@ -28,6 +49,7 @@ button {
 }
 
 /*iframe*/
+
 @media only screen and (max-width: 600px) {
   html, body {
     overflow: hidden;
@@ -36,24 +58,117 @@ button {
     margin: 0;
   }
   canvas {
-      display: block;
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      height: auto;
-      z-index: 1;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: auto;
+    z-index: 1;
   }
   button {
-    top:auto !important;
-    left:auto !important;
-    bottom:10px !important;
-    right:10px !important;
+    top: auto !important;
+    left: auto !important;
+    bottom: 10px !important;
+    right: 10px !important;
     z-index: 10;
     font-size: 8px;
     padding: 1px;
-    width:40px !important;
+    width: 40px !important;
   }
+}
+
+#SidebarBtn {
+  position: fixed;
+  top: 6px;
+  left: 10px;
+  color: #999;
+  font-size: 2em;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+#SidebarBtn a {
+  text-decoration: none;
+  color: lightgray;
+  font-style: normal;
+}
+
+#SidebarBtn a:hover {
+  color: darkgrey;
+  font-style: normal;
+}
+
+#footer {
+  position: fixed;
+  top: -80px;
+  left: 0px;
+  background-color: #666;
+  width: 100%;
+  color: #fff;
+  font-family: 'Merriweather', serif;
+  font-style: italic;
+  font-size: 16px;
+  text-shadow: 1px 1px 1px #000;
+}
+
+#about {
+  background-color: #fff;
+  padding: 2em;
+  font-family: 'Merriweather', serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 1em;
+  line-height: 1.5em;
+  width: 440px;
+}
+
+#about a {
+  text-decoration: none;
+}
+
+#aboutAuthor {
+  text-align: right;
+  padding-right: 50px;
+}
+
+a {
+  text-decoration: none;
+  color: #666;
+}
+
+#aboutAuthor a:hover {
+  color: darkgray;
+}
+
+#aboutTitle {
+  font-size: 1.5em;
+  font-weight: 1600;
+  text-align: center;
+}
+
+#aboutDescription {
+  padding-left: 40px;
+  padding-right: 30px;
+  margin: 20px 0px 0px 0;
+  max-width: 320px;
+}
+
+#aboutClose {
+  margin-top: 20px;
+  text-align: center;
+}
+
+#aboutClose a {
+  color: #666;
+}
+
+#aboutClose a:hover {
+  color: darkred;
+}
+
+span.avoidwrap {
+  display: inline-block;
 }

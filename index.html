@@ -12,6 +12,10 @@
   <script src="node_modules/fast-levenshtein/levenshtein.js"></script>
   <script src="cutils.js"></script>
   <script src="autochar.js"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
   <link rel="stylesheet" type="text/css" href="style.css">
   <script>
 
@@ -62,13 +66,15 @@
         textSize(defSz);
         fill(txtcol[0], txtcol[1], txtcol[2]);//, defAlpha);
         text(typer.word.definition, width / 2, 2 * defSz);
-      }
-      if (showCharDefs) {
-        textAlign(CENTER);
-        textSize(defSz*.6);
-        fill(txtcol[0], txtcol[1], txtcol[2]);//, defAlpha);
-        text(typer.word.characters[0].definition, width * .25, height - 2 * defSz);
-        text(typer.word.characters[1].definition, width * .75, height - 2 * defSz);
+        if (showCharDefs) {
+          textSize(defSz * .6);
+          text(typer.word.characters[0].definition, width * .25, height - 2 * defSz);
+          text(typer.word.characters[1].definition, width * .75, height - 2 * defSz);
+          let timer = Math.round((changeMs - (millis() - changeTs)) / 100) / 10;
+          text(//Math.round(strokeDelay) + '/' +
+           strokeCount-done + '  ' +
+            timer, width - 100, 2 * defSz);
+        }
       }
       showMed && text(wmed, width - 12, 15);
       doPerf && logPerf();
@@ -128,6 +134,36 @@
       console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
     }
 
+    function onTarget(next, numStrokes, trigger) {
+      triggered = trigger;
+      strokeCount = numStrokes;
+      let nSpeed = min(1, numStrokes / 12);
+      strokeDelay = map(nSpeed, 0, 1, 1000, 200);
+      changeMs = strokeDelay * strokeCount;
+      changeTs = millis();
+      //console.log("STROKE: "+numStrokes, nSpeed, strokeDelay, strokeDelay*numStrokes);
+    }
+    let done = 0;
+    function onAction(nextWord, med) {
+      if (nextWord) { // word complete
+        defAlpha = 0;
+        done = 0;
+        flashColors();
+        playStroke(true);
+        playBell();
+        //console.log(nextWord);
+        wmed = med + (util.language().startsWith('s') ? 's' : '');
+        console.log(++steps + ') ' + word + " -> " + nextWord.literal,
+          wmed, "'" + nextWord.definition + "'");
+        word = nextWord.literal;
+        triggered = false;
+      }
+      else {
+        done++;
+        playStroke();
+      }
+    }
+
     function mouseClicked() { }
 
     function toggleMute(event) {
@@ -143,30 +179,6 @@
       }
       else {
         next(); // erasing
-      }
-    }
-
-    function onTarget(next, numStrokes, trigger) {
-      triggered = trigger;
-      let nSpeed = min(1, numStrokes / 12);
-      strokeDelay = map(nSpeed, 0, 1, 1000, 200);
-      //console.log("STROKE: "+numStrokes, nSpeed, strokeDelay, strokeDelay*numStrokes);
-    }
-
-    function onAction(nextWord, med) {
-      if (nextWord) { // word complete
-        defAlpha = 0;
-        flashColors();
-        playStroke(true);
-        playBell()
-//console.log(nextWord);
-        wmed = med + (util.language().startsWith('s') ? 's' : '');
-        console.log(++steps + ') ' + word + " -> " + nextWord.literal, wmed, "'" + nextWord.definition + "'");
-        word = nextWord.literal;
-        triggered = false;
-      }
-      else {
-        playStroke();
       }
     }
 
@@ -244,7 +256,7 @@
     let typer, conf, word, tid, strk;
     let scayl = 1, aspectW = 4.3, aspectH = 3;
 
-    let defAlpha = 0; 
+    let defAlpha = 0, strokeCount, changeMs, changeTs;
     let steps = 1, triggered = 0, wmed = '';
     let strokeDelay = 300, memt = -15;
     let initalResize = false, border = 10;
@@ -261,9 +273,49 @@
 </head>
 
 <body>
-  <div id="p5_loading" class="loadingClass">
-    <span id="title">Radical of the Vertical Heart</span>
-    &nbsp; by <a id="author" href="https://rednoise.org/daniel" target="_new">Daniel C. Howe</a>
+  <div id="mySidenav" class="sidenav"></div>
+  <div id="SidebarBtn"><a href="#about" rel="modal:open">☰</a></div>
+  <div id="page">
+    <div id="p5_loading" class="loadingClass">
+      loading...<!--span id="title">Radical of the Vertical Heart</span>
+      &nbsp; by <a id="author" href="https://rednoise.org/daniel" target="_new">Daniel C. Howe</a-->
+    </div>
+    <div id="about" class="modal">
+      <div id="aboutTitle">Radical of the Vertical Heart</div>
+      <div id="aboutDescription">
+        <p>
+          The newest in the <em>Atomic Language Machines</em> series, this reading machine searches the combination
+          space of Chinese words by repeatedly making the minimal allowable change to the sub-character components 
+          of&nbsp;characters.</p>
+        <p>Rather than evaluating letter mutations, as in alphabetic machines, this logographic reader uses a <em> novel
+            algorithm</em> for distance based on analysis of the strokes, radicals, and subcomponents of characters.
+        </p>
+        <p>When the machine lands on <em>sensitive</em> words, such as those disallowed by China's <em>Great
+            Firewall</em>, a 'break' occurs and the machine jumps from traditional to simplified, or vice versa. See the
+          <a href="https://rednoise.org/daniel/detail.html#radicaloftheverticalheart" target="_blank">project
+            page</a> for&nbsp;details.</p>
+        <!--p>
+          The newest in the <a href="https://rednoise.org/daniel/detail.html#automatype" target="_blank">Atomic Language
+            Machines</a> series, this reading machine searches the combination space of Chinese words by repeatedly
+          making the minimal allowable change to the sub-character components of characters.</p>
+        <p>Rather than evaluating letter mutations, as in alphabetic machines, this logographic reader uses a <a
+            href="https://rednoise.org/daniel/detail.html#radicaloftheverticalheart" target="_blank"> novel
+            algorithm</a> for distance based on analysis of the strokes, radicals, and subcomponents of characters. </p>
+        <p>When the machine lands on <a href="https://rednoise.org/daniel/detail.html#radicaloftheverticalheart"
+            target="_blank">'sensitive'</a> words, such as those disallowed by China's <em>Great Firewall</em>, a
+          'break' occurs and the machine jumps from traditional to simplified, or vice versa. See the <a>project
+            page</a> for more info</p>
+        A reading machine that searches the possibility space of (simplified and traditional)
+        Chinese, one word at a time. While alphabetic machines, like Automatype, move according to the mutation of letters, whether by deletion, addition or substitution, logographic machines, like the one shown on the project page analyse Chinese according to a unique algorithm for distance based on analysis of the strokes, radicals, and subcomponents of characters. -->
+      </div>
+      <div id="aboutAuthor"><a href="https://rednoise.org/daniel" target="_blank">Daniel C Howe</a><br/>
+        <!--br><a href="https://www.twitter.com/@danielchowe" target="_blank">@danielchowe</a><br-->
+        June 1, 2020</div>
+
+      <div id="aboutClose"><a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img
+            alt="Creative Commons License" style="border-width:0"
+            src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" /></a></div>
+    </div>
   </div>
 </body>
 

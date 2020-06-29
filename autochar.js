@@ -63,10 +63,12 @@ class Autochar {
   step() { // returns the next action to be done
 
     if (!this.target) {
-      let trigd = this.pickNextTarget();
+      let isTrigger = this.pickNextTarget();
+      console.log('NEXT: ',isTrigger);
       this.findEditIndices();
       if (this.nextTargetCallback) {
-        this.nextTargetCallback(this.target.literal, this.currentStrokeCount, trigd);
+        this.nextTargetCallback(this.target.literal,
+          this.currentStrokeCount, isTrigger);
       }
     }
 
