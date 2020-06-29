@@ -13,12 +13,12 @@
     bell = new Tone.Player("res/chime.wav").toMaster();
     strk = new Tone.Player("res/strk.wav").toMaster();
   } */
-  
-  /*   chars = loadJSON('chardata.json');
-    cdefs = showCharDefs && loadJSON('char-defs.json');
-    trad = loadJSON('words-trad.json');
-    simp = loadJSON('words-simp.json'); 
-  //conf = loadJSON('config.json');
+
+/*   chars = loadJSON('chardata.json');
+  cdefs = showCharDefs && loadJSON('char-defs.json');
+  trad = loadJSON('words-trad.json');
+  simp = loadJSON('words-simp.json'); 
+//conf = loadJSON('config.json');
 }*/
 
 let jsonData = {};
@@ -28,71 +28,79 @@ function loaded(name, data) {
 }
 
 function loadData() {
-  loadJSON('char-data.json', function(d) {loaded('chars', d)});
+  loadJSON('char-data.json', function (d) { loaded('chars', d) });
   loadJSON('char-defs.json', d => loaded('cdefs', d));
   loadJSON('words-trad.json', d => loaded('trad', d));
   loadJSON('words-simp.json', d => loaded('simp', d));
+}
 
-  /* chars =loadJSON('char-data.json');
-    cdefs = showCharDefs && loadJSON('char-defs.json');
-    trad = loadJSON('words-trad.json');
-    simp = loadJSON('words-simp.json'); */
-}
-function dd(d) {
-  console.log('loaded', d);
-}
 function setup() {
   frameRate(30);
   cnv = createCanvas(800, 600);
+  textFont('Georgia');
   loadData();
 }
 
 let loading = true;
 function draw() {
-  
-  if (loading) return;
 
   if (!initalResize) {
-    util = new CharUtils(jsonData, Levenshtein, showDefs);
-    typer = new Autochar(util, onAction, onTarget);
-    word = typer.word.literal;
-    console.log("1) [ ] -> " + word);
     initalResize = true;
     updateSize();
     repairCanvas();
     window.onresize = updateSize;
-    next();
-    return;
   }
 
   adjustColor();
   background(rgb[0], rgb[1], rgb[2]);
-  drawWord(this._renderer.drawingContext, typer.word);
-  if (showDefs) {
-    textFont('Georgia');
-    textAlign(CENTER);
+
+  if (loading) {
     textSize(defSz);
-    defAlpha = (timer / changeMs < .8) ?
-      defAlpha = map(timer / changeMs, .8, 0, 0, 255) : 0
-    fill(txtcol[0], txtcol[1], txtcol[2], defAlpha);
-    text(typer.word.definition.toUpperCase(), width / 2, 2.4 * defSz);
-    if (showCharDefs) {
-      textSize(defSz * .5);
-      fill(txtcol[0], txtcol[1], txtcol[2]);
-      text(typer.word.characters[0].definition.toUpperCase(), width * .25, height - 2 * defSz);
-      text(typer.word.characters[1].definition.toUpperCase(), width * .75, height - 2 * defSz);
-      timer = changeMs - (millis() - changeTs);
-      0 && text(//Math.round(strokeDelay) + '/' +
-        (strokeCount - strokeIdx) + '   ' +// - done + '  ' +
-        Math.max(0, Math.round(timer / 100) / 10), width - 100, 2 * defSz);
-    }
+    textAlign(CENTER);
+    let els = Array(1 + round(frameCount / 10) % 4).join(".");
+    els = ''; // tmp
+    text(els + ' loading ' + els, width / 2, height / 2);
+    return;
   }
+  else if (!util) {
+    util = new CharUtils(jsonData, Levenshtein, showDefs);
+    typer = new Autochar(util, onAction, onTarget);
+    word = typer.word.literal;
+    console.log("1) [ ] -> " + word);
+    next();
+    return;
+  }
+  
+  drawWord(typer.word);
+  showDefs && drawDefs();
   showMed && text(wmed, width - 12, 15);
   doPerf && logPerf();
   showNav && drawNav();
 }
 
-function drawWord(ctx, word) {
+function drawDefs() {
+  textSize(defSz);
+  textAlign(CENTER);
+  let defAlpha = (timer / changeMs < .8) ?
+    map(timer / changeMs, .8, 0, 0, 255) : 0;
+  let def = typer.word.definition || '';
+  fill(txtcol[0], txtcol[1], txtcol[2], defAlpha);
+  text(def.toUpperCase(), width / 2, 2.4 * defSz);
+  if (showCharDefs) {
+    textSize(defSz * .5);
+    fill(txtcol[0], txtcol[1], txtcol[2]);
+    text(typer.word.characters[0].definition.toUpperCase(), width * .25, height - 2 * defSz);
+    text(typer.word.characters[1].definition.toUpperCase(), width * .75, height - 2 * defSz);
+    timer = changeMs - (millis() - changeTs);
+    0 && text(//Math.round(strokeDelay) + '/' +
+      (strokeCount - strokeIdx) + '   ' +// - done + '  ' +
+      Math.max(0, Math.round(timer / 100) / 10), width - 100, 2 * defSz);
+  }
+}
+
+
+function drawWord(word) {
+  let ctx = this._renderer.drawingContext;
 
   // draw each character
   for (let k = 0; k < word.characters.length; k++) {
@@ -296,8 +304,7 @@ let doSound = false, doPerf = true, whiteOnColor = false, showMed = false;
 let showDefs = true, showCharDefs = true, showNav = true;
 
 let cnv, sw, sh, xo, yo, defSz, w, h;
-let lang, chars, simp, trad, bell;
-let typer, conf, word, tid, strk;
+let lang, bell, conf, word, tid, strk, util, typer;
 let scayl = 1, aspectW = 4.3, aspectH = 3;
 
 let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;

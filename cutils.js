@@ -1,5 +1,3 @@
-const BLACK = [0, 0, 0]; // BLACK
-
 class Word {
 
   constructor(literal, chars, def) {
@@ -12,16 +10,7 @@ class Word {
     this.characters.forEach(this.computeParts); // 2-parts-per-char
     this.characters.forEach(this.computeStrokes); // strokes-per-path
     this.characters.forEach(this.computePaths); // path2Ds-per-stroke
-    //this.characters.forEach(this.computeCharDefs); // path2Ds-per-stroke
-
-    /* for (let i = 0; cdefs && i < cdefs.length; i++) {
-      this.characters[i].definition = cdefs[i]; // per-character-defs
-    } */
   }
-
-  /*   computeCharDefs(chr) {
-      chr.definition = 
-    } */
 
   computeParts(chr) {
     // assume 2 parts per char, otherwise check decomposition
@@ -231,23 +220,23 @@ class CharUtils {
 
     if (!levenshtein) throw Error('no levenshtein impl');
 
-    lang = (lang != 'simp') ? 'trad' : lang;
+    lang = (lang !== 'simp') ? 'trad' : lang;
 
     this.HistQ = HistQ; // class
     this.Word = Word; // class
     this.wordCache = {};
 
+    this.loadDefs = loadDefs;
     this.levenshtein = levenshtein;
     this.charData = jsonData.chars;
     this.charDefs = jsonData.cdefs;
     this.tradData = jsonData.trad;
     this.simpData = jsonData.simp;
     
-    this.prefillCache('trad', loadDefs);
-    this.prefillCache('simp', loadDefs);
-
-    this.language(lang, true);
-
+    this.prefillCache('trad');
+    this.prefillCache('simp');
+    this.language('trad', true);
+    
     console.log('cUtils[' + Object.keys(this.charData).length + 
       ',' + Object.keys(this.wordCache).length + '] ' + this.lang);
   }
@@ -279,9 +268,8 @@ class CharUtils {
   }
 
   prefillCache(lang, loadDefs) {
+    
     let words = lang === 'simp' ? this.simpData : this.tradData;
-    
-    
     if (this.charData && words) {
       let that = this;
       let mcdefs = [];
@@ -296,7 +284,7 @@ class CharUtils {
           }
         }
         that.wordCache[word] = that._createWord(word, this.charData,
-          loadDefs ? words[word] : undefined);;
+          this.loadDefs ? words[word] : undefined);;
       });
       this.charDefs && console.log(mcdefs.length + ' missing ' + lang + ' char-defs');
     }
