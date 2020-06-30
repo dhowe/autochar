@@ -1,5 +1,10 @@
 
 /**
+ * TODO: 
+ *   fix definitions bug
+ *   re-add sound
+ *   do threaded data-loading?
+ * 
  * TODO: Sally's changes
  *   1) def appears earlier, or fades in (in progress)
  *      NEXT: set countdown on flash, should hit 0 on next-flash
@@ -8,40 +13,42 @@
  *   4) add single word defs below
  */
 
-/* function preload() {
+let chars, defs;
+function preload() {
   if (doSound) {
     bell = new Tone.Player("res/chime.wav").toMaster();
     strk = new Tone.Player("res/strk.wav").toMaster();
-  } */
+  }
+  chars = loadJSON('chardata.json');
+  defs = loadJSON('definitions.json');
+}
 
-/*   chars = loadJSON('chardata.json');
-  cdefs = showCharDefs && loadJSON('char-defs.json');
-  trad = loadJSON('words-trad.json');
-  simp = loadJSON('words-simp.json'); 
-//conf = loadJSON('config.json');
-}*/
-
-let jsonData = {};
+/* let jsonData = {};
 function loaded(name, data) {
   jsonData[name] = data;
   if (Object.keys(jsonData).length === 4) loading = false;
 }
 
 function loadData() {
+  // contains stroke/decomp data for all chars
   loadJSON('char-data.json', function (d) { loaded('chars', d) });
+
+  // contains definitions for each char
   loadJSON('char-defs.json', d => loaded('cdefs', d));
+
+  // contains definitions for each trad. word
   loadJSON('words-trad.json', d => loaded('trad', d));
+
+  // contains definitions for each simp. word
   loadJSON('words-simp.json', d => loaded('simp', d));
-}
+} */
 
 function setup() {
   frameRate(30);
-  cnv = createCanvas(800, 600);
   textFont('Georgia');
-  loadData();
+  cnv = createCanvas(800, 600);
 }
 
-let loading = true;
 function draw() {
 
   if (!initalResize) {
@@ -49,28 +56,36 @@ function draw() {
     updateSize();
     repairCanvas();
     window.onresize = updateSize;
-  }
-
-  adjustColor();
-  background(rgb[0], rgb[1], rgb[2]);
-
-  if (loading) {
-    textSize(defSz);
-    textAlign(CENTER);
-    let els = Array(1 + round(frameCount / 10) % 4).join(".");
-    els = ''; // tmp
-    text(els + ' loading ' + els, width / 2, height / 2);
-    return;
-  }
-  else if (!util) {
-    util = new CharUtils(jsonData, Levenshtein, showDefs);
+    util = new CharUtils(chars, defs, Levenshtein);
     typer = new Autochar(util, onAction, onTarget);
     word = typer.word.literal;
     console.log("1) [ ] -> " + word);
     next();
     return;
   }
-  
+
+  adjustColor();
+  background(rgb[0], rgb[1], rgb[2]);
+  /* 
+    if (loading) {
+      textSize(defSz);
+      textAlign(CENTER);
+      let els = Array(1 + round(frameCount / 10) % 4).join(".");
+      els = ''; // tmp
+      text(els + ' loading ' + els, width / 2, height / 2);
+      return;
+    } */
+
+  /*   if (!util) {
+      util = new CharUtils(jsonData, Levenshtein);
+      //util.loadCaches();
+      typer = new Autochar(util, onAction, onTarget);
+      word = typer.word.literal;
+      console.log("1) [ ] -> " + word);
+      next();
+      return;
+    } */
+
   drawWord(typer.word);
   showDefs && drawDefs();
   showMed && text(wmed, width - 12, 15);
@@ -98,11 +113,10 @@ function drawDefs() {
   }
 }
 
-
 function drawWord(word) {
-  let ctx = this._renderer.drawingContext;
 
   // draw each character
+  let ctx = this._renderer.drawingContext;
   for (let k = 0; k < word.characters.length; k++) {
     let chr = word.characters[k];
 
@@ -148,10 +162,11 @@ function updateSize() {
   scayl = sw / 1150;
 
   // resize/position canvas
-  resizeCanvas(sw, sh);
+  resizeCanvas(sw, sh, true);
   cnv.position(xo, yo);
 
   console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
+  // + ' xoff=' + xo + ' yoff=' + yo);
 }
 
 function onTarget(next, numStrokes, trigger) {
@@ -174,9 +189,11 @@ function onAction(nextWord, med) {
     playStroke(true);
     playBell();
     //console.log(nextWord);
-    wmed = med + (util.language().startsWith('s') ? 's' : '');
+    wmed = med + (util.lang.startsWith('s') ? 's' : '');
+    let chars = nextWord.characters;
     console.log(++steps + ') ' + word + " -> " + nextWord.literal,
-      wmed, "'" + nextWord.definition + "'");
+      wmed, "'" + nextWord.definition + "' (" + chars[0].definition
+      + ' / ' + chars[1].definition + ')');
     word = nextWord.literal;
     triggered = false;
   }
@@ -304,12 +321,12 @@ let doSound = false, doPerf = true, whiteOnColor = false, showMed = false;
 let showDefs = true, showCharDefs = true, showNav = true;
 
 let cnv, sw, sh, xo, yo, defSz, w, h;
-let lang, bell, conf, word, tid, strk, util, typer;
 let scayl = 1, aspectW = 4.3, aspectH = 3;
+let lang, bell, conf, word, tid, strk, util, typer;
 
 let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
-let steps = 1, triggered = 0, wmed = '';
 let strokeDelay = 300, memt = -15, navOpen = false;
+let steps = 1, triggered = 0, wmed = '';
 let initalResize = false, border = 10;
 
 let bgcol = [114, 175, 215]; // [137, 172, 198]
