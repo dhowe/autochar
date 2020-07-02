@@ -1,9 +1,5 @@
 
 /**
- * TODO: 
- *   fix definitions bug
- *   re-add sound
- *   do threaded data-loading?
  * 
  * TODO: Sally's changes
  *   1) def appears earlier, or fades in (in progress)
@@ -66,26 +62,6 @@ function draw() {
 
   adjustColor();
   background(rgb[0], rgb[1], rgb[2]);
-  /* 
-    if (loading) {
-      textSize(defSz);
-      textAlign(CENTER);
-      let els = Array(1 + round(frameCount / 10) % 4).join(".");
-      els = ''; // tmp
-      text(els + ' loading ' + els, width / 2, height / 2);
-      return;
-    } */
-
-  /*   if (!util) {
-      util = new CharUtils(jsonData, Levenshtein);
-      //util.loadCaches();
-      typer = new Autochar(util, onAction, onTarget);
-      word = typer.word.literal;
-      console.log("1) [ ] -> " + word);
-      next();
-      return;
-    } */
-
   drawWord(typer.word);
   showDefs && drawDefs();
   showMed && text(wmed, width - 12, 15);
@@ -280,6 +256,8 @@ function keyReleased() {
 
 // fixes a bug in p5.resizeCanvas
 function repairCanvas() {
+  // first hide the html nav button (use the p5 one)
+  document.getElementById('SidebarBtn').style.display = "none";
   let canvas = document.getElementsByTagName('canvas')[0];
   canvas.width = sw;
   canvas.height = sh;
@@ -317,7 +295,7 @@ function logPerf() {
   }
 }
 
-let doSound = false, doPerf = true, whiteOnColor = false, showMed = false;
+let doSound = true, doPerf = true, whiteOnColor = false, showMed = false;
 let showDefs = true, showCharDefs = true, showNav = true;
 
 let cnv, sw, sh, xo, yo, defSz, w, h;

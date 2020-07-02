@@ -19,27 +19,27 @@ button {
 
 .loadingClass {
   font-family: 'Segoe UI', Arial, sans-serif;
-  font-size: 12px;
-  margin: 20px 0 0 40px;
+  font-size: 18px;
+  margin: 15px 0 0 10px;
   animation: blinkingText 1.2s infinite;
-  color: #999;
+  color: #555 !important;
 }
 
 @keyframes blinkingText {
   0% {
-    color: #333;
+    color: #555 !important;
   }
   49% {
-    color: #333;
+    color: #555 !important;
   }
   60% {
-    color: transparent;
+    color: transparent !important;
   }
   99% {
-    color: transparent;
+    color: transparent !important;
   }
   100% {
-    color: #333;
+    color: #555 !important;
   }
 }
 

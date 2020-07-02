@@ -15,7 +15,7 @@ class CharUtils {
     this.wordCache = { simp: {}, trad: {} };
 
     this.prefillCaches();
-    
+
     console.log('cUtils[chars=' + Object.keys
       (this.charData).length + ',lang=' + this.lang + ']');
   }
@@ -31,25 +31,21 @@ class CharUtils {
 
   prefillCaches() {
     if (!this.charData) throw Error('no char-data');
-    const langs = ['simp', 'trad'];
-    for (let i = 0; i < langs.length; i++) {
-      const lang = langs[i], missingDefs = [];
-      if (!this.defs[lang]) throw Error('no defs for ' + langs[i]);
-      Object.keys(this.defs[lang]).forEach(word => {
-        if (typeof this.wordCache[lang][word] === 'undefined') {
-          for (let k = 0; k < word.length; k++) {
-            const ch = word[k];
-            if (!this.charData[ch]) {
-              throw Error('no char-data for ' + ch + ' in ' + word);
-            }
-            if (!this.defs.single[ch]) missingDefs.push(ch);
-            this.charData[ch].definition = this.defs.single[ch] || '-';
+
+    Object.keys(this.defs).forEach(word => {
+      if (word.length !== 2) return; 
+      if (typeof this.wordCache[word] === 'undefined') {
+        for (let k = 0; k < word.length; k++) {
+          const ch = word[k];
+          if (!this.charData[ch]) {
+            throw Error('no char-data for ' + ch + ' in ' + word);
           }
-          this.wordCache[lang][word] = this.createWord(word);
+          if (!this.defs[ch]) missingDefs.push(ch);
+          this.charData[ch].definition = this.defs[ch] || '-';
         }
-      });
-      console.log('Loaded ' + lang + ' with ' + Object.keys(this.wordCache[lang]).length + ' words');
-    }
+        this.wordCache[word] = this.createWord(word);
+      }
+    });
   }
 
   toggleLang() {
@@ -72,6 +68,7 @@ class CharUtils {
       }
 
       if (typeof hist != 'undefined' && hist.contains(words[i])) {
+        //console.log('*** Skipping item in history: '+words[i]);
         continue;
       }
 
@@ -120,18 +117,18 @@ class CharUtils {
       }
     }
 
-    return new Word(literal, chars, this.defs[this.lang][literal]);
+    return new Word(literal, chars, this.defs[literal]);
   }
 
   getWord(literal) {
 
-    if (this.wordCache[this.lang][literal]) {
-      return this.wordCache[this.lang][literal];
+    if (this.wordCache[literal]) {
+      return this.wordCache[literal];
     }
 
     console.log("[WARN] creating word object for " + literal);
     let word = this.createWord(literal);
-    this.wordCache[this.lang][literal] = word;
+    this.wordCache[literal] = word;
 
     return word;
   }
@@ -142,7 +139,7 @@ class CharUtils {
   }
 
   currentWords() {
-    return this.defs[this.lang];
+    return this.defs;
   }
 
   randWord(length, testMode) {
