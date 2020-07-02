@@ -45,6 +45,7 @@ function setup() {
   textFont('Georgia');
   cnv = createCanvas(800, 600);
   noLoop();  // don't run the sketch automatically
+  doSound = false;
 }
 
 function draw() {
@@ -194,11 +195,22 @@ function next() {
 }
 
 function mouseClicked() {
-  if (showNav && mouseX < 40 && mouseY < 40) {
-    $('#about').modal();
+
+  if($('#about').is(':visible')){
+    $.modal.close();
+  } else {
+    if (showNav && mouseX < 40 && mouseY < 40) {
+      console.log("show")
+      $('#about').modal();
+    }
   }
-  loop(); // run sketch
-  
+
+  if (firstRun) {
+    loop(); // run sketch
+    doSound = true;
+    firstRun = false;
+  }
+
   /*   if (tid) {
       noLoop();
       clearInterval(tid);
@@ -300,7 +312,7 @@ function logPerf() {
 }
 
 let doSound = true, doPerf = true, whiteOnColor = false, showMed = false;
-let showDefs = true, showCharDefs = true, showNav = true;
+let showDefs = true, showCharDefs = true, showNav = true, firstRun = true;
 
 let cnv, sw, sh, xo, yo, defSz, w, h;
 let scayl = 1, aspectW = 4.3, aspectH = 3;
