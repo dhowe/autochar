@@ -1,6 +1,6 @@
 
 /**
- * 
+ *
  * TODO: Sally's changes
  *   1) def appears earlier, or fades in (in progress)
  *      NEXT: set countdown on flash, should hit 0 on next-flash
@@ -17,6 +17,7 @@ function preload() {
   }
   chars = loadJSON('chardata.json');
   defs = loadJSON('definitions.json');
+  $('#about').modal(); // show info on load
 }
 
 /* let jsonData = {};
@@ -43,6 +44,7 @@ function setup() {
   frameRate(30);
   textFont('Georgia');
   cnv = createCanvas(800, 600);
+  noLoop();  // don't run the sketch automatically
 }
 
 function draw() {
@@ -106,7 +108,7 @@ function drawWord(word) {
     for (let j = 0; j < chr.paths.length; j++) {
       for (let i = 0; i < chr.paths[j].length; i++) {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.scale(.5, -.5); // mirror-vertically 
+        ctx.scale(.5, -.5); // mirror-vertically
         ctx.translate(xoff, yoff);
         if (chr.parts[j] >= i) {
           ctx.scale(scayl, scayl);
@@ -195,6 +197,8 @@ function mouseClicked() {
   if (showNav && mouseX < 40 && mouseY < 40) {
     $('#about').modal();
   }
+  loop(); // run sketch
+  
   /*   if (tid) {
       noLoop();
       clearInterval(tid);
