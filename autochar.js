@@ -58,7 +58,6 @@ class Autochar {
     return util._createWord(c1 + c2, chars);
   }
 
-
   step() { // returns the next action to be done
 
     if (!this.target) {
@@ -72,7 +71,6 @@ class Autochar {
     }
 
     this.doNextEdit();
-
     return this.action;
   }
 

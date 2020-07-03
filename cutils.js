@@ -20,15 +20,6 @@ class CharUtils {
       (this.charData).length + ',lang=' + this.lang + ']');
   }
 
-  /* 
-    loadCaches() {
-      //while (!this.prefillCaches(100));
-      //this.prefillCache('simp');
-      this.prefillCaches();
-      console.log('cache[' + Object.keys(this.wordCache).length + ']');
-      return this;
-    } */
-
   prefillCaches() {
     if (!this.charData) throw Error('no char-data');
 
@@ -313,8 +304,7 @@ class Word {
     charIdx = Math.max(charIdx, 0); // if -1, show first char
     partIdx = Math.max(partIdx, 0); // if -1, show first part
 
-    let chr = this.characters[charIdx];
-
+    //let chr = this.characters[charIdx];
     //console.log("char["+ charIdx+"]["+partIdx+"] = " +
     //(chr.parts[partIdx]+1)+"/"+(chr.cstrokes[partIdx].length)); // keep
 

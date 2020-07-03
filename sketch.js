@@ -1,16 +1,6 @@
 
-/**
- *
- * TODO: Sally's changes
- *   1) def appears earlier, or fades in (in progress)
- *      NEXT: set countdown on flash, should hit 0 on next-flash
- *   2) pause after word-completion
- *   3) start next word with zero strokes after erasin (instead of 1)
- *   4) add single word defs below
- */
-
-let chars, defs;
 function preload() {
+
   if (doSound) {
     bell = new Tone.Player("res/chime.wav").toMaster();
     strk = new Tone.Player("res/strk.wav").toMaster();
@@ -20,27 +10,8 @@ function preload() {
   $('#about').modal(); // show info on load
 }
 
-/* let jsonData = {};
-function loaded(name, data) {
-  jsonData[name] = data;
-  if (Object.keys(jsonData).length === 4) loading = false;
-}
-
-function loadData() {
-  // contains stroke/decomp data for all chars
-  loadJSON('char-data.json', function (d) { loaded('chars', d) });
-
-  // contains definitions for each char
-  loadJSON('char-defs.json', d => loaded('cdefs', d));
-
-  // contains definitions for each trad. word
-  loadJSON('words-trad.json', d => loaded('trad', d));
-
-  // contains definitions for each simp. word
-  loadJSON('words-simp.json', d => loaded('simp', d));
-} */
-
 function setup() {
+
   frameRate(30);
   textFont('Georgia');
   cnv = createCanvas(800, 600);
@@ -73,6 +44,7 @@ function draw() {
 }
 
 function drawDefs() {
+
   textSize(defSz);
   textAlign(CENTER);
   let defAlpha = (timer / changeMs < .8) ?
@@ -124,6 +96,7 @@ function drawWord(word) {
 // computes size and position of canvas after resize (xo, yo, sw, sh)
 // and size of en-translation font (defSz) and scaling of characters (scayl)
 function updateSize() {
+
   w = window.innerWidth;
   h = window.innerHeight;
   if (w * aspectH > h * aspectW) { // wider
@@ -149,6 +122,7 @@ function updateSize() {
 }
 
 function onTarget(next, numStrokes, trigger) {
+
   //console.log('onTarget', millis());
   triggered = trigger;
   strokeCount = numStrokes;
@@ -160,8 +134,8 @@ function onTarget(next, numStrokes, trigger) {
   timer = changeMs;
 }
 
-let timer = 0, strokeCount = 0;
 function onAction(nextWord, med) {
+
   if (nextWord) { // word complete
     defAlpha = 0;
     flashColors();
@@ -233,6 +207,7 @@ function toggleMute(event) {
 }
 
 function flashColors() {
+
   for (let i = 0; i < rgb.length; i++) {
     rgb[i] = triggered ? trgcol[i] : hitcol[i];
     txtcol[i] = whiteOnColor ? 0 : 255;
@@ -240,6 +215,7 @@ function flashColors() {
 }
 
 function playBell() {
+
   if (doSound) {
     bell.playbackRate = random(.6, .9);
     bell.volume.value = random(.7, 1);
@@ -253,6 +229,7 @@ function playBell() {
 }
 
 function playStroke(quiet) {
+
   if (doSound) {
     strk.playbackRate = random(.5, .7);
     strk.volume.value = quiet ? -24 : -12;
@@ -261,6 +238,7 @@ function playStroke(quiet) {
 }
 
 function keyReleased() {
+
   if (key == ' ') clearTimeout(tid);
   if (key == 't') {
     triggered = true;
@@ -272,6 +250,7 @@ function keyReleased() {
 
 // fixes a bug in p5.resizeCanvas
 function repairCanvas() {
+
   // first hide the html nav button (use the p5 one)
   document.getElementById('SidebarBtn').style.display = "none";
   let canvas = document.getElementsByTagName('canvas')[0];
@@ -281,6 +260,7 @@ function repairCanvas() {
 }
 
 function adjustColor() {
+
   if (!rgb) {
     rgb = [0, 0, 0];
     for (let i = 0; i < rgb.length; i++) {
@@ -295,6 +275,7 @@ function adjustColor() {
 }
 
 function drawNav() {
+
   fill(200);
   noStroke();
   for (let i = 0; i < 3; i++) {
@@ -303,6 +284,7 @@ function drawNav() {
 }
 
 function logPerf() {
+
   if (performance && performance.memory && steps - memt >= 20) {
     console.log('Perf: ' + round(frameRate()) + ' fps, ' +
       round(performance.memory.usedJSHeapSize / 1000000) +
@@ -317,6 +299,7 @@ let showDefs = true, showCharDefs = true, showNav = true, firstRun = true;
 let cnv, sw, sh, xo, yo, defSz, w, h;
 let scayl = 1, aspectW = 4.3, aspectH = 3;
 let lang, bell, conf, word, tid, strk, util, typer;
+let timer = 0, strokeCount = 0, chars, defs;
 
 let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
 let strokeDelay = 300, memt = -15, navOpen = false;
