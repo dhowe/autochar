@@ -1,10 +1,11 @@
 
+let doSound = false, doPerf = false, showMed = false;
+let showDefs = true, charDefs = true, showNav = true;
+
 function preload() {
 
-  if (doSound) {
-    bell = new Tone.Player("res/chime.wav").toMaster();
-    strk = new Tone.Player("res/strk.wav").toMaster();
-  }
+  bell = new Tone.Player("res/chime.wav").toMaster();
+  strk = new Tone.Player("res/strk.wav").toMaster();
   chars = loadJSON('chardata.json');
   defs = loadJSON('definitions.json');
   $('#about').modal(); // show info on load
@@ -16,7 +17,6 @@ function setup() {
   textFont('Georgia');
   cnv = createCanvas(800, 600);
   noLoop();  // don't run the sketch automatically
-  doSound = false;
 }
 
 function draw() {
@@ -52,15 +52,14 @@ function drawDefs() {
   let def = typer.word.definition || '';
   fill(txtcol[0], txtcol[1], txtcol[2], defAlpha);
   text(def.toUpperCase(), width / 2, 2.4 * defSz);
-  if (showCharDefs) {
+  if (charDefs) {
     textSize(defSz * .5);
     fill(txtcol[0], txtcol[1], txtcol[2]);
     text(typer.word.characters[0].definition.toUpperCase(), width * .25, height - 2 * defSz);
     text(typer.word.characters[1].definition.toUpperCase(), width * .75, height - 2 * defSz);
     timer = changeMs - (millis() - changeTs);
-    0 && text(//Math.round(strokeDelay) + '/' +
-      (strokeCount - strokeIdx) + '   ' +// - done + '  ' +
-      Math.max(0, Math.round(timer / 100) / 10), width - 100, 2 * defSz);
+    /* text((strokeCount - strokeIdx) + '   ' + Math.max
+      (0, Math.round(timer / 100) / 10), width - 100, 2 * defSz); */
   }
 }
 
@@ -118,7 +117,6 @@ function updateSize() {
   cnv.position(xo, yo);
 
   console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
-  // + ' xoff=' + xo + ' yoff=' + yo);
 }
 
 function onTarget(next, numStrokes, trigger) {
@@ -156,7 +154,7 @@ function onAction(nextWord, med) {
   strokeIdx++;
   0 && console.log('onAction: stroke' +
     (nextWord ? 0 : (strokeCount - strokeIdx)),
-    Math.round((timer / changeMs) * 100) / 100);//(strokeCount-done))));
+    Math.round((timer / changeMs) * 100) / 100);
 }
 
 function next() {
@@ -170,7 +168,7 @@ function next() {
 
 function mouseClicked() {
 
-  if($('#about').is(':visible')){
+  if ($('#about').is(':visible')) {
     $.modal.close();
   } else {
     if (showNav && mouseX < 40 && mouseY < 40) {
@@ -185,12 +183,11 @@ function mouseClicked() {
     firstRun = false;
   }
 
-  /*   if (tid) {
+  /* if (tid) { // pause
       noLoop();
       clearInterval(tid);
       tid = 0;
-    }
-    else {
+    } else {
       next();
       loop();
     } */
@@ -203,7 +200,8 @@ function toggleMute(event) {
   else {
     doSound = doSound == 0 ? 1 : 0;
   }
-  document.getElementById("mute").innerText = doSound == 0 ? 'unmute' : ' mute ';
+  document.getElementById("mute").innerText
+    = doSound == 0 ? 'unmute' : ' mute ';
 }
 
 function flashColors() {
@@ -293,13 +291,10 @@ function logPerf() {
   }
 }
 
-let doSound = true, doPerf = true, whiteOnColor = false, showMed = false;
-let showDefs = true, showCharDefs = true, showNav = true, firstRun = true;
-
 let cnv, sw, sh, xo, yo, defSz, w, h;
-let scayl = 1, aspectW = 4.3, aspectH = 3;
 let lang, bell, conf, word, tid, strk, util, typer;
-let timer = 0, strokeCount = 0, chars, defs;
+let timer = 0, strokeCount = 0, firstRun = true, chars, defs;
+let scayl = 1, aspectW = 4.3, aspectH = 3, whiteOnColor = false;
 
 let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
 let strokeDelay = 300, memt = -15, navOpen = false;
