@@ -18,11 +18,13 @@ button {
 }
 
 .loadingClass {
-  font-family: 'Segoe UI', Arial, sans-serif;
+  /* font-family: 'Segoe UI', Arial, sans-serif;
   font-size: 18px;
   margin: 15px 0 0 10px;
-  animation: blinkingText 1.2s infinite;
-  color: #555 !important;
+  animation: blinkingText 1.2s infinite; */
+  /* color: #555 !important; */
+  margin:0px auto -30px;
+  text-align: center;
 }
 
 @keyframes blinkingText {
@@ -77,6 +79,16 @@ button {
     font-size: 8px;
     padding: 1px;
     width: 40px !important;
+  }
+}
+@media only screen and (max-width: 400px) {
+  #about {
+    width: 100% !important;
+    padding:0 !important;
+  }
+  #aboutDescription {
+    padding:10px !important;
+    margin-top:10px !important;
   }
 }
 
