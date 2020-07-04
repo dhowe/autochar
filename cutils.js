@@ -86,6 +86,7 @@ class CharUtils {
       }
     }
 
+    throw Error('Empty bestMed');
     return []; // or nothing
   };
 

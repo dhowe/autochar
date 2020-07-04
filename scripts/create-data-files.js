@@ -1,4 +1,6 @@
-// to run: $ node scripts/write-word-defs
+// to run: $ node scripts/create-data-files
+
+const maxWordDefLen = 42, maxCharDefLen = 30;
 
 const fs = require('fs');
 const simp = require('../data/words-simp-orig.json');
@@ -6,7 +8,6 @@ const trad = require('../data/words-trad-orig.json');
 const cdefs = require('../data/char-defs-orig.json');
 const cdata = require('../data/char-data-orig.json');
 const regex = /\([^)]*[^A-Za-z ,-.')(]+[^)]*\)/g;
-const maxWordDefLen = 42, maxCharDefLen = 30;
 
 function unifyWordDicts() {
 

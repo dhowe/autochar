@@ -1,10 +1,4 @@
-// TODO:
-//   bug: displayed med is not in sync (shows after word completes)
-//   length of stroke to length of sound-sample
-//   add 3rd character
-//   sort bests by stroke count, pick the closest (part of med?)
-
-//let count = 0; // TMP
+// TODO: avoid words with same definition
 
 if (typeof module != 'undefined' && process.versions.hasOwnProperty('electron')) {
   //Tone = require("Tone");
@@ -47,12 +41,6 @@ class Autochar {
     this.useTriggers = false;
   }
 
-  mockWord(chars) {
-    let c1 = util.randKey(chars);
-    let c2 = util.randKey(chars);
-    return util._createWord(c1 + c2, chars);
-  }
-
   step() { // returns the next action to be done
 
     if (!this.target) {
@@ -81,9 +69,22 @@ class Autochar {
 
       opts = this.util.bestEditDistance(this.word.literal, 0, this.memory, minMed);
 
-      if (!opts || !opts.length) throw Error
-        ('Died on ' + this.word.literal, this.word);
+      if (!opts || !opts.length) throw Error('Died on ' + this.word.literal, this.word);
 
+      //console.log('pre'+opts);
+      
+      opts = opts.filter(f => this.util.defs[f] !== this.word.definition);
+      console.log('filtered ' + opts);
+      
+
+      if (!opts.length) {
+        minMed++;
+        console.log('NONE: Incrementing minMed=' + minMed);
+        if (minMed>2) throw Error("minMed="+minMed);
+        continue;
+      }
+
+      
       // alternate characters when possible
       if (!rightSideFail && !leftSideFail) {
         if (this.targetCharIdx > -1) {
@@ -133,14 +134,14 @@ class Autochar {
   }
 
   isTrigger(cand) {
-    let trigger;
+    let j, trigger;
     if (WORD_TRIGGERS.includes(cand)) trigger = cand;
-    for (let j = 0; !trigger && j < cand.length; j++) {
+    for (j = 0; !trigger && j < cand.length; j++) {
       if (CHAR_TRIGGERS.indexOf(cand[j]) > -1) {
         trigger = cand[j];
       }
     }
-    trigger && console.log('trigger: "' + cand[j] + '" in "' + cand 
+    trigger && console.log('trigger: "' + trigger+ '" in "' + cand
       + '" -> ' + (this.util.lang === 'simp' ? 'trad' : 'simp'));
     return trigger;
   }
@@ -154,20 +155,43 @@ class Autochar {
     let triggered = false, theChar;
     if (useTriggers && !this.memory.contains('trigger')) {
       let startIdx = (Math.random() * opts.length) << 0;
-      OUT: for (let i = startIdx; i < opts.length + startIdx; i++) {
+      for (let i = startIdx; i < opts.length + startIdx; i++) {
         let cand = opts[i % opts.length];
         if (this.isTrigger(cand)) {
           result = this.util.getWord(cand);
           triggered = true;
           this.numTriggers++;
-          break OUT;
+          break;
         }
       }
     }
 
     // otherwise pick a random element from the list
-    result = result || this.util.getWord(opts[(Math.random() * opts.length) << 0]);
+    //result = result || this.util.getWord(opts[(Math.random() * opts.length) << 0]);
+    let startIdx = (Math.random() * opts.length) << 0;
+    
+    //console.log('  startIdx',startIdx+'/'+opts.length);
+    
+ 
+    for (let i = startIdx; i < (startIdx + opts.length); i++) {
+      let literal = opts[i % opts.length];
+      let cand = this.util.getWord(literal);
+      //console.log('  '+i + '/'+opts.length+') Checking ' + literal + '/' + cand.definition);
 
+      // compare def against current word
+      if (this.word.definition !== cand.definition) {
+        result = cand;
+        //console.log('  ' +'HIT: ', result), result.literal, result.definition;
+        break;
+      }
+      else {
+        //console.log('  ' +'COLLISION: ' + cand.literal, cand.definition);
+      }
+    }
+
+    // we have a good candidate or we fall back to random one
+    result = result || this.util.getWord(opts[(Math.random() * opts.length) << 0]); 
+  
     FORCE_CHARACTER && (result = this.util.getWord('和諧'));
 
     // check neither character has stayed the same for too long
