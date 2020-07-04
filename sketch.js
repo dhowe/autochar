@@ -236,7 +236,6 @@ function playStroke(quiet) {
 }
 
 function keyReleased() {
-
   if (key == ' ') clearTimeout(tid);
   if (key == 't') {
     triggered = true;
@@ -291,7 +290,7 @@ function logPerf() {
   }
 }
 
-let cnv, sw, sh, xo, yo, defSz, w, h;
+let cnv, sw, sh, xo, yo, defSz, w, h, useTriggers = true;
 let lang, bell, conf, word, tid, strk, util, typer;
 let timer = 0, strokeCount = 0, firstRun = true, chars, defs;
 let scayl = 1, aspectW = 4.3, aspectH = 3, whiteOnColor = false;
