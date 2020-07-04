@@ -81,7 +81,7 @@ button {
     width: 40px !important;
   }
 }
-@media only screen and (max-width: 400px) {
+@media only screen and (max-width: 460px) {
   #about {
     width: 100% !important;
     padding:0 !important;
