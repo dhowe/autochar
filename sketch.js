@@ -126,7 +126,7 @@ function onTarget(next, numStrokes, trigger) {
   strokeCount = numStrokes;
   strokeIdx = 0;
   let nSpeed = min(1, numStrokes / 12);
-  strokeDelay = map(nSpeed, 0, 1, 1000, 200);
+  strokeDelay = map(nSpeed, 0, 1, strokeDelayMax, strokeDelayMin);
   changeMs = strokeDelay * (strokeCount - 1);
   changeTs = millis();
   timer = changeMs;
@@ -296,9 +296,9 @@ let timer = 0, strokeCount = 0, firstRun = true, chars, defs;
 let scayl = 1, aspectW = 4.3, aspectH = 3, whiteOnColor = false;
 
 let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
-let strokeDelay = 300, memt = -15, navOpen = false;
-let steps = 1, triggered = 0, wmed = '';
-let initalResize = false, border = 10;
+let strokeDelay, strokeDelayMax = 1000, strokeDelayMin = 200;
+let steps = 1, triggered = 0, wmed = '', navOpen = false;
+let initalResize = false, border = 10, memt = -15;
 
 let bgcol = [114, 175, 215]; // [137, 172, 198]
 let hitcol = [76, 87, 96];

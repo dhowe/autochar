@@ -31,8 +31,9 @@ class Autochar {
     this.wordCompleteCallback = wordCompleteCB;
     this.nextTargetCallback = nextTargetCB;
 
-    this.word = util.randWord(2);
-    this.memory = new util.HistQ(10);
+    //this.word = util.randWord(2);
+    this.word = util.getWord('螞螂');
+    this.memory = new util.HistQ(15);
     this.memory.add(this.word.literal);
     this.memory.add('trigger');
   }
@@ -59,7 +60,7 @@ class Autochar {
 
   candidates(minAllowed) {
 
-    let opts = [];
+    let opts = [], filtering = true;
     let minMed = minAllowed || 1;
 
     let rightSideFail = this.rightStatics > this.memory.size();
@@ -67,24 +68,31 @@ class Autochar {
 
     while (!opts || !opts.length) {
 
-      opts = this.util.bestEditDistance(this.word.literal, 0, this.memory, minMed);
+      opts = this.util.bestEditDistance(this.word.literal, { memory: this.memory, minMed });
 
       if (!opts || !opts.length) throw Error('Died on ' + this.word.literal, this.word);
 
-      //console.log('pre'+opts);
-      
-      opts = opts.filter(f => this.util.defs[f] !== this.word.definition);
-      console.log('filtered ' + opts);
-      
+      // filter based on word definition
+      if (filtering) {
+        let memDefs = this.memory.q.map(c => this.util.defs[c]);
+        opts = opts.filter(c => !memDefs.includes(this.util.defs[c]));
+      }
+      //console.log('filtered ' + opts);
 
       if (!opts.length) {
+
         minMed++;
-        console.log('NONE: Incrementing minMed=' + minMed);
-        if (minMed>2) throw Error("minMed="+minMed);
+        console.warn('[RELAX] minMed=' + minMed);
+
+        if (minMed > 2) {
+          console.error('[WARN] Illegal state, minMed=' + minMed);
+          minMed = 1; // try without filter
+          filtering = false;
+        }
         continue;
       }
 
-      
+
       // alternate characters when possible
       if (!rightSideFail && !leftSideFail) {
         if (this.targetCharIdx > -1) {
@@ -141,14 +149,14 @@ class Autochar {
         trigger = cand[j];
       }
     }
-    trigger && console.log('trigger: "' + trigger+ '" in "' + cand
+    trigger && console.log('trigger: "' + trigger + '" in "' + cand
       + '" -> ' + (this.util.lang === 'simp' ? 'trad' : 'simp'));
     return trigger;
   }
 
   pickNextTarget() {
 
-    // get our MED candidates
+    // get our MED candidates (current word is this.word)
     let result, opts = this.candidates();
 
     // select any trigger words if we have them
@@ -166,33 +174,10 @@ class Autochar {
       }
     }
 
-    // otherwise pick a random element from the list
-    //result = result || this.util.getWord(opts[(Math.random() * opts.length) << 0]);
-    let startIdx = (Math.random() * opts.length) << 0;
-    
-    //console.log('  startIdx',startIdx+'/'+opts.length);
-    
- 
-    for (let i = startIdx; i < (startIdx + opts.length); i++) {
-      let literal = opts[i % opts.length];
-      let cand = this.util.getWord(literal);
-      //console.log('  '+i + '/'+opts.length+') Checking ' + literal + '/' + cand.definition);
-
-      // compare def against current word
-      if (this.word.definition !== cand.definition) {
-        result = cand;
-        //console.log('  ' +'HIT: ', result), result.literal, result.definition;
-        break;
-      }
-      else {
-        //console.log('  ' +'COLLISION: ' + cand.literal, cand.definition);
-      }
-    }
-
     // we have a good candidate or we fall back to random one
-    result = result || this.util.getWord(opts[(Math.random() * opts.length) << 0]); 
-  
-    FORCE_CHARACTER && (result = this.util.getWord('和諧'));
+    result = result || this.util.getWord(opts[(Math.random() * opts.length) << 0]);
+
+    //FORCE_CHARACTER && (result = this.util.getWord('和諧'));
 
     // check neither character has stayed the same for too long
     this.rightStatics = result.literal[1] === this.word.literal[1] ? this.rightStatics + 1 : 0;

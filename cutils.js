@@ -1,7 +1,7 @@
 
 class CharUtils {
 
-  constructor(chars, defs, levenshtein) {
+  constructor(chars, defs, levenshtein, silent) {
 
     if (!levenshtein) throw Error('no med');
 
@@ -10,6 +10,7 @@ class CharUtils {
 
     this.lang = 'trad';
     this.defs = defs;
+    this.silent = silent;
     this.charData = chars;
     this.editDist = levenshtein;
     this.wordCache = { simp: {}, trad: {} };
@@ -24,7 +25,7 @@ class CharUtils {
     if (!this.charData) throw Error('no char-data');
 
     Object.keys(this.defs).forEach(word => {
-      if (word.length !== 2) return; 
+      if (word.length !== 2) return;
       if (typeof this.wordCache[word] === 'undefined') {
         for (let k = 0; k < word.length; k++) {
           const ch = word[k];
@@ -43,22 +44,22 @@ class CharUtils {
     this.lang = (this.lang === 'simp') ? 'trad' : 'simp';
   }
 
-  bestEditDistance(literal, words, hist, minAllowed) {
+  bestEditDistance(input, opts = {}) {
 
-    words = words || Object.keys(this.currentWords());
-    if (typeof minAllowed == 'undefined' || minAllowed < 1) minAllowed = 1;
+    let minAllowed = opts.minMed || 1;
+    let words = opts.words || Object.keys(this.currentWords());
 
     let med, meds = [], bestMed = Number.MAX_SAFE_INTEGER;
-    let wes = this.getWord(literal).editString;
+    let wes = this.getWord(input).editString;
 
     for (let i = 0; i < words.length; i++) {
 
       // no dups and nothing in history, maintain length
-      if (literal === words[i] || words[i].length != literal.length) {
+      if (input === words[i] || words[i].length !== input.length) {
         continue;
       }
 
-      if (typeof hist != 'undefined' && hist.contains(words[i])) {
+      if (opts.history && opts.history.contains(words[i])) {
         //console.log('*** Skipping item in history: '+words[i]);
         continue;
       }
@@ -66,7 +67,7 @@ class CharUtils {
       let wes2 = this.getWord(words[i]).editString;
 
       // chinese min-edit-dist
-      let cost = this.editDist.get(literal, words[i]) - 1;
+      let cost = this.editDist.get(input, words[i]) - 1;
       med = Math.max(0, cost) + this.editDist.get(wes, wes2);
 
       //console.log(i, words[i], med, 'best='+bestMed);
@@ -86,11 +87,11 @@ class CharUtils {
       }
     }
 
-    throw Error('Empty bestMed');
     return []; // or nothing
   };
 
   minEditDistance(l1, l2) {
+    //l1 = l1['editString'] || this.getWord(l1).editString;
     return this.editDist.get(this.getWord(l1).editString,
       this.getWord(l2).editString) + Math.max(0, this.editDist.get(l1, l2) - 1);
   }
@@ -101,7 +102,7 @@ class CharUtils {
     for (let i = 0; i < literal.length; i++) {
       if (literal[i] !== ' ') {
         if (!this.charData[literal[i]]) {
-          throw Error('createWord() failed for ' + literal[i] + ' in ' + literal);
+          throw Error('createWord() failed for ' + literal[i] + ' in ' + literal, Object.keys(this.charData).length+' defs');
         }
         chars.push(this.charData[literal[i]]);
       } else {
@@ -118,7 +119,7 @@ class CharUtils {
       return this.wordCache[literal];
     }
 
-    console.log("[WARN] creating word object for " + literal);
+    !this.silent && console.log("[WARN] Creating Word(" + literal+')');
     let word = this.createWord(literal);
     this.wordCache[literal] = word;
 
@@ -139,14 +140,10 @@ class CharUtils {
     let word = null, words = this.currentWords();
     while (!word || word.length != length) {
       // keep going until we get the right length
-      word = this.getWord(this.randKey(words));
+      let key = this.randKey(words);
+      word = this.getWord(key);
     }
     return word;
-  }
-
-  randVal(o) {
-    let keys = Object.keys(o);
-    return keys[keys.length * Math.random() << 0];
   }
 
   randKey(o) {
@@ -170,6 +167,13 @@ class HistQ {
     if (this.q.length > this.capacity) {
       this.q.shift();
     }
+  }
+  // test if cand has prop === val
+  query(prop, val) { 
+    return this.test(c => c[prop] === val);
+  }
+  test(fun) { // test against supplied func
+    return this.q.filter(fun).length > 0;
   }
   contains(item) {
     return this.q.indexOf(item) > -1;
@@ -429,4 +433,7 @@ class Word {
 }
 
 
-if (typeof module != 'undefined') module.exports = CharUtils;
+if (typeof module != 'undefined') {
+  module.exports.CharUtils = CharUtils; 
+  module.exports.HistQ = HistQ;  
+}
