@@ -181,6 +181,7 @@ function mouseClicked() {
     loop(); // run sketch
     doSound = true;
     firstRun = false;
+    $('#about').removeClass("beforeLoaded");
   }
 
   /* if (tid) { // pause
