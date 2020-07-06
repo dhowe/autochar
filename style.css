@@ -91,7 +91,9 @@ button {
     margin-top:10px !important;
   }
 }
-
+#about.beforeLoaded a {
+    pointer-events:none;
+}
 #SidebarBtn {
   position: fixed;
   top: 6px;
