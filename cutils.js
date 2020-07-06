@@ -5,8 +5,8 @@ class CharUtils {
 
     if (!levenshtein) throw Error('no med');
 
-    this.Word = Word; // class
-    this.HistQ = HistQ; // class
+  /* this.Word = Word; // class*/
+    this.HistQ = HistQ; // class 
 
     this.lang = 'trad';
     this.defs = defs;
@@ -433,7 +433,4 @@ class Word {
 }
 
 
-if (typeof module != 'undefined') {
-  module.exports.CharUtils = CharUtils; 
-  module.exports.HistQ = HistQ;  
-}
+if (typeof module != 'undefined') module.exports = CharUtils; // tests

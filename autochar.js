@@ -31,9 +31,9 @@ class Autochar {
     this.wordCompleteCallback = wordCompleteCB;
     this.nextTargetCallback = nextTargetCB;
 
-    //this.word = util.randWord(2);
-    this.word = util.getWord('螞螂');
-    this.memory = new util.HistQ(15);
+    this.word = util.randWord(2);
+    //this.word = util.getWord('螞螂');
+    this.memory = new util.HistQ(10);
     this.memory.add(this.word.literal);
     this.memory.add('trigger');
   }
@@ -49,7 +49,7 @@ class Autochar {
       //console.log('NEXT: ',isTrigger);
       this.findEditIndices();
       if (this.nextTargetCallback) {
-        this.nextTargetCallback(this.target.literal,
+        this.nextTargetCallback(this.target, this.med,
           this.currentStrokeCount, isTrigger);
       }
     }
@@ -82,12 +82,13 @@ class Autochar {
       if (!opts.length) {
 
         minMed++;
-        console.warn('[RELAX] minMed=' + minMed);
-
-        if (minMed > 2) {
-          console.error('[WARN] Illegal state, minMed=' + minMed);
+        if (filtering && minMed > 2) {
           minMed = 1; // try without filter
+          console.warn('[RELAX] minMed= 1, *disable-filter*');
           filtering = false;
+        }
+        else {
+          console.warn('[RELAX] minMed=' + minMed, (filtering ? '' : ' *no-filter*'));
         }
         continue;
       }
@@ -156,7 +157,7 @@ class Autochar {
 
   pickNextTarget() {
 
-    // get our MED candidates (current word is this.word)
+    // get candidates with lowest MED
     let result, opts = this.candidates();
 
     // select any trigger words if we have them
@@ -215,7 +216,7 @@ class Autochar {
       if (this.word.nextStroke(this.targetCharIdx, this.targetPartIdx)) {
         this.wordCompleteCallback(); // draw stroke change
       } else { // flash
-        this.wordCompleteCallback(this.word, this.med); // word change
+        this.wordCompleteCallback(this.word); // word change
         this.target = null;
       }
     }

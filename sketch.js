@@ -1,5 +1,5 @@
 
-let doSound = false, doPerf = false, showMed = false;
+let doSound = false, doPerf = false;
 let showDefs = true, charDefs = true, showNav = true;
 
 function preload() {
@@ -38,7 +38,6 @@ function draw() {
   background(rgb[0], rgb[1], rgb[2]);
   drawWord(typer.word);
   showDefs && drawDefs();
-  showMed && text(wmed, width - 12, 15);
   doPerf && logPerf();
   showNav && drawNav();
 }
@@ -58,8 +57,6 @@ function drawDefs() {
     text(typer.word.characters[0].definition.toUpperCase(), width * .25, height - 2 * defSz);
     text(typer.word.characters[1].definition.toUpperCase(), width * .75, height - 2 * defSz);
     timer = changeMs - (millis() - changeTs);
-    /* text((strokeCount - strokeIdx) + '   ' + Math.max
-      (0, Math.round(timer / 100) / 10), width - 100, 2 * defSz); */
   }
 }
 
@@ -119,7 +116,7 @@ function updateSize() {
   console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
 }
 
-function onTarget(next, numStrokes, trigger) {
+function onTarget(nextWord, med, numStrokes, trigger) {
 
   //console.log('onTarget', millis());
   triggered = trigger;
@@ -130,9 +127,14 @@ function onTarget(next, numStrokes, trigger) {
   changeMs = strokeDelay * (strokeCount - 1);
   changeTs = millis();
   timer = changeMs;
+  let chars = nextWord.characters;
+  let wmed = med + (util.lang.startsWith('s') ? 's' : '');
+  console.log(++steps + ') ' + word + " -> " + nextWord.literal,
+    wmed, "'" + nextWord.definition + "' (" + chars[0].definition
+    + ' / ' + chars[1].definition + ')');
 }
 
-function onAction(nextWord, med) {
+function onAction(nextWord) {
 
   if (nextWord) { // word complete
     defAlpha = 0;
@@ -140,11 +142,10 @@ function onAction(nextWord, med) {
     playStroke(true);
     playBell();
     //console.log(nextWord);
-    wmed = med + (util.lang.startsWith('s') ? 's' : '');
-    let chars = nextWord.characters;
-    console.log(++steps + ') ' + word + " -> " + nextWord.literal,
+/*     let chars = nextWord.characters;
+    console.log('--) ' + word + " -> " + nextWord.literal,
       wmed, "'" + nextWord.definition + "' (" + chars[0].definition
-      + ' / ' + chars[1].definition + ')');
+      + ' / ' + chars[1].definition + ')'); */
     word = nextWord.literal;
     triggered = false;
   }
@@ -297,7 +298,7 @@ let scayl = 1, aspectW = 4.3, aspectH = 3, whiteOnColor = false;
 
 let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
 let strokeDelay, strokeDelayMax = 1000, strokeDelayMin = 200;
-let steps = 1, triggered = 0, wmed = '', navOpen = false;
+let steps = 1, triggered = 0, navOpen = false;
 let initalResize = false, border = 10, memt = -15;
 
 let bgcol = [114, 175, 215]; // [137, 172, 198]
