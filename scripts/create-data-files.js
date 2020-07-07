@@ -1,6 +1,5 @@
 // to run: $ node scripts/create-data-files
 
-const maxWordDefLen = 42, maxCharDefLen = 30;
 
 const fs = require('fs');
 const simp = require('../data/words-simp-orig.json');
@@ -9,99 +8,50 @@ const cdefs = require('../data/char-defs-orig.json');
 const cdata = require('../data/char-data-orig.json');
 const regex = /\([^)]*[^A-Za-z ,-.')(]+[^)]*\)/g;
 
-function unifyWordDicts() {
+const wordData = { simp, trad }
 
-  let combined = {}, duals = 0;
-  let tadds = 0, missing = 0, badDefs = 0;
+const maxWordDefLen = 42, maxCharDefLen = 30;
 
-  // Add the simplified entries, checking for differing definitions 
-  Object.keys(simp).forEach(w => {
-    if (w.length === 2) {
-      let sd = simp[w], td = trad[w], def = sd;
-      if (td) {
-        duals++;
-        if (td !== sd && !td.includes('variant of')) { // collision
-          if (sd.includes('variant of') || sd.startsWith('see ')
-            || sd.length > maxWordDefLen && td.length < sd.length) {
-            def = td;
-          }
-          else if (td.length < maxWordDefLen) {
-            def = td + '; ' + sd;
-            //console.log(w + ': ' + def + '\n  simp: ' + sd + '\n  trad: ' + td, sd.length);
-          }
-        }
-      }
-      if (!cdefs[w[0]] || !cdefs[w[1]]) { // ignore word with missing char-def
-        missing++;
-      }
-      else {
+function compileWordDict(dict) {
+
+  let misses = {};
+  Object.keys(wordData).forEach(lang => {
+    let data = wordData[lang];
+    misses[lang] = {};
+    Object.keys(data).forEach(w => {
+      if (w.length === 2) {
+        let def = data[w];
         if (validateWordDef(w, def)) {
-          combined[w] = def;
+          dict[lang][w] = def;
         }
         else {
-          badDefs++;
+          misses[lang][w] = def;
         }
       }
-    }
+    });
+    console.log(lang + '-words: ' + Object.keys(dict[lang]).length
+      + ' word defs, ' + Object.keys(misses[lang]).length + ' misses');
   });
-
-  console.log('\n' + Object.keys(combined).length + '/' + Object.keys(simp).length
-    + ' added from simp/collisions (' + duals + ' in both)');
-
-  // Add the traditional entries
-  Object.keys(trad).forEach(w => {
-    if (w.length === 2 && !combined[w]) {
-      if (!cdefs[w[0]] || !cdefs[w[1]]) { // ignore word with missing char-def
-        missing++;
-      }
-      else {
-        if (validateWordDef(w, trad[w])) {
-          combined[w] = trad[w];
-          tadds++;
-        }
-        else {
-          //console.log('BAD: '+trad[w]);
-          badDefs++;
-        }
-      }
-    }
-  });
-  console.log(tadds + '/' + Object.keys(trad).length + ' added from trad,',
-    Object.keys(combined).length + ' total words\nIgnored ' + missing +
-    ' words with missing char defs\nIgnored ' + badDefs + ' words with bad word sdefs');
-
-  return combined;
-}
-
-function validateWordDef(w, def) {
-
-  if (w.length !== 2) throw Error('Illegal state');
-  if (!def
-    || def.startsWith("-")
-    || def.length > maxWordDefLen
-    || !/^[A-Za-z ',.-]+$/.test(def)) {
-    return false;
-  }
-  return true;
 }
 
 function addCharDefs(dict) {
-  let chars = []; stats = { fixed: 0 };
-  Object.keys(dict).forEach(w => {
-    if (w.length !== 2) throw Error('bad length for ' + w);
-    for (let i = 0; i < w.length; i++) {
-      const ch = w[i];
-      if (!cdefs[ch]) throw Error('no cdef for ' + ch + ' in ' + w);
-      if (!dict[ch]) {
-        dict[ch] = validateCharDef(ch, stats);
-        chars[ch] = 1;
+  let stats = { fixed: 0 };
+  Object.keys(dict).forEach(lang => {
+    if (lang === 'chars') return;
+    let data = dict[lang];
+    Object.keys(data).forEach(w => {
+      if (w.length !== 2) throw Error('bad length for ' + w);
+      for (let i = 0; i < w.length; i++) {
+        const ch = w[i];
+        if (!dict.chars[ch]) {
+          dict.chars[ch] = validateCharDef(ch, stats);
+        }
       }
-    }
+    });
+    console.log(lang + '-chars: ' + Object.keys(dict.chars).length
+      + ' char defs, ' + stats.fixed + ' fixes');
   });
-  console.log('Added ' + Object.keys(chars).length + ' unique '
-    + 'characters, fixed ' + stats.fixed + ' defs');
-
-  return chars;
+  return dict;
 }
 
 function validateCharDef(w, stats) {
@@ -134,22 +84,37 @@ function validateCharDef(w, stats) {
   return def;
 }
 
-function pruneCharData() {
+function validateWordDef(w, def) {
+  if (!cdefs[w[0]] || !cdefs[w[1]]) return false;
+  if (!def
+    || def.length > maxWordDefLen
+    || def.startsWith("-")
+    || def.startsWith('see ')
+    || def.includes('variant of')
+    || !/^[A-Za-z ',.-]+$/.test(def)) {
+    return false;
+  }
+  return true;
+}
+
+function prunePathData(dict) {
   let pruned = {}, cdl = Object.keys(cdata).length;
-  Object.keys(cdata).forEach(c => chars[c] && (pruned[c] = cdata[c]));
-  console.log('Pruned ' + (Object.keys(cdata).length -
-    Object.keys(pruned).length) + '/' + cdl + ' char-data entries');
+  Object.keys(cdata).forEach(c => dict.chars[c] && (pruned[c] = cdata[c]));
+  let num = (Object.keys(cdata).length - Object.keys(pruned).length);
+  console.log('paths: ' + Object.keys(pruned).length + '/' + cdl + ' char entries, ' + num + ' pruned');
   return pruned;
 }
 
-function writeJSON(name, data) {
-  console.log('\nWriting ' + Object.keys(data).length + ' entries to \'' + name + '\'');
-  fs.writeFileSync(name, JSON.stringify(data));
-}
+let defs = { simp: {}, trad: {}, chars: {} };
+compileWordDict(defs);
+addCharDefs(defs);
+let paths = prunePathData(defs);
 
-let dict = unifyWordDicts();
-let chars = addCharDefs(dict);
-let pruned = pruneCharData(chars);
+let name = 'definitions.json';
+console.log('writing ' + Object.keys(defs.simp).length + '/' 
+  + Object.keys(defs.trad).length + ' word-defs to \'' + name + '\'');
+fs.writeFileSync(name, JSON.stringify(defs));
 
-writeJSON('chardata.json', pruned);
-writeJSON('definitions.json', dict);
+name = 'chardata.json';
+console.log('writing ' + Object.keys(paths).length +' char-paths to \'' + name + '\'');
+fs.writeFileSync(name, JSON.stringify(paths));

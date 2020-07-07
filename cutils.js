@@ -5,38 +5,45 @@ class CharUtils {
 
     if (!levenshtein) throw Error('no med');
 
-  /* this.Word = Word; // class*/
     this.HistQ = HistQ; // class 
 
     this.lang = 'trad';
-    this.defs = defs;
+    //this.defs = defs; // {simp,trad,chars}
     this.silent = silent;
-    this.charData = chars;
+    this.charData = chars; // char-paths
     this.editDist = levenshtein;
     this.wordCache = { simp: {}, trad: {} };
 
-    this.prefillCaches();
+    this.prefillCaches(defs);
 
-    console.log('cUtils[chars=' + Object.keys
-      (this.charData).length + ',lang=' + this.lang + ']');
+    console.log('cUtils[chars=' + nk(this.charData)
+      + ',simp=' + nk(this.wordCache.simp)
+      + ',trad=' + nk(this.wordCache.trad)
+      + ',lang=' + this.lang + ']');
   }
 
-  prefillCaches() {
+  prefillCaches(defs) {
     if (!this.charData) throw Error('no char-data');
-
-    Object.keys(this.defs).forEach(word => {
-      if (word.length !== 2) return;
-      if (typeof this.wordCache[word] === 'undefined') {
-        for (let k = 0; k < word.length; k++) {
-          const ch = word[k];
-          if (!this.charData[ch]) {
-            throw Error('no char-data for ' + ch + ' in ' + word);
+    if (!defs) throw Error('no definition data');
+    Object.keys(defs).forEach(lang => {
+      if (lang === 'chars') return;
+      const data = defs[lang];
+      Object.keys(data).forEach(word => {
+        if (word.length !== 2) return;
+        if (typeof this.wordCache[lang][word] === 'undefined') {
+          for (let k = 0; k < word.length; k++) {
+            const ch = word[k];
+            if (!this.charData[ch]) {
+              throw Error('no char-data for ' + ch + ' in ' + word);
+            }
+            if (!defs.chars[ch]) {
+              throw Error('no def entry for ' + ch);
+            }
+            this.charData[ch].definition = defs.chars[ch] || '-';
           }
-          if (!this.defs[ch]) missingDefs.push(ch);
-          this.charData[ch].definition = this.defs[ch] || '-';
+          this.wordCache[lang][word] = this._createWord(word, data);
         }
-        this.wordCache[word] = this.createWord(word);
-      }
+      });
     });
   }
 
@@ -46,43 +53,71 @@ class CharUtils {
 
   bestEditDistance(input, opts = {}) {
 
-    let minAllowed = opts.minMed || 1;
-    let words = opts.words || Object.keys(this.currentWords());
+    if (!input || !input.length) throw Error('no input');
+
+    let lang = opts.lang || this.lang;
+    let minAllowed = opts.minMed || 1, dbug = 0;
+    let data = this.wordCache[lang];
+    if (!data || !Object.keys(data).length) {
+      throw Error('no def-data for '+lang);
+    }
+    
+    let literals = opts.words || Object.keys(data);
+    if (!literals || !literals.length) throw Error('no words');
 
     let med, meds = [], bestMed = Number.MAX_SAFE_INTEGER;
-    let wes = this.getWord(input).editString;
+    let word = this.wordCache[lang][input];
+    if (!word) throw Error('no word for: ' + input);
 
-    for (let i = 0; i < words.length; i++) {
+    let wes = word.editString;
+    if (!wes) throw Error('no editString for: ' + input);
 
+    for (let i = 0; i < literals.length; i++) {
+
+      dbug && console.log(i, literals[i]);
+      dbug && i % 100==99 && console.log(i);
+      
       // no dups and nothing in history, maintain length
-      if (input === words[i] || words[i].length !== input.length) {
+      if (input === literals[i]) {
+        dbug && console.log(i, '*** Skipping input: ', literals[i]);
         continue;
       }
 
-      if (opts.history && opts.history.contains(words[i])) {
-        //console.log('*** Skipping item in history: '+words[i]);
+      if (literals[i].length !== input.length) {
+        dbug && console.log(i, '*** Skipping length != '+input.length, literals[i]);
         continue;
       }
 
-      let wes2 = this.getWord(words[i]).editString;
+      if (opts.history && opts.history.contains(literals[i])) {
+        dbug && console.log(i, '*** Skipping item in history:', literals[i]);
+        continue;
+      }
+
+      let wes2 = data[literals[i]].editString;
 
       // chinese min-edit-dist
-      let cost = this.editDist.get(input, words[i]) - 1;
+      let cost = this.editDist.get(input, literals[i]) - 1;
       med = Math.max(0, cost) + this.editDist.get(wes, wes2);
 
-      //console.log(i, words[i], med, 'best='+bestMed);
+      dbug && console.log(i, literals[i], med, 'best='+bestMed,'\n');
 
-      if (med < minAllowed || med > bestMed) continue;
+      if (med < minAllowed || med > bestMed) continue; // nope
 
-      if (med < bestMed) bestMed = med;
+      if (med < bestMed) {
+        bestMed = med;
+        dbug && console.log(i, literals[i], 'new-best=' + bestMed);
+      }
       if (!meds[med]) meds[med] = [];
-      meds[med].push(words[i]);
+
+      dbug && console.log(i, literals[i], 'tie=' + bestMed);
+
+      meds[med].push(literals[i]);
     }
 
     // return the best list
     for (let i = 0; i < meds.length; i++) {
       if (meds[i] && meds[i].length) {
-        //console.log('     '+meds[i]+' for '+i);
+        dbug && console.log(i, meds[i].length);
         return meds[i];
       }
     }
@@ -90,19 +125,21 @@ class CharUtils {
     return []; // or nothing
   };
 
-  minEditDistance(l1, l2) {
-    //l1 = l1['editString'] || this.getWord(l1).editString;
-    return this.editDist.get(this.getWord(l1).editString,
-      this.getWord(l2).editString) + Math.max(0, this.editDist.get(l1, l2) - 1);
+  minEditDistance(l1, l2, lang) {
+    let w1 = this.getWord(l1, lang);
+    let w2 = this.getWord(l2, lang);
+    return this.editDist.get(w1.editString, w2.editString)
+      + Math.max(0, this.editDist.get(l1, l2) - 1);
   }
 
-  createWord(literal) {
+  _createWord(literal, defs) {
 
     let chars = [];
     for (let i = 0; i < literal.length; i++) {
       if (literal[i] !== ' ') {
         if (!this.charData[literal[i]]) {
-          throw Error('createWord() failed for ' + literal[i] + ' in ' + literal, Object.keys(this.charData).length+' defs');
+          throw Error('createWord() failed for ' + literal[i] +
+            ' in ' + literal, nk(this.charData) + ' defs');
         }
         chars.push(this.charData[literal[i]]);
       } else {
@@ -110,50 +147,58 @@ class CharUtils {
       }
     }
 
-    return new Word(literal, chars, this.defs[literal]);
+    return new Word(literal, chars, defs[literal]);
   }
 
-  getWord(literal) {
-
-    if (this.wordCache[literal]) {
-      return this.wordCache[literal];
-    }
-
-    !this.silent && console.log("[WARN] Creating Word(" + literal+')');
-    let word = this.createWord(literal);
-    this.wordCache[literal] = word;
-
-    return word;
+  getWord(literal, lang) {
+    let words = this.currentWords(lang);
+    if (!words[literal]) throw Error('no '
+      + (lang || this.lang) + '. word for: ' + literal);
+    return words[literal];
+    /* 
+        if (this.wordCache[literal]) {
+          return this.wordCache[literal];
+        }
+    
+        !this.silent && console.log("[WARN] Creating Word(" + literal + ')');
+        let word = this.createWord(literal);
+        this.wordCache[literal] = word;
+    
+        return word; */
   }
 
-  definition(literal) {
-    let words = this.currentWords();
+  definition(literal, lang) {
+    let words = this.currentWords(lang);
     return words[literal] ? words[literal] : '---';
   }
 
-  currentWords() {
-    return this.defs;
-  }
+  currentWords(lang) {
 
-  randWord(length, testMode) {
-    if (typeof length == 'undefined') throw Error('no length');
-    let word = null, words = this.currentWords();
-    while (!word || word.length != length) {
-      // keep going until we get the right length
-      let key = this.randKey(words);
-      word = this.getWord(key);
-    }
-    return word;
-  }
+    lang = lang || this.lang;
 
-  randKey(o) {
-    let keys = Object.keys(o);
-    return keys[keys.length * Math.random() << 0];
+    if (!this.wordCache) throw Error('No word cache');
+    if (!this.wordCache[lang]) throw Error('No word cache for ' + lang);
+    if (!nk(this.wordCache[lang])) throw Error('No entries in wordCache[' + lang + ']');
+
+    //return this.defs[this.lang];
+    //console.log(lang, Object.keys(this.wordCache[lang]).length);
+    return this.wordCache[lang]; // {simp, trad}
   }
 
   pad(str, len) {
     while (str.length < len) str += '？';
     return str;
+  }
+
+  randWord(length) {
+    length = length || 2;
+    let word = null, words = this.currentWords();
+    while (!word || word.length != length) {
+      // keep going until we get the right length
+      let key = randKey(words);
+      word = this.getWord(key);
+    }
+    return word;
   }
 }
 
@@ -169,7 +214,7 @@ class HistQ {
     }
   }
   // test if cand has prop === val
-  query(prop, val) { 
+  query(prop, val) {
     return this.test(c => c[prop] === val);
   }
   test(fun) { // test against supplied func
@@ -221,6 +266,7 @@ class Word {
 
   constructor(literal, chars, def) {
 
+    if (!def || !def.length) throw Error('no def: ' + literal);
     this.literal = literal;
     this.characters = chars;
     this.length = literal.length;
@@ -432,5 +478,18 @@ class Word {
   }
 }
 
+function nk(obj) { // return # of keys in obj
+  return Object.keys(obj).length;
+}
 
-if (typeof module != 'undefined') module.exports = CharUtils; // tests
+function randKey(o) {
+  let keys = Object.keys(o);
+  return keys[keys.length * Math.random() << 0];
+}
+
+if (typeof module != 'undefined') {
+  module.exports = CharUtils; // tests
+}
+else {
+  window.CharUtils = CharUtils;
+}

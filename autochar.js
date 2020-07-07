@@ -31,7 +31,7 @@ class Autochar {
     this.wordCompleteCallback = wordCompleteCB;
     this.nextTargetCallback = nextTargetCB;
 
-    this.word = util.randWord(2);
+    this.word = util.randWord();
     //this.word = util.getWord('螞螂');
     this.memory = new util.HistQ(10);
     this.memory.add(this.word.literal);
@@ -74,8 +74,8 @@ class Autochar {
 
       // filter based on word definition
       if (filtering) {
-        let memDefs = this.memory.q.map(c => this.util.defs[c]);
-        opts = opts.filter(c => !memDefs.includes(this.util.defs[c]));
+        let memDefs = this.memory.q.map(c => this.util.definition(c));
+        opts = opts.filter(c => !memDefs.includes(this.util.definition(c)));
       }
       //console.log('filtered ' + opts);
 

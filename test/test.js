@@ -1,15 +1,21 @@
-let expect = require('chai').expect;
-let med = require('fast-levenshtein');
-let chars = require('../chardata.json');
-let defs = require('../definitions.json');
-let CharUtils = require('../cutils');
+
+if (typeof module !== 'undefined') {
+  expect = require('chai').expect;
+  med = require('fast-levenshtein');
+  chars = require('../chardata.json');
+  defs = require('../definitions.json');
+  CharUtils = require('../cutils');
+}
+else {
+  med = window.Levenshtein;
+  expect = chai.expect;
+}
 
 if (typeof Path2D == 'undefined') Path2D = (class Path2DMock { });
 let util = new CharUtils(chars, defs, med, true);
-let HistQ = util.HistQ;
 
-describe('Word', function () {
-  it('should wrap a sequence of characters', function () {
+describe('Word', () => {
+  it('should wrap a sequence of characters', () => {
 
     let word = util.getWord('拒簽');
 
@@ -60,9 +66,9 @@ describe('Word', function () {
   });
 });
 
-describe('HistQ', function () {
-  it('should act like a history queue (stack)', function () {
-    let hq = new HistQ(5);
+describe('HistQ', () => {
+  it('should act like a history queue (stack)', () => {
+    let hq = new util.HistQ(5);
     expect(hq.size()).to.equal(0);
     expect(hq.isEmpty()).to.equal(true);
     for (var i = 0; i < 5; i++) hq.add(i);
@@ -76,7 +82,7 @@ describe('HistQ', function () {
   });
 
   it('should handle property checks', () => {
-    let hq = new HistQ(5);
+    let hq = new util.HistQ(5);
     for (var i = 0; i < 5; i++) {
       hq.add({ name: 'foo' + i, id: i });
     }
@@ -86,7 +92,7 @@ describe('HistQ', function () {
     expect(hq.query('id', 3)).eq(true);
   })
   it('should handle function tests', () => {
-    let hq = new HistQ(5);
+    let hq = new util.HistQ(5);
     for (var i = 0; i < 5; i++) {
       hq.add({ name: 'foo' + i, id: i });
     }
@@ -95,12 +101,11 @@ describe('HistQ', function () {
 
 });
 
-describe('Utils', function () {
-
-  it('should compute standard edit distance ', function () {
-
-    let s1 = 'The dog',
-      s2 = 'The cat';
+describe('Utils', () => {
+  it('should compute standard edit distance ', () => {
+    let s1, s2;
+    s1 = 'The dog';
+    s2 = 'The cat';
     expect(util.editDist.get(s1, s2)).to.equal(3);
 
     s1 = 'The dog';
@@ -116,7 +121,7 @@ describe('Utils', function () {
     expect(util.editDist.get(s1, s2)).to.equal(5);
   });
 
-  it('should pad the string with ？', function () {
+  it('should pad the string with ？', () => {
     expect(util.pad('aaa', 3)).to.equal('aaa');
     expect(util.pad('a', 3)).to.equal('a？？');
     expect(util.pad('', 3)).to.equal('？？？');
@@ -126,34 +131,61 @@ describe('Utils', function () {
     expect(util.pad('', 1)).to.equal('？');
   });
 
-  it('should compute the custom edit dist for single chinese chars', function () {
+  it('should find specific words of length two', () => {
+    let test = util.getWord('綠草');
+    //console.log(util.charData['綠']);
+    expect(test.literal).eq('綠草');
+    expect(test.definition).eq('green grass');
+    expect(test.editString).eq('⿰糹彔 ⿱艹早');
+    expect(test.characters[0].definition).eq('green; chlorine');
+    expect(test.characters[1].definition).eq('grass, straw, thatch, herbs');
+
+    test = util.getWord('拒簽');
+    //console.log(test);
+    expect(test.literal).eq('拒簽');
+    expect(test.definition).eq('to refuse');
+    expect(test.editString).eq('⿰扌巨 ⿱⺮僉');
+    expect(test.definition).eq('to refuse');
+  });
+  /* 
+  it('should compute the custom edit dist for single chinese chars', () => {
     expect(util.minEditDistance('拒', '拒')).to.equal(0); // exact
     expect(util.minEditDistance('拒', '捕')).to.equal(1); // match decomp + 1 part
     expect(util.minEditDistance('拒', '價')).to.equal(2); // match decomp only
     expect(util.minEditDistance('拒', '三')).to.equal(3); // nothing
+  }); */
+
+/*   it('should compute the best edit dist for a 2-char words', () => {
+    let lit = '脫然';
+    let word = util.getWord(lit);
+    expect(word.literal).eq(lit);
+    let bets = util.bestEditDistance(word.literal);
+    //console.log(bets.length);
+    expect(bets.length).eq(1);
+  }); */
+
+  it('should compute the custom edit dist for 2-char words', () => {
+    expect(util.minEditDistance('上杆', '上杆', 'simp')).to.equal(0); // exact
+    expect(util.minEditDistance('上杆', '上楼', 'simp')).to.equal(1); // match decomp + half
+    expect(util.minEditDistance('上杆', '上浮', 'simp')).to.equal(2); // match decomp only
+    expect(util.minEditDistance('上杆', '上菜', 'simp')).to.equal(3); // match 1, none of other
+
+    expect(util.minEditDistance('供需', '传染', 'simp')).to.equal(4); // both different(2 matched decomp)
+    expect(util.minEditDistance('供需', '传略', 'simp')).to.equal(5); // both different(1 matched decomp)
+    expect(util.minEditDistance('供需', '光纤', 'simp')).to.equal(7); // both different(0 matched decomp)
   });
 
-
-  it('should compute the custom edit dist for 2-char chinese words', function () {
-
-    //first char same, 2nd different
-    // expect(util.minEditDistance('拒拒', '拒拒')).to.equal(0); // exact
-    // expect(util.minEditDistance('拒拒', '拒捕')).to.equal(1); // match decomp + half
-    // expect(util.minEditDistance('拒拒', '拒價')).to.equal(2); // match decomp only
-    // expect(util.minEditDistance('拒拒', '拒三')).to.equal(3); // nothing
-    //
-    // expect(util.minEditDistance('拒拒', '拒三')).to.equal(3); // one different (non-matching decomp) -> 3
-
-    // added cost param to raise them each by one
-    // expect(util.minEditDistance('拒拒', '三三')).to.equal(7); // both different(0 matched decomps) -> 6
-    // expect(util.minEditDistance('拒拒', '捕三')).to.equal(5); // both different(1 matched decomp)  -> 5
-    // expect(util.minEditDistance('拒拒', '捕價')).to.equal(4); // both different(2 matched decomp)  -> 4
+  it('should return random words of length two', () => {
+    let test = util.randWord().literal;
+    expect(test.length).eq(2);
   });
 
-  it('should return set of 2-char words with same MED', function () {
-    let test = util.randWord(2).literal;
+  it('all bestEditDistance results should have same med', () => {
+    let test = util.randWord().literal;
     let bets = util.bestEditDistance(test);
+    expect(bets.length).gt(0);
     let dist = util.minEditDistance(test, bets[0]);
+    //console.log(bets.length);
     for (var i = 1; i < bets.length; i++) {
       /* console.log(i+".0",test[0], 'vs', bets[i][0], util.minEditDistance(test[0], bets[i][0]));
       console.log(i + ".1", test[1], 'vs', bets[i][1], util.minEditDistance(test[1], bets[i][1])); */
@@ -161,9 +193,38 @@ describe('Utils', function () {
     }
   });
 
-  it('should return set of 1-char words with minimum MEDs', function () {
+  it('should get bestEditDistance for constrained 2-char words', () => {
+    let bet, word = util.getWord('脫然');
+    let words = ['脫然', '脫空', '脫盲', '脫肛', '苗裔', '苦口'];
 
-    let bet, word = util.getWord('拒');
+    bet = util.bestEditDistance(word.literal, { words });
+    expect(bet.length).to.equal(2);
+    expect(util.minEditDistance(word.literal, bet[0])).to.equal(2);
+
+    bet = util.bestEditDistance(word.literal, { words, minMed: 3});
+    expect(bet.length).to.equal(1);
+    expect(util.minEditDistance(word.literal, bet[0])).to.equal(3);
+  });
+
+  it('should get bestEditDistance for unconstrained words', function() {
+    //this.timeout(10000);
+    let lit = '脫然', bets;
+    let word = util.getWord(lit);
+    expect(word.literal).eq(lit);
+
+    bets = util.bestEditDistance(word.literal);
+    expect(bets.length).eq(93);
+    expect(util.minEditDistance(word.literal, bets[0])).to.equal(2);
+
+    bets = util.bestEditDistance(word.literal, {minMed:3});
+    expect(bets.length).eq(69);
+    expect(util.minEditDistance(word.literal, bets[0])).to.equal(3);
+  });
+
+
+  /* 0 && it('should return set of 1-char words with minimum MEDs', () => {
+
+    let bet, word = util.getWord('拒',);
 
     bet = util.bestEditDistance(word.literal, { words: ['拒', '捕', '價', '三', '簽'] });
     expect(bet.length).to.equal(1);
@@ -204,9 +265,9 @@ describe('Utils', function () {
     bet = util.bestEditDistance(word.literal, { words: ['三'], minMed: 4 });
     //console.log('got', util.minEditDistance(word.literal, '三'));
     expect(bet).to.eql([]);
-  });
+  }); */
 
-  it('should return word object for literal', function () {
+/*   it('should return word object for literal', () => {
     let word = util.getWord('拒');
     let wstr = JSON.stringify(word);
     //console.log(wstr);
@@ -228,6 +289,6 @@ describe('Utils', function () {
 
     word = util.getWord("三價");
     expect(word.literal).to.equal("三價");
-  });
+  }); */
 
 });
