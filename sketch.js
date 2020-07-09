@@ -97,6 +97,10 @@ function drawWord(word) {
   }
 }
 
+function isRetina(){
+    var mq = window.matchMedia("only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 2.6/2), only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen  and (min-device-pixel-ratio: 1.3), only screen and (min-resolution: 1.3dppx)");
+    return mq && mq.matches || window.devicePixelRatio > 1;
+}
 // computes size and position of canvas after resize (xo, yo, sw, sh)
 // and size of en-translation font (defSz) and scaling of characters (scayl)
 function updateSize() {
@@ -110,8 +114,16 @@ function updateSize() {
     sw = Math.round(w - border * 2);
     sh = Math.round(sw * (aspectH / aspectW));
   }
+
   xo = (w - sw) / 2;
   yo = (h - sh) / 2;
+
+  // retina/ high dpi
+  if(isRetina()) {
+    console.log("Retina:", window.devicePixelRatio);
+    sw = sw * window.devicePixelRatio;
+    sh = sh * window.devicePixelRatio;
+  }
 
   // strange constants
   defSz = sh / 18;
@@ -119,8 +131,8 @@ function updateSize() {
 
   // resize/position canvas
   resizeCanvas(sw, sh, true);
-  cnv.position(xo, yo);
 
+  cnv.position(xo, yo);
   console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
 }
 
@@ -257,6 +269,13 @@ function repairCanvas() {
   canvas.width = sw;
   canvas.height = sh;
   pixelDensity(1);
+
+  if(isRetina()) {
+    // display at original width for retina
+    $('#defaultCanvas0').css("width", sw/window.devicePixelRatio + "px");
+    $('#defaultCanvas0').css("height", sh/window.devicePixelRatio + "px");
+    console.log("Display Size:", $('#defaultCanvas0').width(),$('#defaultCanvas0').height())
+  }
 }
 
 function adjustColor() {
