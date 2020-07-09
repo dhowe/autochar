@@ -22,7 +22,7 @@ function setup() {
   textFont('Georgia');
   cnv = createCanvas(800, 600);
   noLoop();  // don't start yet
-  setTimeout(startSketch(), 20000);
+  setTimeout(startSketch(), 15000);
 }
 
 function draw() {
