@@ -14,7 +14,7 @@ const INSERT_ACTION = 3;
 
 class Autochar {
 
-  constructor(util, wordCompleteCB, nextTargetCB) {
+  constructor(util, onActionCallback, onNewTargetCallback) {
 
     this.target;
     this.tid = -1;
@@ -28,14 +28,15 @@ class Autochar {
     this.targetPartIdx = -1;
     this.currentStrokeCount = 0;
 
-    this.wordCompleteCallback = wordCompleteCB;
-    this.nextTargetCallback = nextTargetCB;
+    this.onActionCallback = onActionCallback;
+    this.onNewTargetCallback = onNewTargetCallback;
 
     this.word = util.randWord();
     //this.word = util.getWord('螞螂');
     this.memory = new util.HistQ(10);
     this.memory.add(this.word.literal);
-    this.memory.add('trigger');
+
+    //this.memory.add('trigger'); // TMP: replace ***********
   }
 
   disableTriggers() {
@@ -48,8 +49,8 @@ class Autochar {
       let isTrigger = this.pickNextTarget();
       //console.log('NEXT: ',isTrigger);
       this.findEditIndices();
-      if (this.nextTargetCallback) {
-        this.nextTargetCallback(this.target, this.med,
+      if (this.onNewTargetCallback) {
+        this.onNewTargetCallback(this.target, this.med,
           this.currentStrokeCount, isTrigger);
       }
     }
@@ -84,12 +85,12 @@ class Autochar {
         minMed++;
         if (filtering && minMed > 2) {
           minMed = 1; // try without filter
-          console.warn('[RELAX] minMed= 1, *disable-filter*');
+          //console.warn('[RELAX] minMed= 1, *disable-filter*');
           filtering = false;
         }
-        else {
+ /*        else {
           console.warn('[RELAX] minMed=' + minMed, (filtering ? '' : ' *no-filter*'));
-        }
+        } */
         continue;
       }
 
@@ -150,18 +151,20 @@ class Autochar {
         trigger = cand[j];
       }
     }
-    trigger && console.log('trigger: "' + trigger + '" in "' + cand
+    trigger && console.log('*** Trigger: "' + trigger + '" in "' + cand
       + '" -> ' + (this.util.lang === 'simp' ? 'trad' : 'simp'));
     return trigger;
   }
 
   pickNextTarget() {
 
+    //console.log('pickNextTarget() trigger: ' + (this.memory.peek() === 'trigger'));
+    
     // get candidates with lowest MED
     let result, opts = this.candidates();
 
     // select any trigger words if we have them
-    let triggered = false, theChar;
+    let triggered = false;
     if (useTriggers && !this.memory.contains('trigger')) {
       let startIdx = (Math.random() * opts.length) << 0;
       for (let i = startIdx; i < opts.length + startIdx; i++) {
@@ -196,7 +199,6 @@ class Autochar {
     }
 
     return triggered;
-    //console.log("WORD: ", this.word, "\nNEXT: ", this.target, "\nMED: ", this.med);
   }
 
   doNextEdit() {
@@ -214,9 +216,9 @@ class Autochar {
 
     if (this.action == REPLACE_STROKE) {
       if (this.word.nextStroke(this.targetCharIdx, this.targetPartIdx)) {
-        this.wordCompleteCallback(); // draw stroke change
+        this.onActionCallback(); // draw stroke change
       } else { // flash
-        this.wordCompleteCallback(this.word); // word change
+        this.onActionCallback(this.word); // word change
         this.target = null;
       }
     }

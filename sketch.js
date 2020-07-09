@@ -1,7 +1,12 @@
 
-let doSound = false, doPerf = false;
-let showDefs = true, charDefs = true, showNav = true;
 
+// NEXT:  
+//   investigate missing word in trigger transitions
+//   hold on trigger words
+//   intro window should disappear after 10 seconds
+// 
+//   make currentWords() into variable?
+//
 function preload() {
 
   bell = new Tone.Player("res/chime.wav").toMaster();
@@ -16,7 +21,8 @@ function setup() {
   frameRate(30);
   textFont('Georgia');
   cnv = createCanvas(800, 600);
-  noLoop();  // don't run the sketch automatically
+  noLoop();  // don't start yet
+  setTimeout(startSketch(), 20000);
 }
 
 function draw() {
@@ -27,7 +33,7 @@ function draw() {
     repairCanvas();
     window.onresize = updateSize;
     util = new CharUtils(chars, defs, Levenshtein);
-    typer = new Autochar(util, onAction, onTarget);
+    typer = new Autochar(util, onAction, onNewTarget);
     word = typer.word.literal;
     console.log("1) [ ] -> " + word);
     next();
@@ -116,9 +122,9 @@ function updateSize() {
   console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
 }
 
-function onTarget(nextWord, med, numStrokes, trigger) {
+function onNewTarget(nextWord, med, numStrokes, trigger) {
 
-  //console.log('onTarget', millis());
+  //console.log('onTarget', millis(), util.lang, trigger, this.memory);
   triggered = trigger;
   strokeCount = numStrokes;
   strokeIdx = 0;
@@ -131,7 +137,7 @@ function onTarget(nextWord, med, numStrokes, trigger) {
   let wmed = med + (util.lang.startsWith('s') ? 's' : '');
   console.log(++steps + ') ' + word + " -> " + nextWord.literal,
     wmed, "'" + nextWord.definition + "' (" + chars[0].definition
-    + ' / ' + chars[1].definition + ')');
+    + ' / ' + chars[1].definition + ') [', util.lang+']');
 }
 
 function onAction(nextWord) {
@@ -141,21 +147,17 @@ function onAction(nextWord) {
     flashColors();
     playStroke(true);
     playBell();
-    //console.log(nextWord);
-/*     let chars = nextWord.characters;
-    console.log('--) ' + word + " -> " + nextWord.literal,
-      wmed, "'" + nextWord.definition + "' (" + chars[0].definition
-      + ' / ' + chars[1].definition + ')'); */
     word = nextWord.literal;
     triggered = false;
+    //console.log('onAction: '+nextWord.literal);
   }
   else {
     playStroke();
   }
   strokeIdx++;
-  0 && console.log('onAction: stroke' +
-    (nextWord ? 0 : (strokeCount - strokeIdx)),
-    Math.round((timer / changeMs) * 100) / 100);
+  
+/*   console.log('onAction: stroke' + (nextWord ? 0 : (strokeCount
+     - strokeIdx)), Math.round((timer / changeMs) * 100) / 100); */
 }
 
 function next() {
@@ -177,22 +179,19 @@ function mouseClicked() {
       $('#about').modal();
     }
   }
+  startSketch();
+}
 
+function startSketch() {
   if (firstRun) {
-    loop(); // run sketch
+    loop();
     doSound = true;
     firstRun = false;
     $('#about').removeClass("beforeLoaded");
+    $.modal.close();
+    //$('#about').hide();
+      //document.getElementById('SidebarBtn').style.display = "none";
   }
-
-  /* if (tid) { // pause
-      noLoop();
-      clearInterval(tid);
-      tid = 0;
-    } else {
-      next();
-      loop();
-    } */
 }
 
 function toggleMute(event) {
@@ -251,7 +250,7 @@ function keyReleased() {
 function repairCanvas() {
 
   // first hide the html nav button (use the p5 one)
-  document.getElementById('SidebarBtn').style.display = "none";
+  //document.getElementById('SidebarBtn').style.display = "none";
   let canvas = document.getElementsByTagName('canvas')[0];
   canvas.width = sw;
   canvas.height = sh;
@@ -292,8 +291,11 @@ function logPerf() {
   }
 }
 
-let cnv, sw, sh, xo, yo, defSz, w, h, useTriggers = true;
-let lang, bell, conf, word, tid, strk, util, typer;
+let doSound = false, doPerf = false, showDefs = true;
+let charDefs = true, showNav = true, useTriggers = true;
+
+let cnv, sw, sh, xo, yo, defSz, w, h;
+let bell, conf, word, tid, strk, util, typer;
 let timer = 0, strokeCount = 0, firstRun = true, chars, defs;
 let scayl = 1, aspectW = 4.3, aspectH = 3, whiteOnColor = false;
 

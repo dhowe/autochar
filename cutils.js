@@ -48,7 +48,11 @@ class CharUtils {
   }
 
   toggleLang() {
-    this.lang = (this.lang === 'simp') ? 'trad' : 'simp';
+    this.lang = this.invertLang();
+  }
+
+  invertLang() {
+    return this.lang === 'simp' ? 'trad' : 'simp';
   }
 
   bestEditDistance(input, opts = {}) {
@@ -59,15 +63,19 @@ class CharUtils {
     let minAllowed = opts.minMed || 1, dbug = 0;
     let data = this.wordCache[lang];
     if (!data || !Object.keys(data).length) {
-      throw Error('no def-data for '+lang);
+      throw Error('no def-data for ' + lang);
     }
-    
+
     let literals = opts.words || Object.keys(data);
     if (!literals || !literals.length) throw Error('no words');
 
     let med, meds = [], bestMed = Number.MAX_SAFE_INTEGER;
     let word = this.wordCache[lang][input];
-    if (!word) throw Error('no word for: ' + input);
+    if (!word) {
+      //console.log('lookup2: ' + input, this.invertLang());
+      word = this.wordCache[this.invertLang()][input];
+      if (!word) throw Error('no word for: ' + input);
+    }
 
     let wes = word.editString;
     if (!wes) throw Error('no editString for: ' + input);
@@ -75,21 +83,16 @@ class CharUtils {
     for (let i = 0; i < literals.length; i++) {
 
       dbug && console.log(i, literals[i]);
-      dbug && i % 100==99 && console.log(i);
-      
-      // no dups and nothing in history, maintain length
-      if (input === literals[i]) {
-        dbug && console.log(i, '*** Skipping input: ', literals[i]);
-        continue;
-      }
+      dbug && i % 100 == 99 && console.log(i);
 
-      if (literals[i].length !== input.length) {
-        dbug && console.log(i, '*** Skipping length != '+input.length, literals[i]);
+      // no dups and nothing in history, maintain length
+      if (input === literals[i] || literals[i].length !== input.length) {
+        dbug && console.log(i, '*** Skip: is input or wrong length', literals[i]);
         continue;
       }
 
       if (opts.history && opts.history.contains(literals[i])) {
-        dbug && console.log(i, '*** Skipping item in history:', literals[i]);
+        dbug && console.log(i, '*** Skip: in history:', literals[i]);
         continue;
       }
 
@@ -99,7 +102,7 @@ class CharUtils {
       let cost = this.editDist.get(input, literals[i]) - 1;
       med = Math.max(0, cost) + this.editDist.get(wes, wes2);
 
-      dbug && console.log(i, literals[i], med, 'best='+bestMed,'\n');
+      dbug && console.log(i, literals[i], med, 'best=' + bestMed, '\n');
 
       if (med < minAllowed || med > bestMed) continue; // nope
 
@@ -125,9 +128,9 @@ class CharUtils {
     return []; // or nothing
   };
 
-  minEditDistance(l1, l2, lang) {
-    let w1 = this.getWord(l1, lang);
-    let w2 = this.getWord(l2, lang);
+  minEditDistance(l1, l2) {
+    let w1 = this.wordCache[this.lang][l1] || this.wordCache[this.invertLang()][l1];
+    let w2 = this.wordCache[this.lang][l2] || this.wordCache[this.invertLang()][l2];
     return this.editDist.get(w1.editString, w2.editString)
       + Math.max(0, this.editDist.get(l1, l2) - 1);
   }
@@ -150,21 +153,11 @@ class CharUtils {
     return new Word(literal, chars, defs[literal]);
   }
 
-  getWord(literal, lang) {
+  getWord(literal, lang, noThrow) {
     let words = this.currentWords(lang);
-    if (!words[literal]) throw Error('no '
-      + (lang || this.lang) + '. word for: ' + literal);
+    if (!words[literal] && !noThrow) throw Error
+      ('no ' + (lang || this.lang) + '. word for: ' + literal);
     return words[literal];
-    /* 
-        if (this.wordCache[literal]) {
-          return this.wordCache[literal];
-        }
-    
-        !this.silent && console.log("[WARN] Creating Word(" + literal + ')');
-        let word = this.createWord(literal);
-        this.wordCache[literal] = word;
-    
-        return word; */
   }
 
   definition(literal, lang) {
@@ -178,7 +171,8 @@ class CharUtils {
 
     if (!this.wordCache) throw Error('No word cache');
     if (!this.wordCache[lang]) throw Error('No word cache for ' + lang);
-    if (!nk(this.wordCache[lang])) throw Error('No entries in wordCache[' + lang + ']');
+    //if (!nk(this.wordCache[lang])) 
+    //throw Error('No entries in wordCache[' + lang + ']');
 
     //return this.defs[this.lang];
     //console.log(lang, Object.keys(this.wordCache[lang]).length);
