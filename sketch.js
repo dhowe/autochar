@@ -1,12 +1,10 @@
 
 
 // NEXT:
-//   investigate missing word in trigger transitions
-//   hold on trigger words
-//   intro window should disappear after 10 seconds
-//
-//   make currentWords() into variable?
-//
+//   hold on trigger words or try flag
+//   slow down strokes
+//   remake list of trigger words 
+//   check that definitions cannot repeat *** 
 function preload() {
 
   bell = new Tone.Player("res/chime.wav").toMaster();
@@ -22,7 +20,7 @@ function setup() {
   textFont('Georgia');
   cnv = createCanvas(800, 600);
   noLoop();  // don't start yet
-  setTimeout(startSketch(), 15000);
+  startSketch()
 }
 
 function draw() {
@@ -50,22 +48,28 @@ function draw() {
 
 function drawDefs() {
 
-  textSize(defSz);
-  textAlign(CENTER);
+  let def = typer.word.definition || '';
+  let textSz = defSz * (util.lang === "trad" ? 1 : .8);
   let defAlpha = (timer / changeMs < .8) ?
     map(timer / changeMs, .8, 0, 0, 255) : 0;
-  let def = typer.word.definition || '';
+
+  textSize(textSz);
+  textAlign(CENTER);
   fill(txtcol[0], txtcol[1], txtcol[2], defAlpha);
-  // lowercase if simplified Chinese
-  text(util.lang === "simp" ? def : def.toUpperCase(), width / 2, 2.4 * defSz);
+
+  // uppercase if simplified Chinese
+  text(util.lang === "trad" ? def :
+    def.toUpperCase(), width / 2, 2.4 * defSz);
 
   if (charDefs) {
-    textSize(defSz * .5);
+    let def0 = typer.word.characters[0].definition;
+    let def1 = typer.word.characters[1].definition;
+    textSize(textSz * .5);
     fill(txtcol[0], txtcol[1], txtcol[2]);
-    text(util.lang === "simp" ? typer.word.characters[0].definition : typer.word.characters[0].definition.toUpperCase(), width * .25, height - 2 * defSz);
-    text(util.lang === "simp" ? typer.word.characters[1].definition : typer.word.characters[1].definition.toUpperCase(), width * .75, height - 2 * defSz);
-    timer = changeMs - (millis() - changeTs);
+    text(util.lang === "trad" ? def0 : def0.toUpperCase(), width * .25, height - 2 * defSz);
+    text(util.lang === "trad" ? def1 : def1.toUpperCase(), width * .75, height - 2 * defSz);
   }
+  timer = changeMs - (millis() - changeTs);
 }
 
 function drawWord(word) {
@@ -97,10 +101,11 @@ function drawWord(word) {
   }
 }
 
-function isRetina(){
-    var mq = window.matchMedia("only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 2.6/2), only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen  and (min-device-pixel-ratio: 1.3), only screen and (min-resolution: 1.3dppx)");
-    return mq && mq.matches || window.devicePixelRatio > 1;
+function isRetina() {
+  let mq = window.matchMedia(RETINA_CHECK);
+  return mq && mq.matches || window.devicePixelRatio > 1;
 }
+
 // computes size and position of canvas after resize (xo, yo, sw, sh)
 // and size of en-translation font (defSz) and scaling of characters (scayl)
 function updateSize() {
@@ -119,8 +124,8 @@ function updateSize() {
   yo = (h - sh) / 2;
 
   // retina/ high dpi
-  if(isRetina()) {
-    console.log("Retina:", window.devicePixelRatio);
+  if (isRetina()) {
+    //console.log("Retina:", window.devicePixelRatio);
     sw = sw * window.devicePixelRatio;
     sh = sh * window.devicePixelRatio;
   }
@@ -133,7 +138,7 @@ function updateSize() {
   resizeCanvas(sw, sh, true);
 
   cnv.position(xo, yo);
-  console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
+  //console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
 }
 
 function onNewTarget(nextWord, med, numStrokes, trigger) {
@@ -148,10 +153,9 @@ function onNewTarget(nextWord, med, numStrokes, trigger) {
   changeTs = millis();
   timer = changeMs;
   let chars = nextWord.characters;
-  let wmed = med + (util.lang.startsWith('s') ? 's' : '');
   console.log(++steps + ') ' + word + " -> " + nextWord.literal,
-    wmed, "'" + nextWord.definition + "' (" + chars[0].definition
-    + ' / ' + chars[1].definition + ') [', util.lang+']');
+    med, "'" + nextWord.definition + "' (" + chars[0].definition
+    + ' / ' + chars[1].definition + ') [' + util.lang + ']');
 }
 
 function onAction(nextWord) {
@@ -169,9 +173,8 @@ function onAction(nextWord) {
     playStroke();
   }
   strokeIdx++;
-
-/*   console.log('onAction: stroke' + (nextWord ? 0 : (strokeCount
-     - strokeIdx)), Math.round((timer / changeMs) * 100) / 100); */
+  /*   console.log('onAction: stroke' + (nextWord ? 0 : (strokeCount
+       - strokeIdx)), Math.round((timer / changeMs) * 100) / 100); */
 }
 
 function next() {
@@ -183,15 +186,26 @@ function next() {
   }
 }
 
+function mouseClickedX() {
+  if ($('#about').is(':visible')) {
+    $.modal.close();
+  } else if (showNav && mouseX < 40 && mouseY < 40) {
+    $('#about').modal();
+  }
+  if (firstRun) {
+    loop(); // run sketch
+    doSound = true;
+    firstRun = false;
+    $('#about').removeClass("beforeLoaded");
+  }
+}
+
 function mouseClicked() {
 
   if ($('#about').is(':visible')) {
     $.modal.close();
-  } else {
-    if (showNav && mouseX < 40 && mouseY < 40) {
-      console.log("show")
-      $('#about').modal();
-    }
+  } else if (showNav && mouseX < 40 && mouseY < 40) {
+    $('#about').modal();
   }
   startSketch();
 }
@@ -203,8 +217,6 @@ function startSketch() {
     firstRun = false;
     $('#about').removeClass("beforeLoaded");
     $.modal.close();
-    //$('#about').hide();
-      //document.getElementById('SidebarBtn').style.display = "none";
   }
 }
 
@@ -215,12 +227,11 @@ function toggleMute(event) {
   else {
     doSound = doSound == 0 ? 1 : 0;
   }
-  document.getElementById("mute").innerText
-    = doSound == 0 ? 'unmute' : ' mute ';
+  document.getElementById("mute").innerText =
+    doSound == 0 ? 'unmute' : ' mute ';
 }
 
 function flashColors() {
-
   for (let i = 0; i < rgb.length; i++) {
     rgb[i] = triggered ? trgcol[i] : hitcol[i];
     txtcol[i] = whiteOnColor ? 0 : 255;
@@ -251,12 +262,24 @@ function playStroke(quiet) {
 }
 
 function keyReleased() {
-  if (key == ' ') clearTimeout(tid);
-  if (key == 't') {
+  if (key == ' ') {
+    if (tid) {
+      clearTimeout(tid);
+      tid = 0;
+    }
+    else {
+      next();
+    }
+  }
+
+  if (key == 'T') {
+    console.log('Manual trigger');
+    util.toggleLang();
     triggered = true;
     flashColors();
     playStroke(true);
     playBell();
+    triggered = false;
   }
 }
 
@@ -269,32 +292,24 @@ function repairCanvas() {
   canvas.width = sw;
   canvas.height = sh;
   pixelDensity(1);
-
-  if(isRetina()) {
+  if (isRetina()) {
     // display at original width for retina
-    $('#defaultCanvas0').css("width", sw/window.devicePixelRatio + "px");
-    $('#defaultCanvas0').css("height", sh/window.devicePixelRatio + "px");
-    console.log("Display Size:", $('#defaultCanvas0').width(),$('#defaultCanvas0').height())
+    $('#defaultCanvas0').css("width", sw / window.devicePixelRatio + "px");
+    $('#defaultCanvas0').css("height", sh / window.devicePixelRatio + "px");
+    //console.log("Display Size:", $('#defaultCanvas0').width(), $('#defaultCanvas0').height())
   }
 }
 
+let lerpFactor = 0.05;
 function adjustColor() {
-
-  if (!rgb) {
-    rgb = [0, 0, 0];
-    for (let i = 0; i < rgb.length; i++) {
-      rgb[i] = bgcol[i];
-    }
-  }
   for (let i = 0; i < rgb.length; i++) {
-    if (rgb[i] != bgcol[i]) rgb[i] = lerp(rgb[i], bgcol[i], .05);
+    if (rgb[i] != bgcol[i]) rgb[i] = lerp(rgb[i], bgcol[i], lerpFactor);
     if (whiteOnColor && txtcol[i] < 255) txtcol[i] += 10;
     if (!whiteOnColor && txtcol[i] > -1) txtcol[i] -= 10;
   }
 }
 
 function drawNav() {
-
   fill(200);
   noStroke();
   for (let i = 0; i < 3; i++) {
@@ -326,8 +341,10 @@ let steps = 1, triggered = 0, navOpen = false;
 let initalResize = false, border = 10, memt = -15;
 
 // let bgcol = [114, 175, 215]; // [137, 172, 198]
-let bgcol = [255,255,255];
+let bgcol = [255, 255, 255];
 let hitcol = [76, 87, 96];
 let txtcol = [0, 0, 0];
 let trgcol = [150, 0, 0];
 let rgb = [0, 0, 0];
+
+const RETINA_CHECK = 'only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 2.6/2), only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen  and (min-device-pixel-ratio: 1.3), only screen and (min-resolution: 1.3dppx)");'

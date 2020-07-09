@@ -22,7 +22,7 @@ function compileWordDict(dict) {
       if (w.length === 2) {
         let def = data[w];
         if (validateWordDef(w, def)) {
-          dict[lang][w] = def;
+          dict[lang][w] = def.replace(/ +/g, ' ');
         }
         else {
           misses[lang][w] = def;
@@ -81,7 +81,7 @@ function validateCharDef(w, stats) {
     //console.log(w, tmp + '\n  ->3 ' + cdefs[w]);
   }
 
-  return def;
+  return def.replace(/ +/g, ' ');
 }
 
 function validateWordDef(w, def) {

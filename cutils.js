@@ -159,10 +159,10 @@ class CharUtils {
       ('no ' + (lang || this.lang) + '. word for: ' + literal);
     return words[literal];
   }
-
+  
   definition(literal, lang) {
     let words = this.currentWords(lang);
-    return words[literal] ? words[literal] : '---';
+    return words[literal] ? words[literal].definition : '---';
   }
 
   currentWords(lang) {
