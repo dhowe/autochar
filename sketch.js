@@ -1,10 +1,10 @@
 
 
-// NEXT:  
+// NEXT:
 //   investigate missing word in trigger transitions
 //   hold on trigger words
 //   intro window should disappear after 10 seconds
-// 
+//
 //   make currentWords() into variable?
 //
 function preload() {
@@ -56,12 +56,14 @@ function drawDefs() {
     map(timer / changeMs, .8, 0, 0, 255) : 0;
   let def = typer.word.definition || '';
   fill(txtcol[0], txtcol[1], txtcol[2], defAlpha);
-  text(def.toUpperCase(), width / 2, 2.4 * defSz);
+  // lowercase if simplified Chinese
+  text(util.lang === "simp" ? def : def.toUpperCase(), width / 2, 2.4 * defSz);
+
   if (charDefs) {
     textSize(defSz * .5);
     fill(txtcol[0], txtcol[1], txtcol[2]);
-    text(typer.word.characters[0].definition.toUpperCase(), width * .25, height - 2 * defSz);
-    text(typer.word.characters[1].definition.toUpperCase(), width * .75, height - 2 * defSz);
+    text(util.lang === "simp" ? typer.word.characters[0].definition : typer.word.characters[0].definition.toUpperCase(), width * .25, height - 2 * defSz);
+    text(util.lang === "simp" ? typer.word.characters[1].definition : typer.word.characters[1].definition.toUpperCase(), width * .75, height - 2 * defSz);
     timer = changeMs - (millis() - changeTs);
   }
 }
@@ -95,6 +97,10 @@ function drawWord(word) {
   }
 }
 
+function isRetina(){
+    var mq = window.matchMedia("only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 2.6/2), only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen  and (min-device-pixel-ratio: 1.3), only screen and (min-resolution: 1.3dppx)");
+    return mq && mq.matches || window.devicePixelRatio > 1;
+}
 // computes size and position of canvas after resize (xo, yo, sw, sh)
 // and size of en-translation font (defSz) and scaling of characters (scayl)
 function updateSize() {
@@ -108,8 +114,16 @@ function updateSize() {
     sw = Math.round(w - border * 2);
     sh = Math.round(sw * (aspectH / aspectW));
   }
+
   xo = (w - sw) / 2;
   yo = (h - sh) / 2;
+
+  // retina/ high dpi
+  if(isRetina()) {
+    console.log("Retina:", window.devicePixelRatio);
+    sw = sw * window.devicePixelRatio;
+    sh = sh * window.devicePixelRatio;
+  }
 
   // strange constants
   defSz = sh / 18;
@@ -117,8 +131,8 @@ function updateSize() {
 
   // resize/position canvas
   resizeCanvas(sw, sh, true);
-  cnv.position(xo, yo);
 
+  cnv.position(xo, yo);
   console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
 }
 
@@ -155,7 +169,7 @@ function onAction(nextWord) {
     playStroke();
   }
   strokeIdx++;
-  
+
 /*   console.log('onAction: stroke' + (nextWord ? 0 : (strokeCount
      - strokeIdx)), Math.round((timer / changeMs) * 100) / 100); */
 }
@@ -255,6 +269,13 @@ function repairCanvas() {
   canvas.width = sw;
   canvas.height = sh;
   pixelDensity(1);
+
+  if(isRetina()) {
+    // display at original width for retina
+    $('#defaultCanvas0').css("width", sw/window.devicePixelRatio + "px");
+    $('#defaultCanvas0').css("height", sh/window.devicePixelRatio + "px");
+    console.log("Display Size:", $('#defaultCanvas0').width(),$('#defaultCanvas0').height())
+  }
 }
 
 function adjustColor() {
@@ -304,7 +325,8 @@ let strokeDelay, strokeDelayMax = 1000, strokeDelayMin = 200;
 let steps = 1, triggered = 0, navOpen = false;
 let initalResize = false, border = 10, memt = -15;
 
-let bgcol = [114, 175, 215]; // [137, 172, 198]
+// let bgcol = [114, 175, 215]; // [137, 172, 198]
+let bgcol = [255,255,255];
 let hitcol = [76, 87, 96];
 let txtcol = [0, 0, 0];
 let trgcol = [150, 0, 0];
