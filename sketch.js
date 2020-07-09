@@ -1,10 +1,10 @@
 
 
-// NEXT:  
+// NEXT:
 //   investigate missing word in trigger transitions
 //   hold on trigger words
 //   intro window should disappear after 10 seconds
-// 
+//
 //   make currentWords() into variable?
 //
 function preload() {
@@ -56,12 +56,14 @@ function drawDefs() {
     map(timer / changeMs, .8, 0, 0, 255) : 0;
   let def = typer.word.definition || '';
   fill(txtcol[0], txtcol[1], txtcol[2], defAlpha);
-  text(def.toUpperCase(), width / 2, 2.4 * defSz);
+  // lowercase if simplified Chinese
+  text(util.lang === "simp" ? def : def.toUpperCase(), width / 2, 2.4 * defSz);
+
   if (charDefs) {
     textSize(defSz * .5);
     fill(txtcol[0], txtcol[1], txtcol[2]);
-    text(typer.word.characters[0].definition.toUpperCase(), width * .25, height - 2 * defSz);
-    text(typer.word.characters[1].definition.toUpperCase(), width * .75, height - 2 * defSz);
+    text(util.lang === "simp" ? typer.word.characters[0].definition : typer.word.characters[0].definition.toUpperCase(), width * .25, height - 2 * defSz);
+    text(util.lang === "simp" ? typer.word.characters[1].definition : typer.word.characters[1].definition.toUpperCase(), width * .75, height - 2 * defSz);
     timer = changeMs - (millis() - changeTs);
   }
 }
@@ -155,7 +157,7 @@ function onAction(nextWord) {
     playStroke();
   }
   strokeIdx++;
-  
+
 /*   console.log('onAction: stroke' + (nextWord ? 0 : (strokeCount
      - strokeIdx)), Math.round((timer / changeMs) * 100) / 100); */
 }
@@ -304,7 +306,8 @@ let strokeDelay, strokeDelayMax = 1000, strokeDelayMin = 200;
 let steps = 1, triggered = 0, navOpen = false;
 let initalResize = false, border = 10, memt = -15;
 
-let bgcol = [114, 175, 215]; // [137, 172, 198]
+// let bgcol = [114, 175, 215]; // [137, 172, 198]
+let bgcol = [255,255,255];
 let hitcol = [76, 87, 96];
 let txtcol = [0, 0, 0];
 let trgcol = [150, 0, 0];
