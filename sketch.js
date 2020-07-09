@@ -3,7 +3,7 @@
 // NEXT:
 //   hold on trigger words or try flag
 //   slow down strokes
-//   remake list of trigger words 
+//   remake list of trigger words
 //   check that definitions cannot repeat
 function preload() {
 
@@ -216,6 +216,7 @@ function startSketch() {
     firstRun = false;
     $('#about').removeClass("beforeLoaded");
     $.modal.close();
+    $('#startButton').hide();
   }
 }
 
