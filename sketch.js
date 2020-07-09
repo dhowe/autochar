@@ -4,7 +4,7 @@
 //   hold on trigger words or try flag
 //   slow down strokes
 //   remake list of trigger words 
-//   check that definitions cannot repeat *** 
+//   check that definitions cannot repeat
 function preload() {
 
   bell = new Tone.Player("res/chime.wav").toMaster();
@@ -20,7 +20,6 @@ function setup() {
   textFont('Georgia');
   cnv = createCanvas(800, 600);
   noLoop();  // don't start yet
-  startSketch()
 }
 
 function draw() {
