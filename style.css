@@ -171,8 +171,7 @@ a {
   max-width: 320px;
 }
 #p5_loading + #startButton {
-  color:grey;
-  border-color: grey;
+  display: none;
 }
 #startButton {
   position:relative;
