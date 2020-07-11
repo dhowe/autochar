@@ -1,7 +1,7 @@
 
 
 // NEXT:
-//   hold on trigger words or try flag
+//   hold on trigger words
 //   slow down strokes?
 
 function preload() {
@@ -31,7 +31,7 @@ function draw() {
     util = new CharUtils(chars, defs, Levenshtein);
     typer = new Autochar(util, onAction, onNewTarget);
     word = typer.word.literal;
-    console.log(window.location.hostname);
+    host = window.location.hostname;
     console.log("1) [ ] -> " + word);
     return next();
   }
@@ -124,7 +124,6 @@ function updateSize() {
 
   // retina/ high dpi
   if (isRetina()) {
-    //console.log("Retina:", window.devicePixelRatio);
     sw = sw * window.devicePixelRatio;
     sh = sh * window.devicePixelRatio;
   }
@@ -215,8 +214,8 @@ function startSketch() {
     doSound = true;
     firstRun = false;
     $('#about').removeClass("beforeLoaded");
-    $.modal.close();
     $('#startButton').hide();
+    $.modal.close();
   }
 }
 
@@ -257,11 +256,14 @@ function playStroke(quiet) {
   if (doSound) {
     strk.playbackRate = random(.5, .7);
     strk.volume.value = quiet ? -24 : -12;
-    strk.restart(undefined, 0, random(.05, .1)); //.05, 0.1));
+    strk.restart(undefined, 0, random(.05, .1));
   }
 }
 
 function keyReleased() {
+
+  // no key commands on live site
+  if (host === 'rednoise.org') return;
   if (key == ' ') {
     if (tid) {
       clearTimeout(tid);
@@ -341,7 +343,7 @@ let scayl = 1, aspectW = 4.3, aspectH = 3, whiteOnColor = false;
 
 let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
 let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
-let steps = 1, triggered = 0, navOpen = false;
+let steps = 1, triggered = 0, navOpen = false, host;
 let initalResize = false, border = 10, memt = -15;
 
 // let bgcol = [114, 175, 215]; // [137, 172, 198]
