@@ -4,7 +4,7 @@
 //   hold on trigger words or try flag
 //   slow down strokes
 //   remake list of trigger words
-//   check that definitions cannot repeat
+
 function preload() {
 
   bell = new Tone.Player("res/chime.wav").toMaster();
@@ -33,8 +33,7 @@ function draw() {
     typer = new Autochar(util, onAction, onNewTarget);
     word = typer.word.literal;
     console.log("1) [ ] -> " + word);
-    next();
-    return;
+    return next();
   }
 
   adjustColor();
@@ -68,6 +67,7 @@ function drawDefs() {
     text(util.lang === "trad" ? def0 : def0.toUpperCase(), width * .25, height - 2 * defSz);
     text(util.lang === "trad" ? def1 : def1.toUpperCase(), width * .75, height - 2 * defSz);
   }
+
   timer = changeMs - (millis() - changeTs);
 }
 
@@ -153,8 +153,8 @@ function onNewTarget(nextWord, med, numStrokes, trigger) {
   timer = changeMs;
   let chars = nextWord.characters;
   console.log(++steps + ') ' + word + " -> " + nextWord.literal,
-    med, "'" + nextWord.definition + "' (" + chars[0].definition
-    + ' / ' + chars[1].definition + ') [' + util.lang + ']');
+    med + util.lang.substring(0, 1), "'" + nextWord.definition
+    + "' (" + chars[0].definition + ' :: ' + chars[1].definition + ')');
 }
 
 function onAction(nextWord) {
@@ -336,7 +336,7 @@ let timer = 0, strokeCount = 0, firstRun = true, chars, defs;
 let scayl = 1, aspectW = 4.3, aspectH = 3, whiteOnColor = false;
 
 let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
-let strokeDelay, strokeDelayMax = 1000, strokeDelayMin = 200;
+let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
 let steps = 1, triggered = 0, navOpen = false;
 let initalResize = false, border = 10, memt = -15;
 

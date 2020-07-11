@@ -1,11 +1,6 @@
-// TODO: avoid words with same definition
-
 if (typeof module != 'undefined' && process.versions.hasOwnProperty('electron')) {
-  //Tone = require("Tone");
   Tone = require("./node_modules/tone/build/Tone.min.js");
 }
-
-const FORCE_CHARACTER = false; // '和諧';
 
 const REPLACE_ERASE = 0;
 const REPLACE_STROKE = 1;
@@ -32,7 +27,7 @@ class Autochar {
     this.onNewTargetCallback = onNewTargetCallback;
 
     this.word = util.randWord();
-    //this.word = util.getWord('蘇菲');
+    //this.word = util.getWord('贡献', true);
     this.memory = new util.HistQ(10);
     this.memory.add(this.word.literal);
 
@@ -61,39 +56,42 @@ class Autochar {
 
   candidates(minAllowed) {
 
-    let opts = [], filtering = true;
-    let minMed = minAllowed || 1;
+    let cands = [], filtering = true;
+    let minMed = minAllowed || 1, dbug = 0;
 
+    // what is going on here?
     let rightSideFail = this.rightStatics > this.memory.size();
     let leftSideFail = this.leftStatics > this.memory.size();
 
-    while (!opts || !opts.length) {
+    while (!cands || !cands.length) {
 
-      opts = this.util.bestEditDistance(this.word.literal, { memory: this.memory, minMed });
+      cands = this.util.bestEditDistance(this.word.literal, { history: this.memory, minMed });
 
-      if (!opts || !opts.length) throw Error('Died on ' + this.word.literal, this.word);
+      if (!cands || !cands.length) throw Error('Died on ' + this.word.literal, this.word);
 
       // filter based on word definition
       if (filtering) {
         let memDefs = this.memory.q.map(c => this.util.definition(c));
-        opts = opts.filter(c => !memDefs.includes(this.util.definition(c)));
+        cands = cands.filter(c => {
+          let def = this.util.definition(c);
+          if (dbug && memDefs.includes(def)) console.log('[FILTER]', c + '/' + def);
+          return !memDefs.includes(this.util.definition(c))
+        });
       }
-      //console.log('filtered ' + opts);
 
-      if (!opts.length) {
-
+      if (!cands.length) {
         minMed++;
-        if (filtering && minMed > 2) {
+        if (filtering && minMed > 3) {
           minMed = 1; // try without filter
-          //console.warn('[RELAX] minMed= 1, *disable-filter*');
+          dbug && console.warn('[RELAX] minMed= 1, *disable-filter*');
           filtering = false;
         }
- /*        else {
-          console.warn('[RELAX] minMed=' + minMed, (filtering ? '' : ' *no-filter*'));
-        } */
+        else {
+          dbug && console.warn('[RELAX] minMed=' + minMed,
+            (filtering ? '' : ' *no-filter*'));
+        }
         continue;
       }
-
 
       // alternate characters when possible
       if (!rightSideFail && !leftSideFail) {
@@ -101,46 +99,45 @@ class Autochar {
           let ideals = [];
           let justChanged = this.word.literal[this.targetCharIdx];
           //console.log('justChanged', justChanged);
-          for (let i = 0; i < opts.length; i++) {
-            if (opts[i][this.targetCharIdx] === justChanged) {
-              ideals.push(opts[i]);
+          for (let i = 0; i < cands.length; i++) {
+            if (cands[i][this.targetCharIdx] === justChanged) {
+              ideals.push(cands[i]);
             }
           }
-          if (ideals.length) opts = ideals;
+          if (ideals.length) cands = ideals;
         }
       }
       else {
         let repairs = [];
         if (rightSideFail) {
-          console.error('!!! VIOLATION(R) ' + this.word.literal);
-          for (let i = 0; i < opts.length; i++) {
-            if (opts[i][1] !== this.word.literal[1]) {
-              repairs.push(opts[i]);
+          console.warn('violation(r) ' + this.word.literal);
+          for (let i = 0; i < cands.length; i++) {
+            if (cands[i][1] !== this.word.literal[1]) {
+              repairs.push(cands[i]);
             }
           }
-          console.log('repairs: ' + repairs);
         }
         else if (leftSideFail) {
-          console.error('!!! VIOLATION(L) ' + this.word.literal);
-          for (let i = 0; i < opts.length; i++) {
-            if (opts[i][0] !== this.word.literal[0]) {
-              repairs.push(opts[i]);
+          console.warn('violation(l) ' + this.word.literal);
+          for (let i = 0; i < cands.length; i++) {
+            if (cands[i][0] !== this.word.literal[0]) {
+              repairs.push(cands[i]);
             }
           }
-          console.log('repairs: ' + repairs);
         }
         if (repairs.length) {
-          opts = repairs;
+          console.log('repairs: ' + repairs);
+          cands = repairs;
         }
         else {
           minMed++;
-          opts = undefined;
-          console.log('Failed to find repair: incrementing MED to ' + minMed);
+          cands = undefined;
+          console.log('No repair: incrementing MED to ' + minMed);
         }
       }
     }
 
-    return opts;
+    return cands;
   }
 
   isTrigger(cand) {
@@ -152,20 +149,21 @@ class Autochar {
       }
     }
     trigger && console.log('*** Trigger: "' + trigger + '" in "' + cand
-      + '" -> ' + (this.util.lang === 'simp' ? 'trad' : 'simp'), util.definition(cand));
+      + '" -> ' + (this.util.lang === 'simp' ? 'trad' : 'simp'),
+      "'" + util.definition(cand) + "'");
     return trigger;
   }
 
   pickNextTarget() {
 
     //console.log('pickNextTarget() trigger: ' + (this.memory.peek() === 'trigger'));
-    
+
     // get candidates with lowest MED
     let result, opts = this.candidates();
 
     // select any trigger words if we have them
     let triggered = false;
-    if (useTriggers) {//&& !this.memory.contains('trigger')) {
+    if (useTriggers && !this.memory.contains('trigger')) {
       let startIdx = (Math.random() * opts.length) << 0;
       for (let i = startIdx; i < opts.length + startIdx; i++) {
         let cand = opts[i % opts.length];
@@ -181,8 +179,6 @@ class Autochar {
     // we have a good candidate or we fall back to random one
     result = result || this.util.getWord(opts[(Math.random() * opts.length) << 0]);
 
-    //FORCE_CHARACTER && (result = this.util.getWord('和諧'));
-
     // check neither character has stayed the same for too long
     this.rightStatics = result.literal[1] === this.word.literal[1] ? this.rightStatics + 1 : 0;
     this.leftStatics = result.literal[0] === this.word.literal[0] ? this.leftStatics + 1 : 0;
@@ -192,7 +188,7 @@ class Autochar {
     this.memory.add(result.literal);
     this.target = result;
 
-    // if its a trigger word, swap languages
+    // if its a trigger word, swap languages and mark it
     if (triggered) {
       this.util.toggleLang();
       this.memory.add('trigger');

@@ -153,16 +153,20 @@ class CharUtils {
     return new Word(literal, chars, defs[literal]);
   }
 
-  getWord(literal, lang, noThrow) {
-    let words = this.currentWords(lang);
-    if (!words[literal] && !noThrow) throw Error
-      ('no ' + (lang || this.lang) + '. word for: ' + literal);
-    return words[literal];
+  getWord(literal, angostic) {
+    let res = this.wordCache[this.lang][literal];
+    if (!res) {
+      if (angostic) res = this.wordCache[this.invertLang()][literal];
+      if (!res) throw Error('no ' + this.lang 
+        + '. word for: ' + literal, 'angostic='+angostic);
+    }
+    return res;
   }
-  
+
   definition(literal, lang) {
-    let words = this.currentWords(lang);
-    return words[literal] ? words[literal].definition : '---';
+    let word = this.wordCache[this.lang][literal];
+    if (!word) word = this.wordCache[this.invertLang()][literal];
+    return word && word.definition || '---';
   }
 
   currentWords(lang) {

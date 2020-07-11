@@ -8,3 +8,5 @@ This project uses code & data from these excellent projects:
 * [Tone.js](https://github.com/Tonejs/Tone.js/)
 * [p5.js](https://github.com/processing/p5.js)
 * [fast-levenshtein](https://github.com/hiddentao/fast-levenshtein)
+
+Special thanks to Diane To and Qianxun Chen
