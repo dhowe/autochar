@@ -2,8 +2,7 @@
 
 // NEXT:
 //   hold on trigger words or try flag
-//   slow down strokes
-//   remake list of trigger words
+//   slow down strokes?
 
 function preload() {
 
