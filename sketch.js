@@ -17,7 +17,7 @@ function setup() {
 
   frameRate(30);
   textFont('Georgia');
-  cnv = createCanvas(800, 600);
+  cnv = createCanvas(800, 600)
   noLoop();  // don't start yet
 }
 
@@ -31,6 +31,7 @@ function draw() {
     util = new CharUtils(chars, defs, Levenshtein);
     typer = new Autochar(util, onAction, onNewTarget);
     word = typer.word.literal;
+    console.log(window.location.hostname);
     console.log("1) [ ] -> " + word);
     return next();
   }
@@ -269,6 +270,10 @@ function keyReleased() {
     else {
       next();
     }
+  }
+  if (key == 'D') {
+    showDefs = !showDefs;
+    charDefs = !charDefs;
   }
 
   if (key == 'T') {
