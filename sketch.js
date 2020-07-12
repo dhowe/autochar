@@ -267,7 +267,7 @@ function playStroke(quiet) {
 function keyReleased() {
 
   // no key commands on live site
-  if (host === 'rednoise.org') return;
+  //if (host === 'rednoise.org') return;
   
   if (key == ' ') {
     if (tid) {
