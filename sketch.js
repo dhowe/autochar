@@ -187,12 +187,14 @@ function next() {
 }
 
 function mouseClicked() {
+  if ($('#p5_loading').length > 0) return;
+
   if ($('#about').is(':visible')) {
     $.modal.close();
   } else if (showNav && mouseX < 40 && mouseY < 40) {
     $('#about').modal();
   }
-  if ($('#p5_loading').is(':not(:visible)') && firstRun) {
+  if (firstRun) {
     loop(); // run sketch
     doSound = true;
     firstRun = false;
