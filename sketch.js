@@ -192,7 +192,7 @@ function mouseClicked() {
   } else if (showNav && mouseX < 40 && mouseY < 40) {
     $('#about').modal();
   }
-  if (firstRun) {
+  if ($('#p5_loading').is(':not(:visible)') && firstRun) {
     loop(); // run sketch
     doSound = true;
     firstRun = false;
@@ -202,28 +202,28 @@ function mouseClicked() {
   }
 }
 
-function mouseClickedX() {
+// function mouseClickedX() {
+//
+//   if ($('#about').is(':visible')) {
+//     $.modal.close();
+//   } else if (showNav && mouseX < 40 && mouseY < 40) {
+//     $('#about').modal();
+//   }
+//   if ($('#p5_loading').is(':not(:visible)')) {
+//     startSketch();
+//   }
+// }
 
-  if ($('#about').is(':visible')) {
-    $.modal.close();
-  } else if (showNav && mouseX < 40 && mouseY < 40) {
-    $('#about').modal();
-  }
-  if ($('#p5_loading').is(':not(:visible)')) {
-    startSketch();
-  }
-}
-
-function startSketch() {
-  if (firstRun) {
-    loop();
-    doSound = true;
-    firstRun = false;
-    $('#about').removeClass("beforeLoaded");
-    $('#startButton').hide();
-    $.modal.close();
-  }
-}
+// function startSketch() {
+//   if (firstRun) {
+//     loop();
+//     doSound = true;
+//     firstRun = false;
+//     $('#about').removeClass("beforeLoaded");
+//     $('#startButton').hide();
+//     $.modal.close();
+//   }
+// }
 
 function toggleMute(event) {
   if (typeof event === 'boolean') {
