@@ -209,7 +209,9 @@ function mouseClickedX() {
   } else if (showNav && mouseX < 40 && mouseY < 40) {
     $('#about').modal();
   }
-  startSketch();
+  if ($('#p5_loading').is(':not(:visible)')) {
+    startSketch();
+  }
 }
 
 function startSketch() {
@@ -268,7 +270,7 @@ function keyReleased() {
 
   // no key commands on live site
   //if (host === 'rednoise.org') return;
-  
+
   if (key == ' ') {
     if (tid) {
       clearTimeout(tid);
