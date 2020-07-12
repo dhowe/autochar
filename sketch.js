@@ -186,7 +186,7 @@ function next() {
   }
 }
 
-function mouseClickedX() {
+function mouseClicked() {
   if ($('#about').is(':visible')) {
     $.modal.close();
   } else if (showNav && mouseX < 40 && mouseY < 40) {
@@ -197,10 +197,12 @@ function mouseClickedX() {
     doSound = true;
     firstRun = false;
     $('#about').removeClass("beforeLoaded");
+    $('#startButton').hide();
+    $.modal.close();
   }
 }
 
-function mouseClicked() {
+function mouseClickedX() {
 
   if ($('#about').is(':visible')) {
     $.modal.close();
@@ -266,6 +268,7 @@ function keyReleased() {
 
   // no key commands on live site
   if (host === 'rednoise.org') return;
+  
   if (key == ' ') {
     if (tid) {
       clearTimeout(tid);
