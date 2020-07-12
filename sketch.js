@@ -10,7 +10,11 @@ function preload() {
   strk = new Tone.Player("res/strk.wav").toMaster();
   chars = loadJSON('chardata.json');
   defs = loadJSON('definitions.json');
-  $('#about').modal(); // show info on load
+  $('#about').modal({
+  escapeClose: false,
+  clickClose: false,
+  showClose: false
+}); // disable auto close
 }
 
 function setup() {
