@@ -32,7 +32,6 @@ function draw() {
     typer = new Autochar(util, onAction, onNewTarget);
     word = typer.word.literal;
     host = window.location.hostname;
-    console.log("1) [ ] -> " + word);
     return next();
   }
 
@@ -154,7 +153,7 @@ function onNewTarget(nextWord, med, numStrokes, trigger) {
   changeTs = millis();
   timer = changeMs;
   let chars = nextWord.characters;
-  console.log(++steps + ') ' + word + " -> " + nextWord.literal,
+  console.log((steps++) + ') ' + word + " -> " + nextWord.literal,
     med + util.lang.substring(0, 1), "'" + nextWord.definition
     + "' (" + chars[0].definition + ' :: ' + chars[1].definition + ')');
 }
