@@ -111,7 +111,7 @@ function appendTriggers(dict) {
       // modify the definition?
       log && console.log(t + '\t' + trad[t] + (triggers[t] ? ' OR ' + triggers[t] : ''), '[trad]');
       result.push(t)
-      data[t] = { def: trad[t] + (triggers[t] && trad[t].toLowerCase() !== triggers[t].toLowerCase() ? ' OR ' + triggers[t] : ''), lang: 'trad'}
+      data[t] = { def: trad[t] + (triggers[t] && trad[t].toLowerCase() !== triggers[t].toLowerCase() ? ' OR ' + triggers[t] : ''), lang: 'trad' }
     }
     else if (dict.simp[t]) {
       // modify the definition?
@@ -119,21 +119,21 @@ function appendTriggers(dict) {
       data[t] = { def: simp[t] + (triggers[t] && simp[t].toLowerCase() !== triggers[t].toLowerCase() ? ' OR ' + triggers[t] : ''), lang: 'simp' }
       result.push(t);
     }
-    else {
+    /*else {
       // def doesn't exist, but chars do
       if (cdata[t[0]] && cdata[t[1]]) {
 
-        /*       if (triggers[t]) {
-                dict[trad][t] = triggers[t];
-                dict[simp][t] = triggers[t];
-              } */
+          if (triggers[t]) {
+            dict[trad][t] = triggers[t];
+            dict[simp][t] = triggers[t];
+          } 
 
         // so lets add to both dictionaries (?)
         log && console.log(t + '\t' + (triggers[t] || '???'), '[simp/trad]');
         //data[t] = { def: (triggers[t] || '???'), lang: 'simp/trad' }
         result.push(t);
       }
-    }
+    }*/
   });
   return data;
 }
@@ -141,11 +141,11 @@ function appendTriggers(dict) {
 
 let defs = { simp: {}, trad: {}, chars: {} };
 compileWordDict(defs);
-let res = appendTriggers(defs);
+/* let res = appendTriggers(defs);
 console.log('\nFound ' + Object.keys(res).length + ' possible triggers\n');
-let name = 'for-di.json';
+let name = 'trig.json';
 fs.writeFileSync(name, JSON.stringify(res, 0, 2));
-return;
+return; */
 addCharDefs(defs);
 let paths = prunePathData(defs);
 

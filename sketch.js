@@ -85,6 +85,7 @@ function drawWord(word) {
     // draw each path of the character
     push();
     fill(txtcol);
+    //stroke(255);
     for (let j = 0; j < chr.paths.length; j++) {
       for (let i = 0; i < chr.paths[j].length; i++) {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -92,7 +93,9 @@ function drawWord(word) {
         ctx.translate(xoff, yoff);
         if (chr.parts[j] >= i) {
           ctx.scale(scayl, scayl);
+          ctx.lineWidth = 5;
           ctx.fill(chr.paths[j][i]);
+          ctx.stroke(chr.paths[j][i]);
         }
       }
     }
@@ -310,7 +313,7 @@ let lerpFactor = 0.05;
 function adjustColor() {
   for (let i = 0; i < rgb.length; i++) {
     if (rgb[i] != bgcol[i]) rgb[i] = lerp(rgb[i], bgcol[i], lerpFactor);
-    if (whiteOnColor && txtcol[i] < 255) txtcol[i] += 10;
+    //if (whiteOnColor && txtcol[i] < 255) txtcol[i] += 10;
     if (!whiteOnColor && txtcol[i] > -1) txtcol[i] -= 10;
   }
 }
