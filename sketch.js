@@ -2,7 +2,7 @@
 
 // NEXT:
 //   hold on trigger words
-//   slow down strokes?
+//   handle long-loops (more indeterminism)
 
 function preload() {
 
