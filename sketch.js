@@ -10,6 +10,7 @@ function preload() {
   strk = new Tone.Player("res/strk.wav").toMaster();
   chars = loadJSON('chardata.json');
   defs = loadJSON('definitions.json');
+  img = loadImage('flag.jpg');
   $('#about').modal({
     escapeClose: false,
     clickClose: false,
@@ -36,6 +37,7 @@ function draw() {
     typer = new Autochar(util, onAction, onNewTarget);
     word = typer.word.literal;
     host = window.location.hostname;
+
     return next();
   }
 
@@ -45,6 +47,8 @@ function draw() {
   showDefs && drawDefs();
   doPerf && logPerf();
   showNav && drawNav();
+  tint(255, imageAlpha);
+  image(img, 0, 0, sw, sh);
 }
 
 function drawDefs() {
@@ -244,8 +248,10 @@ function toggleMute(event) {
 
 function flashColors() {
   for (let i = 0; i < rgb.length; i++) {
-    rgb[i] = triggered ? trgcol[i] : hitcol[i];
+    rgb[i] = hitcol[i];
+    // rgb[i] = triggered ? trgcol[i] : hitcol[i];
     txtcol[i] = whiteOnColor ? 0 : 255;
+    imageAlpha = triggered ? 255 : 0;
   }
 }
 
@@ -325,6 +331,7 @@ function adjustColor() {
     if (rgb[i] != bgcol[i]) rgb[i] = lerp(rgb[i], bgcol[i], lerpFactor);
     //if (whiteOnColor && txtcol[i] < 255) txtcol[i] += 10;
     if (!whiteOnColor && txtcol[i] > -1) txtcol[i] -= 10;
+    if(imageAlpha != 0 ) imageAlpha = lerp(imageAlpha, 0, lerpFactor);
   }
 }
 
@@ -358,7 +365,7 @@ let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
 let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
 let steps = 1, triggered = 0, navOpen = false, host;
 let initalResize = false, border = 10, memt = -15;
-
+let imageAlpha = 0;
 // let bgcol = [114, 175, 215]; // [137, 172, 198]
 let bgcol = [255, 255, 255];
 let hitcol = [76, 87, 96];
