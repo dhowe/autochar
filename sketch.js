@@ -11,10 +11,10 @@ function preload() {
   chars = loadJSON('chardata.json');
   defs = loadJSON('definitions.json');
   $('#about').modal({
-  escapeClose: false,
-  clickClose: false,
-  showClose: false
-}); // disable auto close
+    escapeClose: false,
+    clickClose: false,
+    showClose: false
+  }); // disable auto close
 }
 
 function setup() {
