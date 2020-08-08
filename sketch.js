@@ -248,10 +248,9 @@ function toggleMute(event) {
 
 function flashColors() {
   for (let i = 0; i < rgb.length; i++) {
-    rgb[i] = hitcol[i];
-    // rgb[i] = triggered ? trgcol[i] : hitcol[i];
+    rgb[i] = hkflag ? hitcol[i] : (triggered ? trgcol[i] : hitcol[i]);
     txtcol[i] = whiteOnColor ? 0 : 255;
-    imageAlpha = triggered ? 255 : 0;
+    imageAlpha = hkflag ? (triggered ? 255 : 0) : 0;
   }
 }
 
@@ -365,7 +364,7 @@ let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
 let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
 let steps = 1, triggered = 0, navOpen = false, host;
 let initalResize = false, border = 10, memt = -15;
-let imageAlpha = 0;
+let imageAlpha = 0, hkflag = false;
 // let bgcol = [114, 175, 215]; // [137, 172, 198]
 let bgcol = [255, 255, 255];
 let hitcol = [76, 87, 96];
