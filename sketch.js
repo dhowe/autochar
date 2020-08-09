@@ -10,6 +10,7 @@ function preload() {
   strk = new Tone.Player("res/strk.wav").toMaster();
   chars = loadJSON('chardata.json');
   defs = loadJSON('definitions.json');
+  img = loadImage('flag.png');
   $('#about').modal({
     escapeClose: false,
     clickClose: false,
@@ -39,13 +40,36 @@ function draw() {
     return next();
   }
 
+  if (paused) {
+    console.log("paused");
+    return;
+  }
+
+  if (triggered) {
+    fill(255);
+    rect(0, 0, width, height);
+    triggered = false;
+    paused = true;
+    if (tid) {
+      clearTimeout(tid);
+      tid = 0;
+    }
+    setTimeout(() => {
+      paused = false;
+      next();
+    }, 5000);
+    return;
+  }
+
   adjustColor();
   background(rgb[0], rgb[1], rgb[2]);
   drawWord(typer.word);
   showDefs && drawDefs();
   doPerf && logPerf();
   showNav && drawNav();
+
 }
+let paused = false;
 
 function drawDefs() {
 
@@ -170,7 +194,7 @@ function onAction(nextWord) {
     playStroke(true);
     playBell();
     word = nextWord.literal;
-    triggered = false;
+    //triggered = false;
     //console.log('onAction: '+nextWord.literal);
   }
   else {
@@ -298,7 +322,7 @@ function keyReleased() {
     flashColors();
     playStroke(true);
     playBell();
-    triggered = false;
+    //triggered = false;
   }
 }
 
@@ -346,12 +370,12 @@ function logPerf() {
   }
 }
 
-let doSound = false, doPerf = false, showDefs = true;
+let doSound = false, doPerf = true, showDefs = true;
 let charDefs = true, showNav = true, useTriggers = true;
 
-let cnv, sw, sh, xo, yo, defSz, w, h;
-let bell, conf, word, tid, strk, util, typer;
-let timer = 0, strokeCount = 0, firstRun = true, chars, defs;
+let cnv, sw, sh, xo, yo, defSz, w, h, chars, defs;
+let bell, conf, word, tid, strk, util, typer, img;
+let timer = 0, strokeCount = 0, firstRun = true;
 let scayl = 1, aspectW = 4.3, aspectH = 3, whiteOnColor = false;
 
 let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
