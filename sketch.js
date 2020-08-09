@@ -10,7 +10,7 @@ function preload() {
   strk = new Tone.Player("res/strk.wav").toMaster();
   chars = loadJSON('chardata.json');
   defs = loadJSON('definitions.json');
-  img = loadImage('flag.jpg');
+  img = loadImage('flag.png');
   $('#about').modal({
     escapeClose: false,
     clickClose: false,
