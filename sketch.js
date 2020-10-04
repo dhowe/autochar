@@ -67,9 +67,7 @@ function draw() {
   showDefs && drawDefs();
   doPerf && logPerf();
   showNav && drawNav();
-
 }
-let paused = false;
 
 function drawDefs() {
 
@@ -370,6 +368,7 @@ function logPerf() {
   }
 }
 
+let paused = false;
 let doSound = false, doPerf = true, showDefs = true;
 let charDefs = true, showNav = true, useTriggers = true;
 
