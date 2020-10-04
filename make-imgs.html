@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <script src="lib/p5.min.js"></script>
+  <script>
+    let img;
+    function preload() {
+      img = loadImage('flag800px.png');
+    }
+    function setup() {
+      createCanvas(800, 600);
+    }
+    function draw() {
+      background(255);
+      if (frameCount >= 256) {
+        console.log("done");
+        noLoop();
+      }
+      ++counter;
+      let a = 256 - counter;
+      console.log(a);
+
+      tint(255, a);
+      image(img, 0, 0);
+      save('fflag'+(255-(frameCount-1))+".png");
+    }
+  </script>
+</head>
+
+<body>
+</body>
+
+</html>
