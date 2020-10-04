@@ -178,6 +178,9 @@ class Autochar {
 
     // we have a good candidate or we fall back to random one
     result = result || this.util.getWord(opts[(Math.random() * opts.length) << 0]);
+    
+    // can freeze a single word here for screenshots
+    // result = this.util.getWord("和諧");
 
     // check neither character has stayed the same for too long
     this.rightStatics = result.literal[1] === this.word.literal[1] ? this.rightStatics + 1 : 0;
