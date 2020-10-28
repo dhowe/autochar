@@ -110,7 +110,6 @@ function drawWord(word) {
     // draw each path of the character
     push();
     fill(txtcol);
-    //stroke(255);
     for (let j = 0; j < chr.paths.length; j++) {
       for (let i = 0; i < chr.paths[j].length; i++) {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -230,29 +229,6 @@ function mouseClicked() {
   }
 }
 
-// function mouseClickedX() {
-//
-//   if ($('#about').is(':visible')) {
-//     $.modal.close();
-//   } else if (showNav && mouseX < 40 && mouseY < 40) {
-//     $('#about').modal();
-//   }
-//   if ($('#p5_loading').is(':not(:visible)')) {
-//     startSketch();
-//   }
-// }
-
-// function startSketch() {
-//   if (firstRun) {
-//     loop();
-//     doSound = true;
-//     firstRun = false;
-//     $('#about').removeClass("beforeLoaded");
-//     $('#startButton').hide();
-//     $.modal.close();
-//   }
-// }
-
 function toggleMute(event) {
   if (typeof event === 'boolean') {
     doSound = event ? 0 : 1;
@@ -328,7 +304,6 @@ function keyReleased() {
 function repairCanvas() {
 
   // first hide the html nav button (use the p5 one)
-  //document.getElementById('SidebarBtn').style.display = "none";
   let canvas = document.getElementsByTagName('canvas')[0];
   canvas.width = sw;
   canvas.height = sh;
@@ -337,7 +312,6 @@ function repairCanvas() {
     // display at original width for retina
     $('#defaultCanvas0').css("width", sw / window.devicePixelRatio + "px");
     $('#defaultCanvas0').css("height", sh / window.devicePixelRatio + "px");
-    //console.log("Display Size:", $('#defaultCanvas0').width(), $('#defaultCanvas0').height())
   }
 }
 
@@ -382,7 +356,6 @@ let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
 let steps = 1, triggered = 0, navOpen = false, host;
 let initalResize = false, border = 10, memt = -15;
 
-// let bgcol = [114, 175, 215]; // [137, 172, 198]
 let bgcol = [255, 255, 255];
 let hitcol = [76, 87, 96];
 let txtcol = [0, 0, 0];
