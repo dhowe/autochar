@@ -10,7 +10,6 @@ function preload() {
   strk = new Tone.Player("res/strk.wav").toMaster();
   chars = loadJSON('chardata.json');
   defs = loadJSON('definitions.json');
-  img = loadImage('flag.png');
   $('#about').modal({
     escapeClose: false,
     clickClose: false,
@@ -46,8 +45,10 @@ function draw() {
   }
 
   if (triggered) {
-    fill(255);
+    fill(255,0,0);
     rect(0, 0, width, height);
+    txtcol = [255, 255, 255];
+    drawWord(typer.word, true);
     triggered = false;
     paused = true;
     if (tid) {
@@ -96,7 +97,7 @@ function drawDefs() {
   timer = changeMs - (millis() - changeTs);
 }
 
-function drawWord(word) {
+function drawWord(word, complete) {
 
   // draw each character
   let ctx = this._renderer.drawingContext;
@@ -115,7 +116,7 @@ function drawWord(word) {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.scale(.5, -.5); // mirror-vertically
         ctx.translate(xoff, yoff);
-        if (chr.parts[j] >= i) {
+        if (complete || chr.parts[j] >= i) {
           ctx.scale(scayl, scayl);
           ctx.lineWidth = 5;
           ctx.fill(chr.paths[j][i]);
@@ -315,7 +316,6 @@ function repairCanvas() {
   }
 }
 
-let lerpFactor = 0.05;
 function adjustColor() {
   for (let i = 0; i < rgb.length; i++) {
     if (rgb[i] != bgcol[i]) rgb[i] = lerp(rgb[i], bgcol[i], lerpFactor);
@@ -347,7 +347,7 @@ let doSound = false, doPerf = true, showDefs = true;
 let charDefs = true, showNav = true, useTriggers = true;
 
 let cnv, sw, sh, xo, yo, defSz, w, h, chars, defs;
-let bell, conf, word, tid, strk, util, typer, img;
+let bell, conf, word, tid, strk, util, typer;
 let timer = 0, strokeCount = 0, firstRun = true;
 let scayl = 1, aspectW = 4.3, aspectH = 3, whiteOnColor = false;
 
@@ -355,6 +355,7 @@ let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
 let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
 let steps = 1, triggered = 0, navOpen = false, host;
 let initalResize = false, border = 10, memt = -15;
+let lerpFactor = 0.05;
 
 let bgcol = [255, 255, 255];
 let hitcol = [76, 87, 96];

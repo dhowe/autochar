@@ -153,12 +153,12 @@ class CharUtils {
     return new Word(literal, chars, defs[literal]);
   }
 
-  getWord(literal, angostic) {
+  getWord(literal, agnostic) {
     let res = this.wordCache[this.lang][literal];
     if (!res) {
-      if (angostic) res = this.wordCache[this.invertLang()][literal];
-      if (!res) throw Error('no ' + this.lang 
-        + '. word for: ' + literal, 'angostic='+angostic);
+      if (agnostic) res = this.wordCache[this.invertLang()][literal];
+      if (!res) throw Error('no ' + this.lang
+        + '. word for: ' + literal + (agnostic ? ' agnostic=1' : ''));
     }
     return res;
   }
