@@ -7,7 +7,8 @@ const REPLACE_STROKE = 1;
 const DELETE_ACTION = 2;
 const INSERT_ACTION = 3;
 
-//let FIRST = true;
+let FIRST = true; // tmp-remove
+
 class Autochar {
 
   constructor(util, onActionCallback, onNewTargetCallback) {
@@ -176,11 +177,14 @@ class Autochar {
     result = result || this.util.getWord(opts[(Math.random() * opts.length) << 0]);
     
     // result = this.util.getWord("和諧", true); // freeze word for screenshots
-  /*   if (FIRST) FIRST = false;
+    if (FIRST) FIRST = false;
     else {
-      result = this.util.getWord(WORD_TRIGGERS[(Math.random() * WORD_TRIGGERS.length) << 0]);
-      console.log("FORCE TRIGGER: " + result);
-    } */
+      let tr = WORD_TRIGGERS[(Math.random() * WORD_TRIGGERS.length) << 0];
+      console.log("FORCE TRIGGER1: "+tr);
+      result = this.util.getWord(tr, true);
+      console.log("FORCE TRIGGER2: "+result);
+      triggered = true;
+    }
 
     // increment the count for the character (l/r) staying the same
     this.rightStatics = result.literal[1] === this.word.literal[1] ? this.rightStatics + 1 : 0;
@@ -274,6 +278,8 @@ const WORD_TRIGGERS = ["書記", "笔会", "孟浪", "热点", "溜冰", "維尼
   "請願", "催淚", "謀劃", "謠傳", // on network diagram
   "說謊", "撒謊", "扯謊" // on network diagram (skip?)
 ];
+
+Autochar.WORD_TRIGGERS = WORD_TRIGGERS;
 
 if (typeof module != 'undefined') module.exports = Autochar;
  

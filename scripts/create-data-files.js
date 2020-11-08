@@ -1,5 +1,8 @@
 // to run: $ node scripts/create-data-files
 
+
+// out of sync (must include sens.js)
+
 const fs = require('fs');
 const simp = require('../data/words-simp-orig.json');
 const trad = require('../data/words-trad-orig.json');

@@ -8,7 +8,6 @@ class CharUtils {
     this.HistQ = HistQ; // class 
 
     this.lang = 'trad';
-    //this.defs = defs; // {simp,trad,chars}
     this.silent = silent;
     this.charData = chars; // char-paths
     this.editDist = levenshtein;
@@ -35,9 +34,12 @@ class CharUtils {
             const ch = word[k];
             if (!this.charData[ch]) {
               throw Error('no char-data for ' + ch + ' in ' + word);
+              //console.warn('no char-data for ' + ch + ' in ' + word);
+              return;
             }
             if (!defs.chars[ch]) {
               throw Error('no def entry for ' + ch);
+              //console.warn('no def entry for ' + ch);
             }
             this.charData[ch].definition = defs.chars[ch] || '-';
           }
@@ -72,7 +74,7 @@ class CharUtils {
     let med, meds = [], bestMed = Number.MAX_SAFE_INTEGER;
     let word = this.wordCache[lang][input];
     if (!word) {
-      //console.log('lookup2: ' + input, this.invertLang());
+      // console.log('lookup2: ' + input, this.invertLang());
       word = this.wordCache[this.invertLang()][input];
       if (!word) throw Error('no word for: ' + input);
     }
@@ -175,11 +177,6 @@ class CharUtils {
 
     if (!this.wordCache) throw Error('No word cache');
     if (!this.wordCache[lang]) throw Error('No word cache for ' + lang);
-    //if (!nk(this.wordCache[lang])) 
-    //throw Error('No entries in wordCache[' + lang + ']');
-
-    //return this.defs[this.lang];
-    //console.log(lang, Object.keys(this.wordCache[lang]).length);
     return this.wordCache[lang]; // {simp, trad}
   }
 

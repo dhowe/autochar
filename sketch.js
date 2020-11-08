@@ -45,7 +45,7 @@ function draw() {
   }
 
   if (triggered) {
-    fill(255,0,0);
+    fill(255, 0, 0);
     rect(0, 0, width, height);
     txtcol = [255, 255, 255];
     drawWord(typer.word, true);
