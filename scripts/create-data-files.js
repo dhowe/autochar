@@ -23,7 +23,7 @@ function compileWordDict(dict) {
     Object.keys(data).forEach(w => {
       if (w.length === 2) {
         let def = data[w];
-        if (validateWordDef(w, def)) {
+        if (validateWordDef(w, def, lang)) {
           dict[lang][w] = def.replace(/ +/g, ' ').replace(/ ,/g, ',');
         }
         else {
@@ -86,16 +86,24 @@ function validateCharDef(w, stats) {
   return def.replace(/ +/g, ' ');
 }
 
-function validateWordDef(w, def) {
+function validateWordDef(w, def, lang) {
   if (!cdefs[w[0]] || !cdefs[w[1]]) return false;
-  if (!def
-    || def.length > maxWordDefLen
+  if (!def) return;
+  def = def.replace(/, abbr\. for .+/g,"");
+  def = def.replace(/, also written .+/g, "");
+  if (def.length > maxWordDefLen
     || def.startsWith("-")
     || def.startsWith('see ')
-    || def.includes('variant of')
-    || !/^[A-Za-z ',.()é0-9-]+$/.test(def)) {
+    || def.includes('variant of')) {
+    //|| !/^[A-Za-z ',.()é0-9-]+$/.test(def)) {
+    //console.log("SKIP1(" + lang + "): " + w + ": " + def);
     return false;
   }
+  if (!/^[A-Za-z ',.()é°θàō=√@;’&:ó♥0-9+%āü*-]+$/.test(def)) {
+    if (!/^[A-Z]/.test(def) && !/[?!]$/.test(def))
+      console.log("SKIP2(" + lang + "): " + w + ": " + def);
+    return false;
+  };
   return true;
 }
 
