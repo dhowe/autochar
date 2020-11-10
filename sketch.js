@@ -32,10 +32,10 @@ function draw() {
     updateSize();
     repairCanvas();
     window.onresize = updateSize;
+    host = window.location.hostname;
     util = new CharUtils(chars, defs, Levenshtein);
     typer = new Autochar(util, onAction, onNewTarget);
     word = typer.word.literal;
-    host = window.location.hostname;
     return next();
   }
 
@@ -44,7 +44,7 @@ function draw() {
     return;
   }
 
-  if (triggered) {
+  /* if (triggered) {
     fill(255, 0, 0);
     rect(0, 0, width, height);
     txtcol = [255, 255, 255];
@@ -60,7 +60,7 @@ function draw() {
       next();
     }, 5000);
     return;
-  }
+  } */
 
   adjustColor();
   background(rgb[0], rgb[1], rgb[2]);
@@ -68,6 +68,17 @@ function draw() {
   showDefs && drawDefs();
   doPerf && logPerf();
   showNav && drawNav();
+
+  if (pausePending) {
+    console.log("pausePending: "+millis());
+    paused = true;
+    pausePending = false;
+    clearTimeout(tid);
+    tid = setTimeout(() => {
+      paused = false;
+      next();
+    }, 500);
+  }
 }
 
 function drawDefs() {
@@ -167,10 +178,9 @@ function updateSize() {
   //console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
 }
 
-function onNewTarget(nextWord, med, numStrokes, trigger) {
+function onNewTarget(nextWord, med, numStrokes, isTrigger) {
 
-  //console.log('onTarget', millis(), util.lang, trigger, this.memory);
-  triggered = trigger;
+  triggered = isTrigger;
   strokeCount = numStrokes;
   strokeIdx = 0;
   let nSpeed = min(1, numStrokes / 12);
@@ -178,24 +188,30 @@ function onNewTarget(nextWord, med, numStrokes, trigger) {
   changeMs = strokeDelay * (strokeCount - 1);
   changeTs = millis();
   timer = changeMs;
+  
   let chars = nextWord.characters;
   console.log((steps++) + ') ' + word + " -> " + nextWord.literal,
     med + util.lang.substring(0, 1), "'" + nextWord.definition
-    + "' (" + chars[0].definition + ' :: ' + chars[1].definition + ')');
+  + "' (" + chars[0].definition + ' :: ' + chars[1].definition + ') '+millis());
 }
 
-function onAction(nextWord) {
+let pausePending = false;
 
-  if (nextWord) { // word complete
+function onAction(completedWord) {
+
+  console.log(strokeIdx + " " + typer.target.literal + " "
+    + (completedWord ? '-> ' + completedWord.literal : '') + ' '+millis());
+
+  if (completedWord) { // word complete
     defAlpha = 0;
     flashColors();
     playStroke(true);
     playBell();
-    word = nextWord.literal;
+    word = completedWord.literal;
+    pausePending = true;
     //triggered = false;
-    //console.log('onAction: '+nextWord.literal);
   }
-  else {
+  else {         // just a stroke
     playStroke();
   }
   strokeIdx++;
@@ -204,12 +220,15 @@ function onAction(nextWord) {
 }
 
 function next() {
-  if (typer.step()) {
+  tid = setTimeout(next, typer.step() ? strokeDelay : strokeDelay/50);
+/*   if (typer.step()) {
+    //console.log('step: ' + strokeDelay);
     tid = setTimeout(next, strokeDelay); // drawing
   }
   else {
-    next(); // erasing
-  }
+    tid = setTimeout(next, 100);
+    //next(); // erasing
+  } */
 }
 
 function mouseClicked() {

@@ -7,7 +7,7 @@ const REPLACE_STROKE = 1;
 const DELETE_ACTION = 2;
 const INSERT_ACTION = 3;
 
-let FIRST = true; // tmp-remove
+//let FIRST = true; // tmp-remove
 
 class Autochar {
 
@@ -41,16 +41,16 @@ class Autochar {
   }
 
   step() { // returns the next action to be done
-
-    if (!this.target) {
+    if (!this.target) this.doNext();
+/*     if (!this.target) {
       let isTrigger = this.pickNextTarget();
       //console.log('NEXT: ',isTrigger);
       this.findEditIndices();
       if (this.onNewTargetCallback) {
-        this.onNewTargetCallback(this.target, this.med,
-          this.currentStrokeCount, isTrigger);
+        this.onNewTargetCallback(this.target, 
+          this.med, this.currentStrokeCount, isTrigger);
       }
-    }
+    } */
 
     this.doNextEdit();
     return this.action;
@@ -145,15 +145,15 @@ class Autochar {
   isTrigger(cand) {
     let j, trigger;
     if (WORD_TRIGGERS.includes(cand)) trigger = cand;
-    trigger && console.log('*** Trigger: "' + trigger + '" in "' + cand
-      + '" -> ' + (this.util.lang === 'simp' ? 'trad' : 'simp'),
+    if (trigger) console.log('*** Trigger: "' + trigger + '" in "' 
+      + cand + '" -> ' + (this.util.lang === 'simp' ? 'trad' : 'simp'),
       "'" + util.definition(cand) + "'");
     return trigger;
   }
 
   pickNextTarget() {
 
-    //console.log('pickNextTarget() trigger: ' + (this.memory.peek() === 'trigger'));
+    console.log('pickNextTarget() trigger: ' + (this.memory.peek() === 'trigger'));
     
     // get candidates with lowest MED
     let result, opts = this.candidates();
@@ -177,14 +177,13 @@ class Autochar {
     result = result || this.util.getWord(opts[(Math.random() * opts.length) << 0]);
     
     // result = this.util.getWord("和諧", true); // freeze word for screenshots
-    if (FIRST) FIRST = false;
-    else {
+    /* if (FIRST) FIRST = false;
+    else {//} if (!DONE) {
       let tr = WORD_TRIGGERS[(Math.random() * WORD_TRIGGERS.length) << 0];
       console.log("FORCE TRIGGER1: "+tr);
       result = this.util.getWord(tr, true);
-      console.log("FORCE TRIGGER2: "+result);
       triggered = true;
-    }
+    } */
 
     // increment the count for the character (l/r) staying the same
     this.rightStatics = result.literal[1] === this.word.literal[1] ? this.rightStatics + 1 : 0;
@@ -220,9 +219,22 @@ class Autochar {
     if (this.action == REPLACE_STROKE) {
       if (this.word.nextStroke(this.targetCharIdx, this.targetPartIdx)) {
         this.onActionCallback(); // draw stroke change
-      } else { // flash
-        this.onActionCallback(this.word); // word change
+      } else { 
+        this.onActionCallback(this.word); // pass the next word
         this.target = null;
+        //this.doNext();
+      }
+    }
+  }
+
+  doNext() {
+    if (!this.target) {
+      let isTrigger = this.pickNextTarget();
+      //console.log('NEXT: ',isTrigger);
+      this.findEditIndices();
+      if (this.onNewTargetCallback) {
+        this.onNewTargetCallback(this.target,
+          this.med, this.currentStrokeCount, isTrigger);
       }
     }
   }

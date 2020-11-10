@@ -157,24 +157,26 @@ class CharUtils {
 
   getWord(literal, agnostic) {
     let res = this.wordCache[this.lang][literal];
-    if (!res) {
+    if (typeof res === 'undefined') {
       if (agnostic) res = this.wordCache[this.invertLang()][literal];
-      if (!res) throw Error('no ' + this.lang
-        + '. word for: ' + literal + (agnostic ? ' agnostic=1' : ''));
+      if (typeof res === 'undefined') {
+         throw Error('no ' + this.lang + (agnostic ? '/'
+          + this.invertLang() : '') + ' word for ' + literal);
+      }
     }
     return res;
   }
 
-  definition(literal, lang) {
+  definition(literal) {
+    if (literal === 'trigger') return 'NA';
     let word = this.wordCache[this.lang][literal];
     if (!word) word = this.wordCache[this.invertLang()][literal];
-    return word && word.definition || '---';
+    if (!word) throw Error('no definition for "' + literal+"'");
+    return word.definition;
   }
 
   currentWords(lang) {
-
     lang = lang || this.lang;
-
     if (!this.wordCache) throw Error('No word cache');
     if (!this.wordCache[lang]) throw Error('No word cache for ' + lang);
     return this.wordCache[lang]; // {simp, trad}
