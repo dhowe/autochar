@@ -9,8 +9,8 @@ const trad = require('../data/words-trad-orig.json');
 const cdefs = require('../data/char-defs-orig.json');
 const cdata = require('../data/char-data-orig.json');
 const triggers = require('../data/trigger-defs.json');
-const regex = /\([^)]*[^A-Za-z ,-.')(]+[^)]*\)/g;
 
+const regex = /\([^)]*[^A-Za-z ,-.')(]+[^)]*\)/g;
 const maxWordDefLen = 42, maxCharDefLen = 30;
 const wordData = { simp, trad }
 
@@ -89,19 +89,24 @@ function validateCharDef(w, stats) {
 function validateWordDef(w, def, lang) {
   if (!cdefs[w[0]] || !cdefs[w[1]]) return false;
   if (!def) return;
-  def = def.replace(/, abbr\. for .+/g,"");
+  def = def.replace(/, abbr\. for .+/g, "");
   def = def.replace(/, also written .+/g, "");
-  if (def.length > maxWordDefLen
-    || def.startsWith("-")
+  if (def.length > maxWordDefLen) {
+    //console.log("SKIP-LEN(" + lang + "): " + w + ": " + def);
+    return false;
+  }
+  if (def.startsWith("-")
     || def.startsWith('see ')
+    || def.includes('prefecture')
+    || def.includes('municipality')
     || def.includes('variant of')) {
-    //|| !/^[A-Za-z ',.()é0-9-]+$/.test(def)) {
     //console.log("SKIP1(" + lang + "): " + w + ": " + def);
     return false;
   }
   if (!/^[A-Za-z ',.()é°θàō=√@;’&:ó♥0-9+%āü*-]+$/.test(def)) {
-    if (!/^[A-Z]/.test(def) && !/[?!]$/.test(def))
-      console.log("SKIP2(" + lang + "): " + w + ": " + def);
+    if (!/^[A-Z]/.test(def) && !/[?!]$/.test(def)) {
+      //console.log("SKIP2(" + lang + "): " + w + ": " + def);
+    }
     return false;
   };
   return true;
@@ -118,7 +123,7 @@ function prunePathData(dict) {
 function updateTriggersDefs(dict) {
   Object.keys(triggers).forEach(t => {
     if (dict.trad[t]) dict.trad[t] = triggers[t];
-    else if (dict.simp[t]) dict.simp[t] = triggers[t];
+    if (dict.simp[t]) dict.simp[t] = triggers[t];
     /* else {
       if (cdata[t[0]] && cdata[t[1]]) {
         console.log('"' + t + '": "' + triggers[t]+'",');

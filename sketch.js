@@ -35,7 +35,6 @@ function draw() {
     host = window.location.hostname;
     util = new CharUtils(chars, defs, Levenshtein);
     typer = new Autochar(util, onAction, onNewTarget);
-    word = typer.word.literal;
     return next();
   }
 
@@ -43,24 +42,6 @@ function draw() {
     console.log("paused");
     return;
   }
-
-  /* if (triggered) {
-    fill(255, 0, 0);
-    rect(0, 0, width, height);
-    txtcol = [255, 255, 255];
-    drawWord(typer.word, true);
-    triggered = false;
-    paused = true;
-    if (tid) {
-      clearTimeout(tid);
-      tid = 0;
-    }
-    setTimeout(() => {
-      paused = false;
-      next();
-    }, 5000);
-    return;
-  } */
 
   adjustColor();
   background(rgb[0], rgb[1], rgb[2]);
@@ -70,14 +51,13 @@ function draw() {
   showNav && drawNav();
 
   if (pausePending) {
-    console.log("pausePending: "+millis());
     paused = true;
-    pausePending = false;
     clearTimeout(tid);
     tid = setTimeout(() => {
       paused = false;
       next();
-    }, 500);
+    }, pausePending);
+    pausePending = 0;
   }
 }
 
@@ -178,9 +158,9 @@ function updateSize() {
   //console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
 }
 
-function onNewTarget(nextWord, med, numStrokes, isTrigger) {
+function onNewTarget(nextWord, med, numStrokes) {
 
-  triggered = isTrigger;
+  //triggered = isTrigger;
   strokeCount = numStrokes;
   strokeIdx = 0;
   let nSpeed = min(1, numStrokes / 12);
@@ -188,27 +168,34 @@ function onNewTarget(nextWord, med, numStrokes, isTrigger) {
   changeMs = strokeDelay * (strokeCount - 1);
   changeTs = millis();
   timer = changeMs;
-  
+
   let chars = nextWord.characters;
-  console.log((steps++) + ') ' + word + " -> " + nextWord.literal,
-    med + util.lang.substring(0, 1), "'" + nextWord.definition
-  + "' (" + chars[0].definition + ' :: ' + chars[1].definition + ') '+millis());
+  console.log((typer.steps) + ') ' + (lastWord || "''") + " -> "
+    + nextWord.literal, med + util.lang.substring(0, 1), "'" + nextWord.definition
+    + "' (" + chars[0].definition + ' :: ' + chars[1].definition + ') ');// + millis());
 }
 
 let pausePending = false;
 
-function onAction(completedWord) {
+function onAction(completedWord, nextWord, nextWordIsTrigger) {
 
-  console.log(strokeIdx + " " + typer.target.literal + " "
-    + (completedWord ? '-> ' + completedWord.literal : '') + ' '+millis());
+  console.log((strokeIdx + 1) + "/" + strokeCount + " "
+    + (completedWord ? completedWord.literal : typer.target.literal));
+
+  if (nextWordIsTrigger) console.log('[TRIGGER] "' 
+    + nextWord.literal + "'" + nextWord.definition + "'");
 
   if (completedWord) { // word complete
+    /* console.log('*** completedWord=' + completedWord.literal + " nextWord="
+      + nextWord.literal + " nextWordIsTrigger=" + nextWordIsTrigger);
+ */
+    pausePending = triggered ? 3000 : 500;
     defAlpha = 0;
     flashColors();
     playStroke(true);
     playBell();
-    word = completedWord.literal;
-    pausePending = true;
+    triggered = nextWordIsTrigger;
+    lastWord = completedWord.literal;
     //triggered = false;
   }
   else {         // just a stroke
@@ -220,15 +207,15 @@ function onAction(completedWord) {
 }
 
 function next() {
-  tid = setTimeout(next, typer.step() ? strokeDelay : strokeDelay/50);
-/*   if (typer.step()) {
-    //console.log('step: ' + strokeDelay);
-    tid = setTimeout(next, strokeDelay); // drawing
-  }
-  else {
-    tid = setTimeout(next, 100);
-    //next(); // erasing
-  } */
+  tid = setTimeout(next, typer.step() ? strokeDelay : strokeDelay / 40);
+  /*   if (typer.step()) {
+      //console.log('step: ' + strokeDelay);
+      tid = setTimeout(next, strokeDelay); // drawing
+    }
+    else {
+      tid = setTimeout(next, 100);
+      //next(); // erasing
+    } */
 }
 
 function mouseClicked() {
@@ -353,11 +340,11 @@ function drawNav() {
 
 function logPerf() {
 
-  if (performance && performance.memory && steps - memt >= 20) {
+  if (performance && performance.memory && typer.steps - memt >= 20) {
     console.log('Perf: ' + round(frameRate()) + ' fps, ' +
       round(performance.memory.usedJSHeapSize / 1000000) +
       '/' + round(performance.memory.jsHeapSizeLimit / 1000000) + ' MB heap');
-    memt = steps;
+    memt = typer.steps;
   }
 }
 
@@ -366,13 +353,13 @@ let doSound = false, doPerf = true, showDefs = true;
 let charDefs = true, showNav = true, useTriggers = true;
 
 let cnv, sw, sh, xo, yo, defSz, w, h, chars, defs;
-let bell, conf, word, tid, strk, util, typer;
+let bell, conf, lastWord, tid, strk, util, typer;
 let timer = 0, strokeCount = 0, firstRun = true;
 let scayl = 1, aspectW = 4.3, aspectH = 3, whiteOnColor = false;
 
 let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
 let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
-let steps = 1, triggered = 0, navOpen = false, host;
+let triggered = 0, navOpen = false, host;
 let initalResize = false, border = 10, memt = -15;
 let lerpFactor = 0.05;
 
