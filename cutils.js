@@ -33,8 +33,8 @@ class CharUtils {
           for (let k = 0; k < word.length; k++) {
             const ch = word[k];
             if (!this.charData[ch]) {
-              throw Error('no char-data for ' + ch + ' in ' + word);
-              //console.warn('no char-data for ' + ch + ' in ' + word);
+              //throw Error('no char-data for ' + ch + ' in ' + word);
+              console.warn('no char-data for ' + ch + ' in ' + word);
               return;
             }
             if (!defs.chars[ch]) {
@@ -60,8 +60,10 @@ class CharUtils {
   bestEditDistance(input, opts = {}) {
 
     if (!input || !input.length) throw Error('no input');
-
     let lang = opts.lang || this.lang;
+
+    //console.log('searching ' + input + " (" + lang + ")");
+
     let minAllowed = opts.minMed || 1, dbug = 0;
     let data = this.wordCache[lang];
     if (!data || !Object.keys(data).length) {

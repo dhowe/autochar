@@ -61,113 +61,18 @@ function draw() {
   }
 }
 
-function drawDefs() {
-
-  let def = typer.word.definition || '';
-  let textSz = defSz * (util.lang === "trad" ? 1 : .8);
-  let defAlpha = (timer / changeMs < .8) ?
-    map(timer / changeMs, .8, 0, 0, 255) : 0;
-
-  textSize(textSz);
-  textAlign(CENTER);
-  fill(txtcol[0], txtcol[1], txtcol[2], defAlpha);
-
-  // uppercase if simplified Chinese
-  text(util.lang === "trad" ? def :
-    def.toUpperCase(), width / 2, 2.4 * defSz);
-
-  if (charDefs) {
-    let def0 = typer.word.characters[0].definition;
-    let def1 = typer.word.characters[1].definition;
-    textSize(textSz * .5);
-    fill(txtcol[0], txtcol[1], txtcol[2]);
-    text(util.lang === "trad" ? def0 : def0.toUpperCase(), width * .25, height - 2 * defSz);
-    text(util.lang === "trad" ? def1 : def1.toUpperCase(), width * .75, height - 2 * defSz);
-  }
-
-  timer = changeMs - (millis() - changeTs);
-}
-
-function drawWord(word, complete) {
-
-  // draw each character
-  let ctx = this._renderer.drawingContext;
-  for (let k = 0; k < word.characters.length; k++) {
-    let chr = word.characters[k];
-
-    // strange constants
-    let xoff = k ? 20 * scayl + width : 140 * scayl;
-    let yoff = -1220 * scayl;
-
-    // draw each path of the character
-    push();
-    fill(txtcol);
-    for (let j = 0; j < chr.paths.length; j++) {
-      for (let i = 0; i < chr.paths[j].length; i++) {
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.scale(.5, -.5); // mirror-vertically
-        ctx.translate(xoff, yoff);
-        if (complete || chr.parts[j] >= i) {
-          ctx.scale(scayl, scayl);
-          ctx.lineWidth = 5;
-          ctx.fill(chr.paths[j][i]);
-          ctx.stroke(chr.paths[j][i]);
-        }
-      }
-    }
-    pop();
-  }
-}
-
-function isRetina() {
-  let mq = window.matchMedia(RETINA_CHECK);
-  return mq && mq.matches || window.devicePixelRatio > 1;
-}
-
-// computes size and position of canvas after resize (xo, yo, sw, sh)
-// and size of en-translation font (defSz) and scaling of characters (scayl)
-function updateSize() {
-
-  w = window.innerWidth;
-  h = window.innerHeight;
-  if (w * aspectH > h * aspectW) { // wider
-    sh = Math.round(h - border * 2);
-    sw = Math.round(sh * (aspectW / aspectH));
-  } else {                        // taller
-    sw = Math.round(w - border * 2);
-    sh = Math.round(sw * (aspectH / aspectW));
-  }
-
-  xo = (w - sw) / 2;
-  yo = (h - sh) / 2;
-
-  // retina/ high dpi
-  if (isRetina()) {
-    sw = sw * window.devicePixelRatio;
-    sh = sh * window.devicePixelRatio;
-  }
-
-  // strange constants
-  defSz = sh / 18;
-  scayl = sw / 1150;
-
-  // resize/position canvas
-  resizeCanvas(sw, sh, true);
-
-  cnv.position(xo, yo);
-  //console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
-}
-
 function onNewTarget(nextWord, med, numStrokes) {
 
   //triggered = isTrigger;
-  strokeCount = numStrokes;
   strokeIdx = 0;
+  strokeCount = numStrokes;
   let nSpeed = min(1, numStrokes / 12);
   strokeDelay = map(nSpeed, 0, 1, strokeDelayMax, strokeDelayMin);
   changeMs = strokeDelay * (strokeCount - 1);
   changeTs = millis();
   timer = changeMs;
+
+  console.log(numStrokes + " strokes over " + changeMs + "ms strokeDelay=" + strokeDelay);
 
   let chars = nextWord.characters;
   console.log((typer.steps) + ') ' + (lastWord || "''") + " -> "
@@ -180,9 +85,11 @@ let pausePending = false;
 function onAction(completedWord, nextWord, nextWordIsTrigger) {
 
   console.log((strokeIdx + 1) + "/" + strokeCount + " "
-    + (completedWord ? completedWord.literal : typer.target.literal));
+    + (completedWord ? completedWord.literal : typer.target.literal)
+    //+ " " + round(((millis() - changeTs) / changeMs) * 100) + "%");
+    + " " + (timer / changeMs));
 
-  if (nextWordIsTrigger) console.log('[TRIGGER] "' 
+  if (nextWordIsTrigger) console.log('[TRIGGER] "'
     + nextWord.literal + "'" + nextWord.definition + "'");
 
   if (completedWord) { // word complete
@@ -206,16 +113,36 @@ function onAction(completedWord, nextWord, nextWordIsTrigger) {
        - strokeIdx)), Math.round((timer / changeMs) * 100) / 100); */
 }
 
+function drawDefs() {
+
+  let def = typer.word.definition || '';
+  let textSz = defSz * (util.lang === "trad" ? 1 : .8);
+  let defAlpha = map(timer, 1, 0, 0, 255);
+/*   let defAlpha = (timer / changeMs < .8) ?
+    map(timer / changeMs, .8, 0, 0, 255) : 0;
+ */
+  textSize(textSz);
+  textAlign(CENTER);
+  fill(txtcol[0], txtcol[1], txtcol[2]);//, defAlpha);
+
+  // uppercase if simplified Chinese
+  text(util.lang === "trad" ? def :
+    def.toUpperCase(), width / 2, 2.4 * defSz);
+
+  if (charDefs) {
+    let def0 = typer.word.characters[0].definition;
+    let def1 = typer.word.characters[1].definition;
+    textSize(textSz * .5);
+    fill(txtcol[0], txtcol[1], txtcol[2]); // draw char-defs at full alpha
+    text(util.lang === "trad" ? def0 : def0.toUpperCase(), width * .25, height - 2 * defSz);
+    text(util.lang === "trad" ? def1 : def1.toUpperCase(), width * .75, height - 2 * defSz);
+  }
+
+  timer = changeMs - (millis() - changeTs);
+}
+
 function next() {
   tid = setTimeout(next, typer.step() ? strokeDelay : strokeDelay / 40);
-  /*   if (typer.step()) {
-      //console.log('step: ' + strokeDelay);
-      tid = setTimeout(next, strokeDelay); // drawing
-    }
-    else {
-      tid = setTimeout(next, 100);
-      //next(); // erasing
-    } */
 }
 
 function mouseClicked() {
@@ -250,7 +177,7 @@ function toggleMute(event) {
 function flashColors() {
   for (let i = 0; i < rgb.length; i++) {
     rgb[i] = triggered ? trgcol[i] : hitcol[i];
-    txtcol[i] = whiteOnColor ? 0 : 255;
+    txtcol[i] = 255;
   }
 }
 
@@ -307,6 +234,77 @@ function keyReleased() {
   }
 }
 
+
+function drawWord(word, complete) {
+
+  // draw each character
+  let ctx = this._renderer.drawingContext;
+  for (let k = 0; k < word.characters.length; k++) {
+    let chr = word.characters[k];
+
+    // strange constants
+    let xoff = k ? 20 * scayl + width : 140 * scayl;
+    let yoff = -1220 * scayl;
+
+    // draw each path of the character
+    push();
+    fill(txtcol);
+    for (let j = 0; j < chr.paths.length; j++) {
+      for (let i = 0; i < chr.paths[j].length; i++) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(.5, -.5); // mirror-vertically
+        ctx.translate(xoff, yoff);
+        if (complete || chr.parts[j] >= i) {
+          ctx.scale(scayl, scayl);
+          ctx.lineWidth = 5;
+          ctx.fill(chr.paths[j][i]);
+          ctx.stroke(chr.paths[j][i]);
+        }
+      }
+    }
+    pop();
+  }
+}
+
+// computes size and position of canvas after resize (xo, yo, sw, sh)
+// and size of en-translation font (defSz) and scaling of characters (scayl)
+function updateSize() {
+
+  w = window.innerWidth;
+  h = window.innerHeight;
+  if (w * aspectH > h * aspectW) { // wider
+    sh = Math.round(h - border * 2);
+    sw = Math.round(sh * (aspectW / aspectH));
+  } else {                        // taller
+    sw = Math.round(w - border * 2);
+    sh = Math.round(sw * (aspectH / aspectW));
+  }
+
+  xo = (w - sw) / 2;
+  yo = (h - sh) / 2;
+
+  // retina/ high dpi
+  if (isRetina()) {
+    sw = sw * window.devicePixelRatio;
+    sh = sh * window.devicePixelRatio;
+  }
+
+  // strange constants
+  defSz = sh / 18;
+  scayl = sw / 1150;
+
+  // resize/position canvas
+  resizeCanvas(sw, sh, true);
+
+  cnv.position(xo, yo);
+  //console.log(w + 'x' + h + ' -> ' + sw + 'x' + sh + ' scale=' + scayl);
+}
+
+function isRetina() {
+  let mq = window.matchMedia(RETINA_CHECK);
+  return mq && mq.matches || window.devicePixelRatio > 1;
+}
+
 // fixes a bug in p5.resizeCanvas
 function repairCanvas() {
 
@@ -325,8 +323,8 @@ function repairCanvas() {
 function adjustColor() {
   for (let i = 0; i < rgb.length; i++) {
     if (rgb[i] != bgcol[i]) rgb[i] = lerp(rgb[i], bgcol[i], lerpFactor);
-    //if (whiteOnColor && txtcol[i] < 255) txtcol[i] += 10;
-    if (!whiteOnColor && txtcol[i] > -1) txtcol[i] -= 10;
+    if (txtcol[i] > 0) txtcol[i] = lerp(txtcol[i], 0, lerpFactor);
+    //if (txtcol[i] > 0) txtcol[i] -= 10;
   }
 }
 
@@ -355,7 +353,7 @@ let charDefs = true, showNav = true, useTriggers = true;
 let cnv, sw, sh, xo, yo, defSz, w, h, chars, defs;
 let bell, conf, lastWord, tid, strk, util, typer;
 let timer = 0, strokeCount = 0, firstRun = true;
-let scayl = 1, aspectW = 4.3, aspectH = 3, whiteOnColor = false;
+let scayl = 1, aspectW = 4.3, aspectH = 3;
 
 let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
 let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;

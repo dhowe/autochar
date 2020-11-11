@@ -1,13 +1,15 @@
+
+////////////////////////////////////////////////////////////////////////////////
+///// Generates chardata.js and definitions.js in top-level of project     /////
+////////////////////////////////////////////////////////////////////////////////
+
 // to run: $ node scripts/create-data-files
-
-
-// out of sync (must include sens.js)
 
 const fs = require('fs');
 const simp = require('../data/words-simp-orig.json');
 const trad = require('../data/words-trad-orig.json');
 const cdefs = require('../data/char-defs-orig.json');
-const cdata = require('../data/char-data-orig.json');
+const cdata = require('../data/all-char-data.json');
 const triggers = require('../data/trigger-defs.json');
 
 const regex = /\([^)]*[^A-Za-z ,-.')(]+[^)]*\)/g;
@@ -23,7 +25,7 @@ function compileWordDict(dict) {
     Object.keys(data).forEach(w => {
       if (w.length === 2) {
         let def = data[w];
-        if (validateWordDef(w, def, lang)) {
+        if (validateWordDef(w, def)) {
           dict[lang][w] = def.replace(/ +/g, ' ').replace(/ ,/g, ',');
         }
         else {
@@ -31,6 +33,7 @@ function compileWordDict(dict) {
         }
       }
     });
+
     console.log(lang + '-words: ' + Object.keys(dict[lang]).length
       + ' word defs, ' + Object.keys(misses[lang]).length + ' misses');
   });
@@ -86,7 +89,7 @@ function validateCharDef(w, stats) {
   return def.replace(/ +/g, ' ');
 }
 
-function validateWordDef(w, def, lang) {
+function validateWordDef(w, def) {
   if (!cdefs[w[0]] || !cdefs[w[1]]) return false;
   if (!def) return;
   def = def.replace(/, abbr\. for .+/g, "");
@@ -112,27 +115,39 @@ function validateWordDef(w, def, lang) {
   return true;
 }
 
+// remove character data (paths) if not used in dictionary
 function prunePathData(dict) {
-  let pruned = {}, cdl = Object.keys(cdata).length;
-  Object.keys(cdata).forEach(c => dict.chars[c] && (pruned[c] = cdata[c]));
+  let pruned = {};
+  Object.keys(cdata).forEach(c => {
+    if (dict.chars[c]) pruned[c] = cdata[c];
+  });
   let num = (Object.keys(cdata).length - Object.keys(pruned).length);
-  console.log('paths: ' + Object.keys(pruned).length + '/' + cdl + ' char entries, ' + num + ' pruned');
+  console.log('paths: ' + Object.keys(pruned).length + '/'
+    + Object.keys(cdata).length + ' char entries, ' + num + ' pruned');
   return pruned;
 }
 
 function updateTriggersDefs(dict) {
+
+  // first check the defs are valid
+  Object.keys(triggers).forEach(w => {
+    let def = triggers[w];
+    if (!validateWordDef(w, def)) {
+      throw Error('Invalid trigger def: ' + w + ' -> ' + def + " (len=" + def.length + ")");
+    }
+  });
+
+  // then check words already exist in dictionary
   Object.keys(triggers).forEach(t => {
+    if (!dict.trad.hasOwnProperty(t) && !dict.simp.hasOwnProperty(t)) {
+      console.warn("No def. for trigger: " + t + " -> " + triggers[t]);
+    }
+    // then update the definitions if neededs
     if (dict.trad[t]) dict.trad[t] = triggers[t];
     if (dict.simp[t]) dict.simp[t] = triggers[t];
-    /* else {
-      if (cdata[t[0]] && cdata[t[1]]) {
-        console.log('"' + t + '": "' + triggers[t]+'",');
-      }
-      else {
-        console.log(++misses, '"' + t + '": "' + triggers[t] + '",');
-      }} */
   });
-  console.log('updated ' + Object.keys(triggers).length + ' trigger defs');
+
+  console.log('updated ' + Object.keys(triggers).length + ' trigger definitions');
 }
 
 function writeCharData(defs) {
@@ -150,10 +165,33 @@ function writeDefinitions(defs) {
 }
 
 const defs = { simp: {}, trad: {}, chars: {} };
+
 compileWordDict(defs);
 updateTriggersDefs(defs);
 addCharDefs(defs);
+pruneTriggersWithoutCharData();
 writeDefinitions(defs);
 writeCharData(defs);
+
+function pruneTriggersWithoutCharData() {
+  let badTriggers = [], badChars = {}, dbug = 0;
+  Object.keys(triggers).forEach(w => {
+    if (w.length !== 2) throw Error('Bad trigger: ' + w);
+    if (!cdata.hasOwnProperty(w[0]) || !cdata.hasOwnProperty(w[1])) {
+      if (dbug)console.warn('Invalid Trigger (no char-data): ' + w);
+      for (let i = 0; i < w.length; i++) {
+        if (!cdata.hasOwnProperty(w[i])) {
+          if (dbug) console.warn('  no char-data for ' + w[i] + ' in ' + w);
+          badChars[w[i]] = 1;
+        }
+      }
+      badTriggers.push(w);
+      delete defs.simp[w];
+      delete defs.trad[w];
+    }
+  });
+  badTriggers.forEach(bt => delete triggers[bt]);
+  console.log('found ' + badTriggers.length + ' bad triggers, '+Object.keys(triggers).length+" remaining")
+}
 
 console.log('\nconst WORD_TRIGGERS =', JSON.stringify(Object.keys(triggers)), ';\n');
