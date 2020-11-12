@@ -1,8 +1,11 @@
 
 
 // NEXT:
-//   FIX PREMATURE LANG SWITCH ON TRIGGER
-//   HANDLE RED FADING
+//   FIX BUG: Uncaught TypeError: Cannot read property 'parts' of undefined 
+              // (happens on words with same for both lang?)
+//   FIX PREMATURE LANGUAGE SWAP ON TRIGGER
+//   FINISH RED FADING 
+//   buzz ???
 //   ? handle long-loops (more indeterminism)
 
 function preload() {

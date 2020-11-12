@@ -330,6 +330,7 @@ class Word {
     if (typeof partIdx === 'undefined') throw Error('no partIdx');
 
     let chr = this.characters[charIdx];
+    if (!chr) throw Error("this.characters[" + charIdx + "]=null -> " + this.characters);
     partIdx = this.constrain(partIdx, 0, chr.parts.length - 1);
 
     if (partIdx < 0 || partIdx >= chr.parts.length) {

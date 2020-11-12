@@ -155,13 +155,12 @@ class Autochar {
 
   pickNextTarget() {
 
-    //console.log('pickNextTarget() ' + lastTrigger);// +"  -> "+(this.memory.peek() === 'trigger'));
-
+    //console.log('pickNextTarget() ' + lastTrigger);// +"  -> "+(this.memory.peek() === 'trigger'))
     let result, triggered = false;
 
     if (this.steps === 3) { // for testing only: REMOVE
-      console.log("FORCE TRIGGER: 媒體");
-      result = this.util.getWord("媒體");
+      console.log("FORCE TRIGGER: 乳交");
+      result = this.util.getWord("乳交");
       triggered = true;
     }
 
@@ -243,9 +242,10 @@ class Autochar {
 
   findEditIndices() {
 
-    this.targetCharIdx = -1;
-    this.targetPartIdx = -1;
+    this.targetCharIdx = 0; // was -1
+    this.targetPartIdx = 0; // was -1
 
+    //console.log("findEditIndices",this.target, this.word );
     if (this.target.length === this.word.length) {
 
       this.action = REPLACE_ERASE;
