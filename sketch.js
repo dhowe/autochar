@@ -1,13 +1,15 @@
 
 
 // NEXT:
-//   hold on trigger words
-//   handle long-loops (more indeterminism)
+//   FIX PREMATURE LANG SWITCH ON TRIGGER
+//   HANDLE RED FADING
+//   ? handle long-loops (more indeterminism)
 
 function preload() {
 
   bell = new Tone.Player("res/chime.wav").toMaster();
   strk = new Tone.Player("res/strk.wav").toMaster();
+  triggers = loadJSON('triggers.json');
   chars = loadJSON('chardata.json');
   defs = loadJSON('definitions.json');
   $('#about').modal({
@@ -25,6 +27,11 @@ function setup() {
   noLoop();  // don't start yet
 }
 
+function unpause() {
+  paused = false;
+  next();
+}
+
 function draw() {
 
   if (!initalResize) {
@@ -34,12 +41,12 @@ function draw() {
     window.onresize = updateSize;
     host = window.location.hostname;
     util = new CharUtils(chars, defs, Levenshtein);
-    typer = new Autochar(util, onAction, onNewTarget);
+    typer = new Autochar(triggers, util, onAction, onNewTarget);
     return next();
   }
 
   if (paused) {
-    console.log("paused");
+    //console.log("paused");
     return;
   }
 
@@ -52,11 +59,10 @@ function draw() {
 
   if (pausePending) {
     paused = true;
+    let triggered = (pausePending === TRIGGER_PAUSE);
+    //console.log('triggered: ' + triggered);
     clearTimeout(tid);
-    tid = setTimeout(() => {
-      paused = false;
-      next();
-    }, pausePending);
+    tid = setTimeout(unpause, pausePending);
     pausePending = 0;
   }
 }
@@ -72,7 +78,7 @@ function onNewTarget(nextWord, med, numStrokes) {
   changeTs = millis();
   timer = changeMs;
 
-  console.log(numStrokes + " strokes over " + changeMs + "ms strokeDelay=" + strokeDelay);
+  //console.log(numStrokes + " strokes over " + changeMs + "ms strokeDelay=" + strokeDelay);
 
   let chars = nextWord.characters;
   console.log((typer.steps) + ') ' + (lastWord || "''") + " -> "
@@ -80,23 +86,20 @@ function onNewTarget(nextWord, med, numStrokes) {
     + "' (" + chars[0].definition + ' :: ' + chars[1].definition + ') ');// + millis());
 }
 
-let pausePending = false;
-
 function onAction(completedWord, nextWord, nextWordIsTrigger) {
 
-  console.log((strokeIdx + 1) + "/" + strokeCount + " "
+  0 && console.log((strokeIdx + 1) + "/" + strokeCount + " "
     + (completedWord ? completedWord.literal : typer.target.literal)
-    //+ " " + round(((millis() - changeTs) / changeMs) * 100) + "%");
     + " " + (timer / changeMs));
+  //+ " " + round(((millis() - changeTs) / changeMs) * 100) + "%");
 
-  if (nextWordIsTrigger) console.log('[TRIGGER] "'
-    + nextWord.literal + "'" + nextWord.definition + "'");
-
+  //console.log('onAction', nextWordIsTrigger);
   if (completedWord) { // word complete
-    /* console.log('*** completedWord=' + completedWord.literal + " nextWord="
-      + nextWord.literal + " nextWordIsTrigger=" + nextWordIsTrigger);
- */
-    pausePending = triggered ? 3000 : 500;
+
+    if (nextWordIsTrigger) console.log('[TRIGGER] "'
+      + nextWord.literal + "'" + nextWord.definition + "'");
+
+    pausePending = triggered ? TRIGGER_PAUSE : NON_TRIGGER_PAUSE;
     defAlpha = 0;
     flashColors();
     playStroke(true);
@@ -117,13 +120,16 @@ function drawDefs() {
 
   let def = typer.word.definition || '';
   let textSz = defSz * (util.lang === "trad" ? 1 : .8);
-  let defAlpha = map(timer, 1, 0, 0, 255);
-/*   let defAlpha = (timer / changeMs < .8) ?
-    map(timer / changeMs, .8, 0, 0, 255) : 0;
- */
+
+  // TODO: refigure (few strokes, words don't come all the way in)
+  //let defAlpha = map(timer, 1, 0, 0, 255);
+
+  let defAlpha = (timer / changeMs < .8) ? 
+      map(timer / changeMs, .8, 0, 0, 255) : 0;
+   
   textSize(textSz);
   textAlign(CENTER);
-  fill(txtcol[0], txtcol[1], txtcol[2]);//, defAlpha);
+  fill(txtcol[0], txtcol[1], txtcol[2], defAlpha);
 
   // uppercase if simplified Chinese
   text(util.lang === "trad" ? def :
@@ -346,9 +352,9 @@ function logPerf() {
   }
 }
 
-let paused = false;
+let paused = false, pausePending = false;
 let doSound = false, doPerf = true, showDefs = true;
-let charDefs = true, showNav = true, useTriggers = true;
+let charDefs = true, showNav = true;
 
 let cnv, sw, sh, xo, yo, defSz, w, h, chars, defs;
 let bell, conf, lastWord, tid, strk, util, typer;
@@ -367,4 +373,5 @@ let txtcol = [0, 0, 0];
 let trgcol = [150, 0, 0];
 let rgb = [0, 0, 0];
 
+const TRIGGER_PAUSE = 2000, NON_TRIGGER_PAUSE = 500;
 const RETINA_CHECK = 'only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 2.6/2), only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen  and (min-device-pixel-ratio: 1.3), only screen and (min-resolution: 1.3dppx)");'

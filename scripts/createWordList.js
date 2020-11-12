@@ -1,5 +1,5 @@
-const CCDICT = "../data/cc-cedict.json";
-const HANZI = "../chardata.json";
+const CCDICT = "../data/cc_cedict.json";
+const HANZI = "../chardata.json"; // ?? data/all_char_data.json ??
 
 let lang = 'simplified'; //'traditional'; // keep long form
 let maxlen = 2;
