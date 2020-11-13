@@ -367,7 +367,7 @@ let charDefs = true, showNav = true;
 let cnv, sw, sh, xo, yo, defSz, w, h, chars, defs;
 let bell, conf, lastWord, tid, strk, util, typer;
 let timer = 0, strokeCount = 0, firstRun = true;
-let scayl = 1, aspectW = 4.3, aspectH = 3;
+let scayl = 1, aspectW = 4, aspectH = 3;
 
 let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
 let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
