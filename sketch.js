@@ -47,6 +47,7 @@ function draw() {
       $('#startButton').trigger('click');
       $('#mySidenav').hide();
       showNav = false;
+      noCursor();
     }
     return next();
   }
