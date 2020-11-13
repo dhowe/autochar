@@ -43,10 +43,10 @@ function draw() {
     host = window.location.hostname;
     util = new CharUtils(chars, defs, Levenshtein);
     typer = new Autochar(triggers, util, onAction, onNewTarget);
-    if (autostart) {
+    if (kiosked) {
       $('#startButton').trigger('click');
       $('#mySidenav').hide();
-      mySidenav
+      showNav = false;
     }
     return next();
   }
@@ -372,7 +372,7 @@ let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
 let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
 let triggered = 0, navOpen = false, host;
 let initalResize = false, border = 10, memt = -15;
-let lerpFactor = 0.05, autostart = true;
+let lerpFactor = 0.05, kiosked = true;
 
 let bgcol = [255, 255, 255];
 let hitcol = [76, 87, 96];
