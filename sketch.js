@@ -1,8 +1,6 @@
 
 
 // NEXT:
-//   FIX BUG: Uncaught TypeError: Cannot read property 'parts' of undefined 
-              // (happens on words with same for both lang?)
 //   FIX PREMATURE LANGUAGE SWAP ON TRIGGER
 //   FINISH RED FADING 
 //   buzz ???
@@ -45,6 +43,11 @@ function draw() {
     host = window.location.hostname;
     util = new CharUtils(chars, defs, Levenshtein);
     typer = new Autochar(triggers, util, onAction, onNewTarget);
+    if (autostart) {
+      $('#startButton').trigger('click');
+      $('#mySidenav').hide();
+      mySidenav
+    }
     return next();
   }
 
@@ -155,6 +158,7 @@ function next() {
 }
 
 function mouseClicked() {
+  console.log("MOUSE_CLICKED");
   if ($('#p5_loading').length > 0) return;
 
   if ($('#about').is(':visible')) {
@@ -368,7 +372,7 @@ let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
 let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
 let triggered = 0, navOpen = false, host;
 let initalResize = false, border = 10, memt = -15;
-let lerpFactor = 0.05;
+let lerpFactor = 0.05, autostart = true;
 
 let bgcol = [255, 255, 255];
 let hitcol = [76, 87, 96];
