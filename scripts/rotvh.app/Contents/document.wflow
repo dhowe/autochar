@@ -59,14 +59,13 @@
 				<key>ActionParameters</key>
 				<dict>
 					<key>COMMAND_STRING</key>
-					<string>/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --kiosk --app='http://localhost/autochar/index.html'
-	</string>
+					<string>/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --kiosk --app=http://localhost/autochar/index.html</string>
 					<key>CheckedForUserDefaultShell</key>
 					<true/>
 					<key>inputMethod</key>
 					<integer>0</integer>
 					<key>shell</key>
-					<string>/usr/local/bin/bash</string>
+					<string>/bin/sh</string>
 					<key>source</key>
 					<string></string>
 				</dict>
@@ -84,6 +83,8 @@
 				</array>
 				<key>Class Name</key>
 				<string>RunShellScriptAction</string>
+				<key>IgnoresInput</key>
+				<true/>
 				<key>InputUUID</key>
 				<string>6AFCA442-9C81-468A-9FA2-0199132AD7A6</string>
 				<key>Keywords</key>
@@ -96,6 +97,8 @@
 				</array>
 				<key>OutputUUID</key>
 				<string>2C95B1AE-D621-462A-AC5D-63AEB131B219</string>
+				<key>ShowWhenRun</key>
+				<false/>
 				<key>UUID</key>
 				<string>5FE107D8-FA14-46F6-96E2-2E979A167B32</string>
 				<key>UnlocalizedApplications</key>
@@ -170,12 +173,10 @@
 						<string>4</string>
 					</dict>
 				</dict>
-				<key>conversionLabel</key>
-				<integer>0</integer>
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>488.500000:252.000000</string>
+				<string>487.500000:432.000000</string>
 				<key>nibPath</key>
 				<string>/System/Library/Automator/Run Shell Script.action/Contents/Resources/Base.lproj/main.nib</string>
 			</dict>
