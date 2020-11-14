@@ -1,9 +1,7 @@
 
 
 // NEXT:
-//   FIX PREMATURE LANGUAGE SWAP ON TRIGGER
 //   FINISH RED FADING 
-//   buzz ???
 //   ? handle long-loops (more indeterminism)
 
 function preload() {

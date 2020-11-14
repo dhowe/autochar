@@ -16,7 +16,7 @@ const cdata = require('../data/all_char_data.json');
 
 const regex = /\([^)]*[^A-Za-z ,-.')(]+[^)]*\)/g;
 const maxWordDefLen = 42, maxCharDefLen = 30;
-const triggerPairs = [], fullDict = { simp, trad };
+const fullDict = { simp, trad };
 
 // create dict entry {dict[lang][word]: def} for all valid 2-char words
 function compileDictionary() {
@@ -64,13 +64,13 @@ function parseTriggerDefs() {
     }
   });
 
-  triggerPairs.splice(0, triggerPairs.length); // clear
+  let triggerPairs = [];
 
   // sort triggers {char: def} first by definition
   // then, if tied, by strokeCount (simp before trad)
   let sorted = Object.entries(triggers).sort
-    ((a, b) => (a[1].localeCompare(b[1]))
-      || (wordStrokeCount(a[0]) - wordStrokeCount(b[0])));
+    ((a, b) => (a[1].localeCompare(b[1])));
+      //|| (wordStrokeCount(a[0]) - wordStrokeCount(b[0])));
 
   let fails = {}, dbug = 0;
   for (let i = 0; i < sorted.length; i++) {
