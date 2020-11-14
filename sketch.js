@@ -203,7 +203,7 @@ function playBell() {
     if (triggered) {
       bell.playbackRate = random(.5, .7);
       bell.volume.value = MAX_VOLUME;
-      bell.start(200);
+      bell.restart(200);
     }
   }
 }
