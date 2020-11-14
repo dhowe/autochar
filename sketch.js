@@ -24,13 +24,8 @@ function setup() {
 
   frameRate(30);
   textFont('Georgia');
-  cnv = createCanvas(800, 600)
+  cnv = createCanvas(1024, 768)
   noLoop();  // don't start yet
-}
-
-function unpause() {
-  paused = false;
-  next();
 }
 
 function draw() {
@@ -57,7 +52,7 @@ function draw() {
     return;
   }
 
-  adjustColor();
+  adjustColors();
   background(rgb[0], rgb[1], rgb[2]);
   drawWord(typer.word);
   showDefs && drawDefs();
@@ -66,17 +61,23 @@ function draw() {
 
   if (pausePending) {
     paused = true;
-    let triggered = (pausePending === TRIGGER_PAUSE);
     //console.log('triggered: ' + triggered);
     clearTimeout(tid);
-    tid = setTimeout(unpause, pausePending);
+    
+    let triggered = (pausePending === TRIGGER_PAUSE);
+    tid = setTimeout(() => unpause(triggered), pausePending);
     pausePending = 0;
   }
 }
 
+function unpause(changeLang) {
+  if (changeLang) util.toggleLang(); // change lang on unpause
+  paused = false;
+  next();
+}
+
 function onNewTarget(nextWord, med, numStrokes) {
 
-  //triggered = isTrigger;
   strokeIdx = 0;
   strokeCount = numStrokes;
   let nSpeed = min(1, numStrokes / 12);
@@ -84,9 +85,7 @@ function onNewTarget(nextWord, med, numStrokes) {
   changeMs = strokeDelay * (strokeCount - 1);
   changeTs = millis();
   timer = changeMs;
-
   //console.log(numStrokes + " strokes over " + changeMs + "ms strokeDelay=" + strokeDelay);
-
   let chars = nextWord.characters;
   console.log((typer.steps) + ') ' + (lastWord || "''") + " -> "
     + nextWord.literal, med + util.lang.substring(0, 1), "'" + nextWord.definition
@@ -103,7 +102,7 @@ function onAction(completedWord, nextWord, nextWordIsTrigger) {
   //console.log('onAction', nextWordIsTrigger);
   if (completedWord) { // word complete
 
-    if (nextWordIsTrigger) console.log('[TRIGGER] "'
+    if (nextWordIsTrigger) console.log('[TRIGGER1] "'
       + nextWord.literal + "'" + nextWord.definition + "'");
 
     pausePending = triggered ? TRIGGER_PAUSE : NON_TRIGGER_PAUSE;
@@ -126,7 +125,7 @@ function onAction(completedWord, nextWord, nextWordIsTrigger) {
 function drawDefs() {
 
   let def = typer.word.definition || '';
-  let textSz = defSz * (util.lang === "trad" ? 1 : .8);
+  let textSz = defSz * (util.lang === "trad" ? 1.25 : 1);
 
   // TODO: refigure (few strokes, words don't come all the way in)
   //let defAlpha = map(timer, 1, 0, 0, 255);
@@ -159,7 +158,7 @@ function next() {
 }
 
 function mouseClicked() {
-  console.log("MOUSE_CLICKED");
+
   if ($('#p5_loading').length > 0) return;
 
   if ($('#about').is(':visible')) {
@@ -203,8 +202,8 @@ function playBell() {
     bell.restart();
     if (triggered) {
       bell.playbackRate = random(.5, .7);
-      bell.volume.value = 5;
-      bell.start(200, 0, .1);
+      bell.volume.value = MAX_VOLUME;
+      bell.start(200);
     }
   }
 }
@@ -232,19 +231,20 @@ function keyReleased() {
       next();
     }
   }
-  if (key == 'D') {
+  if (key == 'd') {
     showDefs = !showDefs;
     charDefs = !charDefs;
   }
 
-  if (key == 'T') {
+  if (key == 't') {
     console.log('Manual trigger');
-    util.toggleLang();
+    typer.manualTrigger = true;
+/*     util.toggleLang();
     triggered = true;
     flashColors();
     playStroke(true);
     playBell();
-    //triggered = false;
+    //triggered = false; */
   }
 }
 
@@ -334,7 +334,9 @@ function repairCanvas() {
   }
 }
 
-function adjustColor() {
+function adjustColors() {
+  let triggered = (rgb[1] === 0 && rgb[2] === 0);
+  if (frameCount %5==4 ) console.log();
   for (let i = 0; i < rgb.length; i++) {
     if (rgb[i] != bgcol[i]) rgb[i] = lerp(rgb[i], bgcol[i], lerpFactor);
     if (txtcol[i] > 0) txtcol[i] = lerp(txtcol[i], 0, lerpFactor);
@@ -351,7 +353,6 @@ function drawNav() {
 }
 
 function logPerf() {
-
   if (performance && performance.memory && typer.steps - memt >= 20) {
     console.log('Perf: ' + round(frameRate()) + ' fps, ' +
       round(performance.memory.usedJSHeapSize / 1000000) +
@@ -360,20 +361,16 @@ function logPerf() {
   }
 }
 
-let paused = false, pausePending = false;
-let doSound = false, doPerf = true, showDefs = true;
-let charDefs = true, showNav = true;
-
+let paused = false, pausePending = false, doSound = false, showNav = true;
 let cnv, sw, sh, xo, yo, defSz, w, h, chars, defs;
 let bell, conf, lastWord, tid, strk, util, typer;
 let timer = 0, strokeCount = 0, firstRun = true;
 let scayl = 1, aspectW = 4, aspectH = 3;
 
-let defAlpha = 255, strokeIdx = 0, changeMs, changeTs;
+let defAlpha = 255, strokeIdx = 0, changeMs, changeTs, host;
 let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
-let triggered = 0, navOpen = false, host;
 let initalResize = false, border = 10, memt = -15;
-let lerpFactor = 0.05, kiosked = true;
+let triggered = 0, navOpen = false, lerpFactor = 0.05;
 
 let bgcol = [255, 255, 255];
 let hitcol = [76, 87, 96];
@@ -381,5 +378,6 @@ let txtcol = [0, 0, 0];
 let trgcol = [150, 0, 0];
 let rgb = [0, 0, 0];
 
-const TRIGGER_PAUSE = 2000, NON_TRIGGER_PAUSE = 500;
+const doPerf = true, showDefs = true, charDefs = true, kiosked = true;
+const TRIGGER_PAUSE = 2000, NON_TRIGGER_PAUSE = 500, MAX_VOLUME = 5;
 const RETINA_CHECK = 'only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 2.6/2), only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen  and (min-device-pixel-ratio: 1.3), only screen and (min-resolution: 1.3dppx)");'

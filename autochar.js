@@ -23,6 +23,7 @@ class Autochar {
     this.rightStatics = 0;
     this.numTriggers = 0;
     this.useTriggers = true;
+    this.manualTrigger = false;
     this.targetIsTrigger = false;
     this.targetCharIdx = -1;
     this.targetPartIdx = -1;
@@ -36,7 +37,6 @@ class Autochar {
     this.onNewTargetCallback = onNewTargetCallback;
 
     this.word = util.randWord();
-    //this.word = util.getWord('贡献', true);
     this.memory = new util.HistQ(10);
     this.memory.add('trigger');  // make sure no triggers at start
     this.memory.add(this.word.literal);
@@ -158,18 +158,27 @@ class Autochar {
     //console.log('pickNextTarget() ' + lastTrigger);// +"  -> "+(this.memory.peek() === 'trigger'))
     let result, triggered = false;
 
-    if (this.steps === 3) { // for testing only: REMOVE
-      console.log("FORCE TRIGGER: 乳交");
-      result = this.util.getWord("乳交");
+    if (this.steps === 2 || this.manualTrigger) { // for testing only: REMOVE
+      this.manualTrigger = false;
+      let tries = 1;
+      for (let tries = 0; result == null; tries++) {
+        let idx = (Math.random() * this.wordTriggers.length) << 0;
+        console.log("[FORCED] " + this.wordTriggers[idx]);
+        try {
+          result = this.util.getWord(this.wordTriggers[idx]);
+        }
+        catch (e) {
+          console.log("FAIL #" + (tries + 1), e.message);
+        }
+      }
       triggered = true;
     }
 
     // if last was a trigger, use its counterpart
     if (this.targetIsTrigger) {
-      this.util.toggleLang();
       let next = this.triggerPairs[this.target.literal];
-      console.log("USE TRIGGER PAIR: " + this.target.literal + " -> " + next);
-      result = this.util.getWord(next);
+      console.log("[TRIGGER2] " + this.target.literal + " -> " + next);
+      result = this.util.getWord(next, this.util.invertLang());
       this.leftStatics = this.rightStatics = 0; // reset statics
     }
 
@@ -193,10 +202,12 @@ class Autochar {
         }
       }
 
-      // TODO: should remove trigger words from 'opts' before random choice
-
-      // we have a trigger candidate or we choose one randomly
-      result = result || this.util.getWord(opts[(Math.random() * opts.length) << 0]);
+      // we have a trigger we've chosen, or we choose randomly from the rest
+      if (!result) {
+        let triggerless = opts.filter(o => !this.wordTriggers.includes(o));
+        let cands = triggerless.length ? triggerless : opts;
+        result = this.util.getWord(cands[(Math.random() * cands.length) << 0]);
+      }
 
       // increment the count for the character (l/r) staying the same
       this.rightStatics = result.literal[1] === this.word.literal[1] ? this.rightStatics + 1 : 0;
@@ -272,9 +283,7 @@ class Autochar {
           }
         }
       }
-
       //console.log('strokes: '+this.currentStrokeCount);
-
     } else if (this.target.length > this.word.length) {
       this.action = INSERT_ACTION; // TODO
 
