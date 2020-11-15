@@ -29,12 +29,9 @@ class Autochar {
     this.targetPartIdx = -1;
     this.currentStrokeCount = 0;
     this.readyToSendNext = true;
-
-    this.triggerPairs = triggers;
-    this.wordTriggers = Object.keys(triggers);
-
     this.onActionCallback = onActionCallback;
     this.onNewTargetCallback = onNewTargetCallback;
+    this.triggers = triggers;
 
     this.word = util.randWord();
     this.memory = new util.HistQ(10);
@@ -158,14 +155,15 @@ class Autochar {
     //console.log('pickNextTarget() ' + lastTrigger);// +"  -> "+(this.memory.peek() === 'trigger'))
     let result, triggered = false;
 
+    let ctrigs = Object.keys(this.triggers[this.util.lang]);
+
     if (this.steps === 2 || this.manualTrigger) { // for testing only: REMOVE
       this.manualTrigger = false;
-      let tries = 1;
       for (let tries = 0; result == null; tries++) {
-        let idx = (Math.random() * this.wordTriggers.length) << 0;
-        console.log("[FORCED] " + this.wordTriggers[idx]);
+        let trig = ctrigs[(Math.random() * ctrigs.length) << 0];
+        console.log("[FORCED] " + trig);
         try {
-          result = this.util.getWord(this.wordTriggers[idx]);
+          result = this.util.getWord(trig);
         }
         catch (e) {
           console.log("FAIL #" + (tries + 1), e.message);
@@ -176,9 +174,12 @@ class Autochar {
 
     // if last was a trigger, use its counterpart
     if (this.targetIsTrigger) {
-      let next = this.triggerPairs[this.target.literal];
-      console.log("[TRIGGER2] " + this.target.literal + " -> " + next);
-      result = this.util.getWord(next, this.util.invertLang());
+      //let next = this.triggerPairs[this.target.literal];
+      let pair = this.triggers[this.util.lang][this.target.literal];
+      result = this.util.getWord(pair, this.util.invertLang());
+      if (!result) throw Error("No pair for " + this.target.literal);
+      console.log("[TRIGGER2] " + this.target.literal + " -> "
+        + pair + " " + result.definition);
       this.leftStatics = this.rightStatics = 0; // reset statics
     }
 
@@ -193,7 +194,7 @@ class Autochar {
         let startIdx = (Math.random() * opts.length) << 0;
         for (let i = startIdx; i < opts.length + startIdx; i++) {
           let cand = opts[i % opts.length];
-          if (this.wordTriggers.includes(cand)) {
+          if (ctrigs.includes(cand)) {
             result = this.util.getWord(cand);
             this.numTriggers++;
             triggered = true;
@@ -204,7 +205,7 @@ class Autochar {
 
       // we have a trigger we've chosen, or we choose randomly from the rest
       if (!result) {
-        let triggerless = opts.filter(o => !this.wordTriggers.includes(o));
+        let triggerless = opts.filter(o => !ctrigs.includes(o));
         let cands = triggerless.length ? triggerless : opts;
         result = this.util.getWord(cands[(Math.random() * cands.length) << 0]);
       }

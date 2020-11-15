@@ -25,7 +25,7 @@ class CharUtils {
     if (!this.charData) throw Error('no char-data');
     if (!defs) throw Error('no definition data');
     Object.keys(defs).forEach(lang => {
-      if (lang === 'chars') return;
+      if (lang === 'chars' || lang === 'triggers') return;
       const data = defs[lang];
       Object.keys(data).forEach(word => {
         if (word.length !== 2) return;

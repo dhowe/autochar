@@ -424,7 +424,9 @@ function writeDefinitions(hr) {
   let name = 'definitions.json';
   fs.writeFileSync(name, hr ? JSON.stringify(dict, 0, 2) : JSON.stringify(dict));
   console.log('wrote ' + (Object.keys(dict.simp).length + Object.keys(dict.trad).length)
-    + ' word defs, ' + Object.keys(dict.triggers).length + ' triggers to \'' + name + '\'');
+    + ' word defs, ' + (Object.keys(dict.triggers.simp).length + Object.keys(dict.triggers.trad).length)
+    + ' triggers(' + Object.keys(dict.triggers.simp).length + '/' + Object.keys(dict.triggers.trad).length
+    + ') to \'' + name + '\'');
 }
 
 // prune the path and write the char-data to file
@@ -439,17 +441,29 @@ function writeCharData(hr) {
 
 // will throw on invalid trigger
 function validateTriggers() {
+  let splitTriggers = { simp: {}, trad: {} };
+  //console.log(JSON.stringify(triggers));
   Object.keys(triggers).forEach(word => {
-    let def = triggers[word].def;
+    let { def, lang, pair } = triggers[word];
     if (!validateWord(word, def)) {
       throw Error('Invalid trigger def: ' + word + ' -> ' + def);
     }
+    if (lang === 'both') {
+      dict.simp[word] = def;
+      dict.trad[word] = def;
+      splitTriggers.simp[word] = pair;
+      splitTriggers.trad[word] = pair;
+    }
+    else {
+      dict[lang][word] = def;
+      splitTriggers[lang][word] = pair;
+    }
   });
-  dict.triggers = triggers;
+  dict.triggers = splitTriggers;
 }
 
 compileDictionary();
 validateTriggers();
 addCharDefs();
-writeDefinitions();
+writeDefinitions(1);
 writeCharData();

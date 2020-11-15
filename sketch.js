@@ -8,7 +8,6 @@ function preload() {
 
   bell = new Tone.Player("res/chime.wav").toMaster();
   strk = new Tone.Player("res/strk.wav").toMaster();
-  triggers = loadJSON('triggers.json');
   chars = loadJSON('chardata.json');
   defs = loadJSON('definitions.json');
   $('#about').modal({
@@ -35,7 +34,7 @@ function draw() {
     window.onresize = updateSize;
     host = window.location.hostname;
     util = new CharUtils(chars, defs, Levenshtein);
-    typer = new Autochar(triggers, util, onAction, onNewTarget);
+    typer = new Autochar(defs.triggers, util, onAction, onNewTarget);
     if (kiosked) {
       $('#startButton').trigger('click');
       $('#mySidenav').hide();
@@ -85,7 +84,7 @@ function onNewTarget(nextWord, med, numStrokes) {
   timer = changeMs;
   //console.log(numStrokes + " strokes over " + changeMs + "ms strokeDelay=" + strokeDelay);
   let chars = nextWord.characters;
-  console.log((typer.steps) + ') ' + (lastWord || "''") + " -> "
+  console.log((typer.steps) + ') ' + (lastWord ? lastWord.literal : "''") + " -> "
     + nextWord.literal, med + util.lang.substring(0, 1), "'" + nextWord.definition
     + "' (" + chars[0].definition + ' :: ' + chars[1].definition + ') ');// + millis());
 }
@@ -101,16 +100,18 @@ function onAction(completedWord, nextWord, nextWordIsTrigger) {
   if (completedWord) { // word complete
 
     if (nextWordIsTrigger) console.log('[TRIGGER1] "'
-      + nextWord.literal + "'" + nextWord.definition + "'");
+      + nextWord.literal + "': " + nextWord.definition + "'");
 
+/*     if () console.log('[PAIR] "');
+      //+ nextWord.literal + "': " + nextWord.definition + "'");
+ */
     pausePending = triggered ? TRIGGER_PAUSE : NON_TRIGGER_PAUSE;
-    defAlpha = 0;
+    isTriggerPair = completedWord.definition === nextWord.definition;
     flashColors();
     playStroke(true);
     playBell();
     triggered = nextWordIsTrigger;
-    lastWord = completedWord.literal;
-    //triggered = false;
+    lastWord = completedWord;
   }
   else {         // just a stroke
     playStroke();
@@ -125,11 +126,11 @@ function drawDefs() {
   let def = typer.word.definition || '';
   let textSz = defSz * (util.lang === "trad" ? 1.25 : 1);
 
-  // TODO: refigure (few strokes, words don't come all the way in)
-  //let defAlpha = map(timer, 1, 0, 0, 255);
-
-  let defAlpha = (timer / changeMs < .8) ? 
+  let defAlpha = 255;
+  if (!isTriggerPair) {
+    defAlpha = (timer / changeMs < .8) ? 
       map(timer / changeMs, .8, 0, 0, 255) : 0;
+  }
    
   textSize(textSz);
   textAlign(CENTER);
@@ -365,7 +366,7 @@ let bell, conf, lastWord, tid, strk, util, typer;
 let timer = 0, strokeCount = 0, firstRun = true;
 let scayl = 1, aspectW = 4, aspectH = 3;
 
-let defAlpha = 255, strokeIdx = 0, changeMs, changeTs, host;
+let isTriggerPair, strokeIdx = 0, changeMs, changeTs, host;
 let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
 let initalResize = false, border = 10, memt = -15;
 let triggered = 0, navOpen = false, lerpFactor = 0.05;
