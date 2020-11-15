@@ -3,7 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 const DATA = "data/";
-const OUT = DATA + "all_char_data.json";
+const OUT = DATA + "char_data.json";
 const DICT = DATA + "dictionary.txt";
 const STROKES = DATA + "graphics.txt";
 const MEDIANS = false;
