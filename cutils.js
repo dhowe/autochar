@@ -25,7 +25,7 @@ class CharUtils {
     if (!this.charData) throw Error('no char-data');
     if (!defs) throw Error('no definition data');
     Object.keys(defs).forEach(lang => {
-      if (lang === 'chars') return;
+      if (lang === 'chars' || lang === 'triggers') return;
       const data = defs[lang];
       Object.keys(data).forEach(word => {
         if (word.length !== 2) return;
@@ -157,14 +157,11 @@ class CharUtils {
     return new Word(literal, chars, defs[literal]);
   }
 
-  getWord(literal, agnostic) {
-    let res = this.wordCache[this.lang][literal];
+  getWord(literal, lang) {
+    lang = lang || this.lang;
+    let res = this.wordCache[lang][literal];
     if (typeof res === 'undefined') {
-      if (agnostic) res = this.wordCache[this.invertLang()][literal];
-      if (typeof res === 'undefined') {
-         throw Error('no ' + this.lang + (agnostic ? '/'
-          + this.invertLang() : '') + ' word for ' + literal);
-      }
+      throw Error('no "' + lang + '" word for ' + literal);
     }
     return res;
   }
@@ -173,7 +170,7 @@ class CharUtils {
     if (literal === 'trigger') return 'NA';
     let word = this.wordCache[this.lang][literal];
     if (!word) word = this.wordCache[this.invertLang()][literal];
-    if (!word) throw Error('no definition for "' + literal+"'");
+    if (!word) throw Error('no definition for "' + literal + "'");
     return word.definition;
   }
 
