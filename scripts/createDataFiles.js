@@ -112,8 +112,10 @@ function validateWord(w, def, dbug) {
   if (!def) return;
 
   // remove some phrases
-  def = def.replace(/, abbr\. for .+/g, "");
-  def = def.replace(/, also written .+/g, "");
+  def = def.replace(/(, )?abbr\. .+/g, "");
+  def = def.replace(/(, )?also written .+/g, "");
+
+  if (def.includes('abbr.')) console.log("abbr(contains): " + w + ": " + def);
 
   if (def.length > maxWordDefLen) {
     dbug && console.log("SKIP(length): " + w + ": " + def,
@@ -122,6 +124,7 @@ function validateWord(w, def, dbug) {
   }
   if (def.startsWith("-")
     || def.startsWith('see ')
+    || def.includes('abbr.')
     || def.includes('prefecture')
     || def.includes('municipality')
     || def.includes('variant of')) {
