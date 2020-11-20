@@ -34,13 +34,11 @@ class CharUtils {
             const ch = word[k];
             if (!this.charData[ch]) {
               //throw Error('no char-data for ' + ch + ' in ' + word);
-              console.warn('no char-data for ' + ch + ' in ' + word);
+              console.warn('no char-data for ' + ch + ' in ' + word
+                + (defs.triggers[lang][word] ? (" [TRIGGER] "+data[word]) : ""));
               return;
             }
-            if (!defs.chars[ch]) {
-              throw Error('no def entry for ' + ch);
-              //console.warn('no def entry for ' + ch);
-            }
+            if (!defs.chars[ch]) throw Error('no def entry for ' + ch);
             this.charData[ch].definition = defs.chars[ch] || '-';
           }
           this.wordCache[lang][word] = this._createWord(word, data);

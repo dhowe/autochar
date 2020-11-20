@@ -50,9 +50,10 @@ function parseDict(lines) {
       // store unique top-level decomps
       if (dcom[0] != '？') uniques[dcom[0]] = 1;
 
-      if (dcom.length == 3) {
-        // single left/right or top/bottom pair
-        if (dcom[0] === '⿰' || dcom[0] === '⿱') {          
+      if (dcom.length == 3) { // only valid decomps
+
+        // accept only single left/right or top/bottom pair
+        if (dcom[0] === '⿰' || dcom[0] === '⿱') {
           addData(chars, data);
         }
         else {
@@ -64,28 +65,14 @@ function parseDict(lines) {
       }
     }
   });
+
   console.log("Found " + lines.length + " total entries");
   console.log("Decompositions: " + Object.keys(uniques));
   console.log("Including chars with either ⿰ or ⿱");
-  console.log("Processed " + Object.keys(chars).length + " characters (" + nulls.length + " bad matches, "+Object.keys(skips).length+" invalid decomps)");
-  console.log("Skipped", Object.keys(skips).length+nulls.length, "chars (either a null match or a bad decomp)"); 
-  /*
-  let tchars = ["尼", "革", "命", "送", "中", "榮", "暴", "國", "之", "威", "白", "武", "亮", "生", "自", "巨", "威", "勾", "迫", "害", "探", "串", "白", "勾"];
-  let nullCount = 0, decomCount = 0;
-  let skipKeys = Object.keys(skips);
-  tchars.forEach(tc => {
-    if (skipKeys.includes(tc)) {
-      decomCount++;
-      console.log("skip[decom] "+tc+' '+skips[tc]);
-    }
-    if (nulls.includes(tc)) {
-      nullCount++;
-      console.log("skip[null] "+tc);
-    }
-  });
-  console.log(decomCount +"/"+tchars.length+" invalid [decomp]");
-  console.log(nullCount +"/"+tchars.length+" invalid [null]");
-  */
+  console.log("Processed " + Object.keys(chars).length + " characters ("
+    + nulls.length + " bad matches, " + Object.keys(skips).length + " invalid decomps)");
+  console.log("Skipped", Object.keys(skips).length + nulls.length,
+    "chars (either a null match or a bad decomp)");
 }
 
 
@@ -101,7 +88,7 @@ function parseStrokes(lines) {
         if (MEDIANS) chars[data.character].medians = data.medians;
       }
       else {
-          //console.error("No stroke data for: " + data.character);
+        //console.error("No stroke data for: " + data.character);
       }
     }
   });

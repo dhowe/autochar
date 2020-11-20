@@ -65,7 +65,9 @@ function addCharDefs() {
       }
     });
   });
-  console.log("char-defs:", JSON.stringify(stats).replace(/(^{|"|}$)/g, '').replace(/([:,])/g, "$1 "));
+  console.log("char-defs:", JSON.stringify(stats)
+    .replace(/(^{|"|}$)/g, '')
+    .replace(/([:,])/g, "$1 "));
   return dict;
 }
 
@@ -210,7 +212,7 @@ function validateTriggers() {
       dict[lang][word] = def;
       splitTriggers[lang][word] = pair;
       if (!triggers[pair] || triggers[pair].def !== def) {
-        throw Error('Non-matching pair [s/t]: ' 
+        throw Error('Non-matching pair [s/t]: '
           + word + '/' + pair + ": " + def);
       }
     }
