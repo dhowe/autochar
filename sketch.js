@@ -9,8 +9,8 @@ function preload() {
   bell = new Tone.Player("res/chime.wav").toMaster();
   trig = new Tone.Player("res/chime.wav").toMaster();
   strk = new Tone.Player("res/strk.wav").toMaster();
-  chars = loadJSON('chardata.json');
-  defs = loadJSON('definitions.json');
+  chars = loadJSON('generated/chardata.json');
+  defs = loadJSON('generated/definitions.json');
   $('#about').modal({
     escapeClose: false,
     clickClose: false,
@@ -385,12 +385,12 @@ let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
 let initalResize = false, border = 10, memt = -15;
 let triggered = 0, navOpen = false, lerpFactor = 0.05;
 let calibrate = false, showDefs = true, charDefs = true;
-
-let bgcol = [255, 255, 255];
-let hitcol = [76, 87, 96];
-let txtcol = [0, 0, 0];
-let trgcol = [150, 0, 0];
 let rgb = [0, 0, 0];
+
+const bgcol = [255, 255, 255];
+const hitcol = [76, 87, 96];
+const txtcol = [0, 0, 0];
+const trgcol = [150, 0, 0];
 
 const DO_PERF = true, KIOSKED = true;
 const TRIGGER_PAUSE = 2500, NON_TRIGGER_PAUSE = 500, MAX_VOLUME = 5;

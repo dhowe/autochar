@@ -4,19 +4,22 @@
 
 // to run: $ node scripts/createDataFiles
 
+const OUTDEFS = 'generated/definitions.json';
+const OUTCHARS = 'generated/chardata.json';
+
 const fs = require('fs');
-const simp = require('../data/words_simp.json');
-const trad = require('../data/words_trad.json');
-const cdefs = require('../data/char_defs.json');
+const simp = require('../generated/_simp_defs.json');
+const trad = require('../generated/_trad_defs.json');
+const cdefs = require('../data/char_defs.json'); // from where?
 const triggers = require('../data/triggers.json');
 
 // generated via createHanziDict.js script
-const cdata = require('../data/char_data.json');
+const cdata = require('../generated/_allchardata.json');
 
-const regex = /\([^)]*[^A-Za-z ,-.')(]+[^)]*\)/g;
 const maxWordDefLen = 42, maxCharDefLen = 30;
-const fullDict = { simp, trad };// triggerData = [];
+const regex = /\([^)]*[^A-Za-z ,-.')(]+[^)]*\)/g;
 const dict = { simp: {}, trad: {}, chars: {} };
+const fullDict = { simp, trad };
 
 // create dict entry {dict[lang][word]: def} for all valid 2-char words
 function compileDictionary() {
@@ -41,9 +44,9 @@ function compileDictionary() {
         }
       }
     });
-    console.log(lang + '-words: ' + Object.keys(dict[lang]).length
-      + ' word defs, ' + Object.keys(badDefs[lang]).length + ' bad defs, '
-      + Object.keys(noCharData[lang]).length + ' with no char-data');
+    console.log('Found', Object.keys(dict[lang]).length, lang
+      + ' word defs,', Object.keys(badDefs[lang]).length, 'bad defs, '
+    + Object.keys(noCharData[lang]).length, 'missing char-data');
   });
 }
 
@@ -65,7 +68,7 @@ function addCharDefs() {
       }
     });
   });
-  console.log("char-defs:", JSON.stringify(stats)
+  console.log("CharDefs:", JSON.stringify(stats)
     .replace(/(^{|"|}$)/g, '')
     .replace(/([:,])/g, "$1 "));
   return dict;
@@ -174,22 +177,20 @@ function wordStrokeCount(c) {
 
 // write the definitions {simp, trad, chars} to a file
 function writeDefinitions(hr) {
-  let name = 'definitions.json';
-  fs.writeFileSync(name, hr ? JSON.stringify(dict, 0, 2) : JSON.stringify(dict));
-  console.log('wrote ' + (Object.keys(dict.simp).length + Object.keys(dict.trad).length)
-    + ' word defs, ' + (Object.keys(dict.triggers.simp).length + Object.keys(dict.triggers.trad).length)
-    + ' triggers(' + Object.keys(dict.triggers.simp).length + '/' + Object.keys(dict.triggers.trad).length
-    + ') to \'' + name + '\'');
+  fs.writeFileSync(OUTDEFS, hr ? JSON.stringify(dict, 0, 2) : JSON.stringify(dict));
+  console.log('Wrote', (Object.keys(dict.simp).length + Object.keys(dict.trad).length),
+    'word defs,', (Object.keys(dict.triggers.simp).length + Object.keys(dict.triggers.trad).length),
+    'triggers (' + Object.keys(dict.triggers.simp).length + '/' + Object.keys(dict.triggers.trad).length +
+    ') to \'' + OUTDEFS + '\'');
 }
 
 // prune the path and write the char-data to file
 function writeCharData(hr) {
   let paths = prunePathData(dict);
-  let name = 'chardata.json';
-  fs.writeFileSync(name, hr ? JSON.stringify(paths, 0, 2) : JSON.stringify(paths));
+  fs.writeFileSync(OUTCHARS, hr ? JSON.stringify(paths, 0, 2) : JSON.stringify(paths));
   // those not written were pruned
-  console.log('wrote ' + Object.keys(paths).length + "/"
-    + Object.keys(cdata).length + ' char-paths to \'' + name);
+  console.log('Wrote', Object.keys(paths).length, "/"
+    , Object.keys(cdata).length, 'character paths to \'' + OUTCHARS);
 }
 
 // will throw on invalid trigger
@@ -200,6 +201,15 @@ function validateTriggers() {
     let { def, lang, pair } = triggers[word];
     if (!validateWord(word, def, true)) {
       throw Error('Invalid trigger: ' + word + ' -> ' + def);
+    }
+    for (let i = 0; i < word.length; i++) {
+      let ch = word[i];
+      // check we have character data (correct decomp)
+      if (!cdata[ch]) {
+        console.warn('  no char-data for ' + ch + ' in ' + word + " :: "+def);
+        return false;
+      }
+
     }
     if (lang === 'both') {
       if (pair && pair !== word) {
@@ -223,5 +233,5 @@ function validateTriggers() {
 compileDictionary();
 validateTriggers();
 addCharDefs();
-writeDefinitions(1);
+writeDefinitions();
 writeCharData();

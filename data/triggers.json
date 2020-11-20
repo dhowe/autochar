@@ -43,8 +43,7 @@
   "柴玲": { "lang": "both", "def": "Chai Ling (dissident)" },
   "洪志": { "lang": "both", "def": "Falun Gong founder (hongzhi)" },
   "弟子": { "lang": "both", "def": "disciple, ref. to Falun Gong" },
-  "明慧": { "lang": "both", "def": "Minghui, website of Falun Gong" },
-  "支那": { "lang": "both", "def": "Shina, Japanese name for China" },
+  "五毛": { "lang": "both", "def": "50 Cent Army (wu mao)" },
 
   "林鄭": { "lang": "trad", "pair": "林郑", "def": "(Carrie) Lam Cheng, CE of HKSAR" },
   "林郑": { "lang": "simp", "pair": "林鄭", "def": "(Carrie) Lam Cheng, CE of HKSAR" },
@@ -395,7 +394,7 @@
   "犯罪": { "lang": "both", "pair": "犯罪", "def": "to commit a crime" },
   "操控": { "lang": "both", "pair": "操控", "def": "to control, to manipulate" },
   "定罪": { "lang": "both", "pair": "定罪", "def": "to convict, criminalize" },
-  "治愈": { "lang": "both", "pair": "治愈", "def": "to heal, to cure, a cure" },
+  "治愈": { "lang": "both", "pair": "治愈", "def": "to heal, to cure" },
   "表决": { "lang": "simp", "pair": "表決", "def": "to decide by vote" },
   "表決": { "lang": "trad", "pair": "表决", "def": "to decide by vote" },
   "維護": { "lang": "trad", "pair": "维护", "def": "to defend or maintain" },

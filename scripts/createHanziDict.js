@@ -2,27 +2,26 @@
 ///// Generates chardata.json, with strokes/matches/decomps for each char  /////
 ////////////////////////////////////////////////////////////////////////////////
 
-const DATA = "data/";
-const OUT = DATA + "char_data.json";
-const DICT = DATA + "dictionary.txt";
-const STROKES = DATA + "graphics.txt";
-const MEDIANS = false;
+const IN_DICT = "data/dictionary.txt";
+const IN_STROKES = "data/graphics.txt";
+const OUTPUT = "generated/_allchardata.json";
 
 let args = process.argv.slice(2);
 let indent = args.length && args[0] == '-i';
 let fs = require("fs"), chars = {}, nulls = [];
 
-parseDict(fs.readFileSync(DICT, 'utf8').split('\n'));
-parseStrokes(fs.readFileSync(STROKES, 'utf8').split('\n'));
+parseDict(fs.readFileSync(IN_DICT, 'utf8').split('\n'));
+parseStrokes(fs.readFileSync(IN_STROKES, 'utf8').split('\n'));
 
 let json = indent ? JSON.stringify(chars, null, 2) : JSON.stringify(chars);
-let out = indent ? OUT.replace(".json", "-hr.json") : OUT;
+let out = indent ? OUTPUT.replace(".json", "-hr.json") : OUTPUT;
 fs.writeFileSync(out, json);
 
-console.log("Wrote JSON to " + out);
+console.log("Wrote JSON to '" + out + "'");
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
 
 function parseDict(lines) {
   function addData(chars, data) {
@@ -66,13 +65,14 @@ function parseDict(lines) {
     }
   });
 
-  console.log("Found " + lines.length + " total entries");
+  console.log("Found " + lines.length + " entries in " + IN_DICT);
   console.log("Decompositions: " + Object.keys(uniques));
-  console.log("Including chars with either ⿰ or ⿱");
-  console.log("Processed " + Object.keys(chars).length + " characters ("
-    + nulls.length + " bad matches, " + Object.keys(skips).length + " invalid decomps)");
-  console.log("Skipped", Object.keys(skips).length + nulls.length,
-    "chars (either a null match or a bad decomp)");
+  //console.log("Including only characters ");
+  //console.log("Processed", Object.keys(chars).length,"characters matching"
+  //+ " either ⿰ or ⿱:\n  (", nulls.length, "with null match data, " 
+  //+ Object.keys(skips).length, "with invalid decompositions)");
+  console.log("Skipped", (Object.keys(skips).length + nulls.length),
+    "chars (either a null match or a bad decomposition)");
 }
 
 
@@ -85,12 +85,12 @@ function parseStrokes(lines) {
         if (chars[data.character].hasOwnProperty('strokes'))
           console.error("Dup. stroke data for: " + data.character);
         chars[data.character].strokes = data.strokes;
-        if (MEDIANS) chars[data.character].medians = data.medians;
+        //chars[data.character].medians = data.medians;
       }
       else {
         //console.error("No stroke data for: " + data.character);
       }
     }
   });
-  console.log("Processed " + Object.keys(chars).length + " stroke paths");
+  //console.log("Processed stroke data for " + Object.keys(chars).length + " characters");
 }
