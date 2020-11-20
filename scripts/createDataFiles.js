@@ -1,4 +1,3 @@
-
 ////////////////////////////////////////////////////////////////////////////////
 ///// Generates chardata.js and definitions.js in top-level of project     /////
 ////////////////////////////////////////////////////////////////////////////////
@@ -48,196 +47,6 @@ function compileDictionary() {
   });
 }
 
-// validate each trigger and remove it if it fails
-// add each new definition to the 'dict'
-// create sorted trigger-pairs object
-function parseTriggerDefs() {
-
-  let msg = 'parsed ' + Object.keys(triggers).length + " triggers";
-  let tmpTriggers = {};
-  // first validate each trigger
-  Object.keys(triggers).forEach(w => {
-    let lang;
-    if (triggers[w].startsWith('[S] ')) {
-      lang = 'simp';
-    }
-    else if (triggers[w].startsWith('[T] ')) {
-      lang = 'trad';
-    }
-    else if (triggers[w].startsWith('[B] ')) {
-      lang = 'both';
-    }
-    else {
-      throw Error("BAD ITEM: " + triggers[w]);
-    }
-    let def = triggers[w].substring(4);
-
-    // check defs are valid
-    if (!validateWord(w, def)) {
-      throw Error('Invalid trigger def: ' + w + ' -> ' + def);
-    }
-    tmpTriggers[w] = { def, lang };
-  });
-  //  console.log(JSON.stringify(Object.entries(triggerData)[0][1].def, null, 2));
-
-  // sort triggers {char: def} first by definition
-  // then, if tied, by strokeCount (simp before trad)
-  let sortedTriggers = Object.entries(tmpTriggers).sort
-    ((a, b) => (a[1].def.localeCompare(b[1].def)));
-  //|| (wordStrokeCount(a[0]) - wordStrokeCount(b[0])));
-
-  //console.log(JSON.stringify(sortedTriggers.slice(0,2), null, 2));
-
-
-  let fails = {}, dbug = 0;
-  // populate triggerData array
-  for (let i = 0; i < sortedTriggers.length; i++) {
-
-    let ele = sortedTriggers[i];
-    let word = ele[0];
-    let data = ele[1];
-    let def = data.def;
-    let lang = data.lang;
-
-    if (lang !== 'both') {
-
-      if (i < sortedTriggers.length - 1 && sortedTriggers[i + 1][1].def !== def) {
-        throw Error("Bad pairing: \n  " + JSON.stringify(ele)
-          + "\n  " + JSON.stringify(sortedTriggers[i + 1]) + "\n");
-      }
-      let ele2 = sortedTriggers[i + 1], word2 = ele2[0], data2 = ele2[1];
-      i++;
-      if (!cdata[word[0]] || !cdata[word[1]] || !cdata[word2[0]] || !cdata[word2[1]]) {
-        dbug && console.warn('No char-data for[s/t]: ' + word);
-        /* delete triggerData[word];
-        delete triggerData[word2]; */
-        fails[word] = 1;
-        fails[word2] = 1;
-        continue;
-      }
-
-      def2 = data2.def;
-      lang2 = data2.lang;
-
-      // add both to dictionary
-      dict[lang][word] = def;
-      dict[lang2][word2] = def2;
-
-      // add pair and reverse pair
-      data.pair = word2;
-      data2.pair = word;
-
-      triggerData.push([word, data]);
-      triggerData.push([word2, data2]);
-      /* triggerPairs.push([word, word2]);
-      triggerPairs.push([word2, word]); */
-    }
-    else {
-      if (!cdata[word[0]] || !cdata[word[1]]) {
-        dbug && console.warn('No char-data[b] for: ' + word);
-        //delete triggerData[word];
-        fails[word] = 1;
-        continue;
-      }
-
-
-      // add to both dictionaries
-      dict.simp[word] = triggers[word];
-      dict.trad[word] = triggers[word];
-
-      // add to self as pair
-      ele[1].pair = word;
-      //console.log(data);
-      //console.log("triggerData.push(" + [word, data]+")");
-      triggerData.push([word, data]);
-
-    }
-  }
-
-  console.log(msg + ', ' + Object.keys(fails).length
-    + " failed with no char-data\n" + triggerData.length
-    + ' triggers remaining in triggerData array');
-}
-
-
-// write out the trigger pairs for copy/paste
-function triggerDataToJson() {
-  console.log('found ' + triggerData.length + " sorted triggers\n");//+JSON.stringify(triggerData,0,2) );
-  let json = '{\n';
-  for (let i = 0; i < triggerData.length; i++) {
-    let st = triggerData[i]; // array[2]
-    let word = st[0];
-    let data = st[1];
-    json += '  ' + '"' + word + '": ' +//JSON.stringify(data);
-      '{ "lang": "' + data.lang + '", "pair": "' + data.pair + '", "def": "' + data.def + '" }';
-    if (i < triggerData.length - 1) json += ',' + '\n';
-  }
-  json += '\n}';
-  console.log(json);
-  return json;
-}
-
-function writeTriggerData() {
-  let name = 'triggers.json';
-  fs.writeFileSync(name, triggerPairsToJson());
-  console.log('writing ' + triggerPairs.length +
-    ' trigger-pairs to \'' + name + '\'');
-}
-
-/*
-
-  let fails = {};
-  dbug = 0;
-  for (let i = 0; i < sorted.length; i++) {
-    let word = sorted[i][0], def = sorted[i][1];
-    //console.log(i + ') ' + char[0] + ' ' + char[1]);
-
-    // NEXT: handle [S], [T], [B]   ********
-
-    // REWRITE following:
-
-    //let char = sorted[i][0], def = sorted[i][1];
-    if (i < sorted.length - 1 && sorted[i + 1][1] === def) {
-      let word2 = sorted[i + 1][0];
-      i++; // will skip next bc it is the same pair reversed
-      if (!cdata[word[0]] || !cdata[word[1]] || !cdata[word2[0]] || !cdata[word2[1]]) {
-        dbug && console.warn('No char-data for: ' + word);
-        delete triggers[word];
-        delete triggers[word2];
-        fails[word] = 1;
-        fails[word2] = 1;
-        continue;
-      }
-
-      // add both 2 dictionary
-      dict.simp[word] = triggers[word];
-      dict.trad[word2] = triggers[word2];
-
-      // add pair and reverse pair
-      triggerPairs.push([word, word2]);
-      triggerPairs.push([word2, word]);
-    }
-    else {
-
-      if (!cdata[word[0]] || !cdata[word[1]]) {
-        dbug && console.warn('No char-data[c] for: ' + word);
-        delete triggers[word];
-        fails[word] = 1;
-        continue;
-      }
-      // add to both dictionaries
-      dict.simp[word] = triggers[word];
-      dict.trad[word] = triggers[word];
-
-      // add as a single pair
-      triggerPairs.push([word, word]);
-    }
-  }
-  console.log(msg + ', ' + Object.keys(fails).length
-    + " failed w'out char-data\n" + Object.keys(triggers).length
-    + ' trigger defs remaining, ' + triggerPairs.length + ' pairs');
-}
-*/
 // check and repair all char entries in dict
 function addCharDefs() {
   let stats = {
@@ -287,9 +96,9 @@ function repairCharDef(w, stats) {
   return def.replace(/ +/g, ' ');
 }
 
-function validateWord(w, def, isTrigger) {
+function validateWord(w, def, dbug) {
 
-  let dbug = 0;
+  // dbug = true;
 
   if (!cdefs[w[0]] || !cdefs[w[1]]) {
     dbug && console.log("SKIP(char-def): " + w + ": " + def);
@@ -334,46 +143,6 @@ function prunePathData() {
     + Object.keys(cdata).length + ' char entries, ' + num + ' pruned');
   return pruned;
 }
-/* 
-function pruneTriggers(dict) {
-  let badTriggers = [], badChars = {}, dbug = 0;
-  Object.keys(triggers).forEach(w => {
-    if (w.length !== 2) throw Error('Bad trigger: ' + w);
-    if (!cdata.hasOwnProperty(w[0]) || !cdata.hasOwnProperty(w[1])) {
-      if (dbug) console.warn('Invalid Trigger (no char-data): ' + w);
-      for (let i = 0; i < w.length; i++) {
-        if (!cdata.hasOwnProperty(w[i])) {
-          if (dbug); console.warn('no char-data for ' + w[i] + ' in ' + w + " [" + triggers[w] + "]");
-          badChars[w[i]] = 1;
-        }
-      }
-      badTriggers.push(w);
-      delete dict.simp[w];
-      delete dict.trad[w];
-    }
-  });
-  badTriggers.forEach(bt => delete triggers[bt]);
-  console.log('found ' + badTriggers.length + ' bad triggers, ' + Object.keys(triggers).length + " remaining")
-} */
-
-/* function updateTriggerDefs(dict) {
- 
-  // then check words already exist in dictionary
-  Object.keys(triggers).forEach(t => {
-    if (!dict.trad.hasOwnProperty(t) && !dict.simp.hasOwnProperty(t)) {
-      console.warn("No def. for trigger: " + t + " -> " + triggers[t]);
-    }
-    // then update the definitions if needed
-    if (dict.trad[t]) dict.trad[t] = triggers[t];
-    if (dict.simp[t]) dict.simp[t] = triggers[t];
-  });
- 
-  console.log('updated ' + Object.keys(triggers).length + ' trigger definitions');
-} */
-
-/* function hasCharData(c) {
-  return cdata.hasOwnProperty(c);
-} */
 
 function charStrokeCount(c) {
   if (!cdata.hasOwnProperty(c)) {
@@ -400,24 +169,6 @@ function wordStrokeCount(c) {
   return charStrokeCount(c[0]) + charStrokeCount(c[1]);
 }
 
-function triggerPairsToJs() { // save: not used
-  let js = '\nconst WORD_TRIGGERS_PAIRS = ';
-  js += triggerPairsToJson();
-  return js + ';\n';
-}
-
-
-// write out the trigger pairs for copy/paste
-function triggerPairsToJson() {
-  let json = '{\n';
-  for (let i = 0; i < triggerPairs.length; i++) {
-    let s = triggerPairs[i];
-    json += '  ' + '"' + s[0] + '": "' + s[1] + '"';
-    if (i < triggerPairs.length - 1) json += ',' + '\n';
-  }
-  json += '\n}';
-  return json;
-}
 
 // write the definitions {simp, trad, chars} to a file
 function writeDefinitions(hr) {
@@ -445,18 +196,23 @@ function validateTriggers() {
   //console.log(JSON.stringify(triggers));
   Object.keys(triggers).forEach(word => {
     let { def, lang, pair } = triggers[word];
-    if (!validateWord(word, def)) {
-      throw Error('Invalid trigger def: ' + word + ' -> ' + def);
+    if (!validateWord(word, def, true)) {
+      throw Error('Invalid trigger: ' + word + ' -> ' + def);
     }
     if (lang === 'both') {
-      dict.simp[word] = def;
-      dict.trad[word] = def;
-      splitTriggers.simp[word] = pair;
-      splitTriggers.trad[word] = pair;
+      if (pair && pair !== word) {
+        throw Error('Non-matching pair [b]: ' + word + '/' + pair + ": " + def);
+      }
+      dict.simp[word] = dict.trad[word] = def;
+      splitTriggers.simp[word] = splitTriggers.trad[word] = word;
     }
     else {
       dict[lang][word] = def;
       splitTriggers[lang][word] = pair;
+      if (!triggers[pair] || triggers[pair].def !== def) {
+        throw Error('Non-matching pair [s/t]: ' 
+          + word + '/' + pair + ": " + def);
+      }
     }
   });
   dict.triggers = splitTriggers;
