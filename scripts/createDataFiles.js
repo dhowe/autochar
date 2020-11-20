@@ -124,7 +124,6 @@ function validateWord(w, def, dbug) {
   }
   if (def.startsWith("-")
     || def.startsWith('see ')
-    || def.includes('abbr.')
     || def.includes('prefecture')
     || def.includes('municipality')
     || def.includes('variant of')) {
