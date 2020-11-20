@@ -1,8 +1,9 @@
+// TODO: handle long-loops (more indeterminism)
 
-
-// NEXT:
-//   FINISH RED FADING 
-//   ? handle long-loops (more indeterminism)
+const DO_PERF = true, KIOSKED = true, KSPEED = 1.5;
+const TRIGGER_PAUSE = 2500, NON_TRIGGER_PAUSE = 500;
+const STROKE_DELAY_MIN = KIOSKED ? 300 * KSPEED : 300;
+const STROKE_DELAY_MAX = KIOSKED ? 1300 * KSPEED : 1300;
 
 function preload() {
 
@@ -81,7 +82,7 @@ function onNewTarget(nextWord, med, numStrokes) {
   strokeIdx = 0;
   strokeCount = numStrokes;
   let nSpeed = min(1, numStrokes / 12);
-  strokeDelay = map(nSpeed, 0, 1, strokeDelayMax, strokeDelayMin);
+  strokeDelay = map(nSpeed, 0, 1, STROKE_DELAY_MAX, STROKE_DELAY_MIN);
   changeMs = strokeDelay * (strokeCount - 1);
   changeTs = millis();
   timer = changeMs;
@@ -127,7 +128,7 @@ function onAction(completedWord, nextWord, nextWordIsTrigger) {
 function drawDefs() {
 
   let def = typer.word.definition || '';
-  let textSz = defSz * (util.lang === "trad" ? 1.25 : 1);
+  let textSz = defSz * (util.lang === "trad" ? 1.3 : .98);
 
   let defAlpha = 255;
   if (!isTriggerPair) {
@@ -381,17 +382,12 @@ let timer = 0, strokeCount = 0, firstRun = true;
 let scayl = 1, aspectW = 4, aspectH = 3;
 
 let isTriggerPair, strokeIdx = 0, changeMs, changeTs, host;
-let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
 let initalResize = false, border = 10, memt = -15;
 let triggered = 0, navOpen = false, lerpFactor = 0.05;
 let calibrate = false, showDefs = true, charDefs = true;
-let rgb = [0, 0, 0];
+let rgb = [0, 0, 0], strokeDelay;
 
-const bgcol = [255, 255, 255];
-const hitcol = [76, 87, 96];
-const txtcol = [0, 0, 0];
-const trgcol = [150, 0, 0];
+const bgcol = [255, 255, 255], hitcol = [76, 87, 96];
+const txtcol = [0, 0, 0], trgcol = [150, 0, 0];
 
-const DO_PERF = true, KIOSKED = true;
-const TRIGGER_PAUSE = 2500, NON_TRIGGER_PAUSE = 500, MAX_VOLUME = 5;
 const RETINA_CHECK = 'only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 2.6/2), only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen  and (min-device-pixel-ratio: 1.3), only screen and (min-resolution: 1.3dppx)");'

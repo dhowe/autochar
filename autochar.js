@@ -176,7 +176,7 @@ class Autochar {
       let pair = this.triggers[this.util.lang][this.target.literal];
       result = this.util.getWord(pair, this.util.invertLang());
       if (!result) throw Error("No pair for " + this.target.literal);
-      console.log("[TRIGGER2] " + this.target.literal + " -> "
+      0 && console.log("[TRIGGER2] " + this.target.literal + " -> "
         + pair + " " + result.definition);
       this.leftStatics = this.rightStatics = 0; // reset statics
     }
