@@ -157,24 +157,22 @@ class Autochar {
 
     let ctrigs = Object.keys(this.triggers[this.util.lang]);
 
-    if (this.steps === 2 || this.manualTrigger) { // for testing only: REMOVE
+    if (this.manualTrigger) {
       this.manualTrigger = false;
       for (let tries = 0; result == null; tries++) {
         let trig = ctrigs[(Math.random() * ctrigs.length) << 0];
-        console.log("[FORCED] " + trig);
-        try {
+   //     try {
           result = this.util.getWord(trig);
-        }
+/*         }
         catch (e) {
           console.log("FAIL #" + (tries + 1), e.message);
-        }
+        } */
       }
       triggered = true;
     }
 
     // if last was a trigger, use its counterpart
     if (this.targetIsTrigger) {
-      //let next = this.triggerPairs[this.target.literal];
       let pair = this.triggers[this.util.lang][this.target.literal];
       result = this.util.getWord(pair, this.util.invertLang());
       if (!result) throw Error("No pair for " + this.target.literal);
@@ -254,8 +252,8 @@ class Autochar {
 
   findEditIndices() {
 
-    this.targetCharIdx = 0; // was -1
-    this.targetPartIdx = 0; // was -1
+    this.targetCharIdx = 0; 
+    this.targetPartIdx = 0;
 
     //console.log("findEditIndices",this.target, this.word );
     if (this.target.length === this.word.length) {

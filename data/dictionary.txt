@@ -734,7 +734,7 @@
 {"character":"匏","definition":"gourd; musical instrument","pinyin":["páo"],"decomposition":"⿰夸包","etymology":{"type":"pictophonetic","phonetic":"包","semantic":"夸","hint":"extravagant"},"radical":"勹","matches":[[0],[0],[0],[0],[0],[0],[1],[1],[1],[1],[1]]}
 {"character":"匐","definition":"to crawl; to lie prostrate","pinyin":["fú"],"decomposition":"⿹勹畐","etymology":{"type":"pictophonetic","phonetic":"畐","semantic":"勹","hint":"wrap"},"radical":"勹","matches":[[0],[0],[1],[1],[1],[1],[1],[1],[1],[1],[1]]}
 {"character":"匕","definition":"spoon, ladle; knife, dirk","pinyin":["bǐ"],"decomposition":"⿺乚丿","etymology":{"type":"pictographic","hint":"A spoon"},"radical":"匕","matches":[[1],[0]]}
-{"character":"化","definition":"to change, to convert, to reform; -ize","pinyin":["huà"],"decomposition":"⿰亻匕","radical":"匕","matches":[[0],[0],[1],[1]]}
+{"character":"化","definition":"to change, to convert, to reform;","pinyin":["huà"],"decomposition":"⿰亻匕","radical":"匕","matches":[[0],[0],[1],[1]]}
 {"character":"北","definition":"north; northern; northward","pinyin":["běi"],"decomposition":"⿰？匕","etymology":{"type":"pictographic","hint":"Two people 匕 sitting back-to-back; phonetic loan for \"north\""},"radical":"匕","matches":[null,null,null,[1],[1]]}
 {"character":"匙","definition":"spoon; surname","pinyin":["chí","shī"],"decomposition":"⿺是匕","etymology":{"type":"pictophonetic","phonetic":"是","semantic":"匕","hint":"spoon"},"radical":"匕","matches":[[0],[0],[0],[0],[0],[0],[0],[0],[0],[1],[1]]}
 {"character":"匚","definition":"box; basket","pinyin":["fāng"],"decomposition":"⿱一？","radical":"匚","matches":[[0],null]}

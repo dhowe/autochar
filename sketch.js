@@ -7,6 +7,7 @@
 function preload() {
 
   bell = new Tone.Player("res/chime.wav").toMaster();
+  trig = new Tone.Player("res/chime.wav").toMaster();
   strk = new Tone.Player("res/strk.wav").toMaster();
   chars = loadJSON('chardata.json');
   defs = loadJSON('definitions.json');
@@ -35,7 +36,7 @@ function draw() {
     host = window.location.hostname;
     util = new CharUtils(chars, defs, Levenshtein);
     typer = new Autochar(defs.triggers, util, onAction, onNewTarget);
-    if (kiosked) {
+    if (KIOSKED) {
       $('#startButton').trigger('click');
       $('#mySidenav').hide();
       showNav = false;
@@ -44,8 +45,10 @@ function draw() {
     return next();
   }
 
-  if (paused) {
-    //console.log("paused");
+  if (paused) return;
+
+  if (calibrate) {
+    background(calibrate[0], calibrate[1], calibrate[2]);
     return;
   }
 
@@ -53,14 +56,14 @@ function draw() {
   background(rgb[0], rgb[1], rgb[2]);
   drawWord(typer.word);
   showDefs && drawDefs();
-  doPerf && logPerf();
+  DO_PERF && logPerf();
   showNav && drawNav();
 
   if (pausePending) {
     paused = true;
     //console.log('triggered: ' + triggered);
     clearTimeout(tid);
-    
+
     let triggered = (pausePending === TRIGGER_PAUSE);
     tid = setTimeout(() => unpause(triggered), pausePending);
     pausePending = 0;
@@ -102,9 +105,9 @@ function onAction(completedWord, nextWord, nextWordIsTrigger) {
     if (nextWordIsTrigger) console.log('[TRIGGER1] "'
       + nextWord.literal + "': " + nextWord.definition + "'");
 
-/*     if () console.log('[PAIR] "');
-      //+ nextWord.literal + "': " + nextWord.definition + "'");
- */
+    /*     if () console.log('[PAIR] "');
+          //+ nextWord.literal + "': " + nextWord.definition + "'");
+     */
     pausePending = triggered ? TRIGGER_PAUSE : NON_TRIGGER_PAUSE;
     isTriggerPair = completedWord.definition === nextWord.definition;
     flashColors();
@@ -128,10 +131,10 @@ function drawDefs() {
 
   let defAlpha = 255;
   if (!isTriggerPair) {
-    defAlpha = (timer / changeMs < .8) ? 
+    defAlpha = (timer / changeMs < .8) ?
       map(timer / changeMs, .8, 0, 0, 255) : 0;
   }
-   
+
   textSize(textSz);
   textAlign(CENTER);
   fill(txtcol[0], txtcol[1], txtcol[2], defAlpha);
@@ -182,8 +185,8 @@ function toggleMute(event) {
   else {
     doSound = doSound == 0 ? 1 : 0;
   }
-  document.getElementById("mute").innerText =
-    doSound == 0 ? 'unmute' : ' mute ';
+  let ele = document.getElementById("mute");
+  if (ele) ele.innerText = doSound == 0 ? 'unmute' : ' mute ';
 }
 
 function flashColors() {
@@ -197,12 +200,12 @@ function playBell() {
 
   if (doSound) {
     bell.playbackRate = random(.6, .9);
-    bell.volume.value = random(.7, 1);
+    bell.volume.value = -10 + random(.7, 1);
     bell.restart();
     if (triggered) {
-      bell.playbackRate = random(.5, .7);
-      bell.volume.value = MAX_VOLUME;
-      bell.restart(200);
+      trig.playbackRate = random(.4, .6);
+      trig.volume.value = 1;
+      trig.restart("+0.2");
     }
   }
 }
@@ -211,7 +214,7 @@ function playStroke(quiet) {
 
   if (doSound) {
     strk.playbackRate = random(.5, .7);
-    strk.volume.value = quiet ? -24 : -12;
+    strk.volume.value = quiet ? -36 : -24;
     strk.restart(undefined, 0, random(.05, .1));
   }
 }
@@ -221,7 +224,7 @@ function keyReleased() {
   // no key commands on live site
   //if (host === 'rednoise.org') return;
 
-  if (key == ' ') {
+  if (key === ' ') {
     if (tid) {
       clearTimeout(tid);
       tid = 0;
@@ -230,20 +233,31 @@ function keyReleased() {
       next();
     }
   }
-  if (key == 'd') {
+  if (key === 'd') {
     showDefs = !showDefs;
     charDefs = !charDefs;
   }
 
-  if (key == 't') {
-    console.log('Manual trigger');
+  if (key === 'r') {
+    calibrate = calibrate ? false : trgcol;
+    toggleMute();
+  }
+  if (key === 'w') {
+    calibrate = calibrate ? false : bgcol;
+    toggleMute();
+  }
+  if (key === 'g') {
+    calibrate = calibrate ? false : hitcol;
+    toggleMute();
+  }
+
+  if (key === 't') {
+    console.log('[MANUAL]');
     typer.manualTrigger = true;
-/*     util.toggleLang();
-    triggered = true;
-    flashColors();
-    playStroke(true);
-    playBell();
-    //triggered = false; */
+  }
+
+  if (key === 'm') {
+    toggleMute();
   }
 }
 
@@ -335,7 +349,7 @@ function repairCanvas() {
 
 function adjustColors() {
   let triggered = (rgb[1] === 0 && rgb[2] === 0);
-  if (frameCount %5==4 ) console.log();
+  if (frameCount % 5 == 4) console.log();
   for (let i = 0; i < rgb.length; i++) {
     if (rgb[i] != bgcol[i]) rgb[i] = lerp(rgb[i], bgcol[i], lerpFactor);
     if (txtcol[i] > 0) txtcol[i] = lerp(txtcol[i], 0, lerpFactor);
@@ -362,7 +376,7 @@ function logPerf() {
 
 let paused = false, pausePending = false, doSound = false, showNav = true;
 let cnv, sw, sh, xo, yo, defSz, w, h, chars, defs;
-let bell, conf, lastWord, tid, strk, util, typer;
+let bell, trig, strk, conf, lastWord, tid, util, typer;
 let timer = 0, strokeCount = 0, firstRun = true;
 let scayl = 1, aspectW = 4, aspectH = 3;
 
@@ -370,6 +384,7 @@ let isTriggerPair, strokeIdx = 0, changeMs, changeTs, host;
 let strokeDelay, strokeDelayMax = 1300, strokeDelayMin = 300;
 let initalResize = false, border = 10, memt = -15;
 let triggered = 0, navOpen = false, lerpFactor = 0.05;
+let calibrate = false, showDefs = true, charDefs = true;
 
 let bgcol = [255, 255, 255];
 let hitcol = [76, 87, 96];
@@ -377,6 +392,6 @@ let txtcol = [0, 0, 0];
 let trgcol = [150, 0, 0];
 let rgb = [0, 0, 0];
 
-const doPerf = true, showDefs = true, charDefs = true, kiosked = true;
-const TRIGGER_PAUSE = 2000, NON_TRIGGER_PAUSE = 500, MAX_VOLUME = 5;
+const DO_PERF = true, KIOSKED = true;
+const TRIGGER_PAUSE = 2500, NON_TRIGGER_PAUSE = 500, MAX_VOLUME = 5;
 const RETINA_CHECK = 'only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 2.6/2), only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen  and (min-device-pixel-ratio: 1.3), only screen and (min-resolution: 1.3dppx)");'
