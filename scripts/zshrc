@@ -1,0 +1,12 @@
+#!/bin/sh
+wget --no-check-certificate http://pagekite.net/pk/pagekite.py
+chmod +x pagekite.py
+sudo chown root:wheel pagekite.py
+mv pagekite.py /usr/local/bin/pagekite.py
+mkdir /etc/pagekite/
+mv .pagekite.rc /etc/pagekite/pagekite.rc
+
+#Now add pagekite.py as a launchctl service, pointing it to the options file:
+
+sudo launchctl submit -l pagekite -- pagekite.py --clean -o /etc/pagekite/pagekite.rc
+

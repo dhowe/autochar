@@ -1,5 +1,7 @@
 
 {
+  "民主": { "lang": "both", "pair": "民主", "def": "democracy" },
+  
   "林鄭": { "lang": "trad", "pair": "林郑", "def": "(Carrie) Lam Cheng, CE of HKSAR" },
   "林郑": { "lang": "simp", "pair": "林鄭", "def": "(Carrie) Lam Cheng, CE of HKSAR" },
   "口号": { "lang": "simp", "pair": "口號", "def": "(chanted) slogan" },
