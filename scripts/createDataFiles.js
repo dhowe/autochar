@@ -115,8 +115,6 @@ function validateWord(w, def, dbug) {
   def = def.replace(/(, )?abbr\. .+/g, "");
   def = def.replace(/(, )?also written .+/g, "");
 
-  if (def.includes('abbr.')) console.log("abbr(contains): " + w + ": " + def);
-
   if (def.length > maxWordDefLen) {
     dbug && console.log("SKIP(length): " + w + ": " + def,
       "length=" + (def.length + "/" + maxWordDefLen));

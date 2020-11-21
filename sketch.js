@@ -4,6 +4,7 @@ const DO_PERF = true, KIOSKED = true, KSPEED = 1.5;
 const TRIGGER_PAUSE = 2500, NON_TRIGGER_PAUSE = 500;
 const STROKE_DELAY_MIN = KIOSKED ? 300 * KSPEED : 300;
 const STROKE_DELAY_MAX = KIOSKED ? 1300 * KSPEED : 1300;
+const lerpFactor = 0.05;
 
 function preload() {
 
@@ -49,7 +50,11 @@ function draw() {
   if (paused) return;
 
   if (calibrate) {
+
     background(calibrate[0], calibrate[1], calibrate[2]);
+    fill(255);
+    textSize(100);
+    text(calibrate[0]+","+calibrate[1]+","+calibrate[2],width/2,height/2);
     return;
   }
 
@@ -381,11 +386,10 @@ let bell, trig, strk, conf, lastWord, tid, util, typer;
 let timer = 0, strokeCount = 0, firstRun = true;
 let scayl = 1, aspectW = 4, aspectH = 3;
 
+let rgb = [0, 0, 0], strokeDelay,  showDefs = true, charDefs = true;
 let isTriggerPair, strokeIdx = 0, changeMs, changeTs, host;
 let initalResize = false, border = 10, memt = -15;
-let triggered = 0, navOpen = false, lerpFactor = 0.05;
-let calibrate = false, showDefs = true, charDefs = true;
-let rgb = [0, 0, 0], strokeDelay;
+let triggered = 0, navOpen = false, calibrate = false;
 
 const bgcol = [255, 255, 255], hitcol = [76, 87, 96];
 const txtcol = [0, 0, 0], trgcol = [150, 0, 0];
