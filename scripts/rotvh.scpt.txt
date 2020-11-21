@@ -1,0 +1,7 @@
+delay 2
+
+do shell script "killall 'Google Chrome'"
+
+delay 2
+
+do shell script "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --kiosk --autoplay-policy=no-user-gesture-required --app=http://localhost/autochar/index.html"
