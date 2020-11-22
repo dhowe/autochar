@@ -64,6 +64,11 @@ class Autochar {
     return this.action;
   }
 
+  forceTrigger(manual) {
+    if (manual) console.log('[MANUAL]');
+    this.manualTrigger = true
+  }
+
   candidates(minAllowed) {
 
     let cands = [], filtering = true;
@@ -161,12 +166,12 @@ class Autochar {
       this.manualTrigger = false;
       for (let tries = 0; result == null; tries++) {
         let trig = ctrigs[(Math.random() * ctrigs.length) << 0];
-   //     try {
-          result = this.util.getWord(trig);
-/*         }
-        catch (e) {
-          console.log("FAIL #" + (tries + 1), e.message);
-        } */
+        //     try {
+        result = this.util.getWord(trig);
+        /*         }
+                catch (e) {
+                  console.log("FAIL #" + (tries + 1), e.message);
+                } */
       }
       triggered = true;
     }
@@ -252,7 +257,7 @@ class Autochar {
 
   findEditIndices() {
 
-    this.targetCharIdx = 0; 
+    this.targetCharIdx = 0;
     this.targetPartIdx = 0;
 
     //console.log("findEditIndices",this.target, this.word );

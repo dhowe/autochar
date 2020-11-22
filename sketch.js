@@ -4,7 +4,7 @@ const DO_PERF = true, KIOSKED = true, KSPEED = 1.5;
 const TRIGGER_PAUSE = 2500, NON_TRIGGER_PAUSE = 500;
 const STROKE_DELAY_MIN = KIOSKED ? 300 * KSPEED : 300;
 const STROKE_DELAY_MAX = KIOSKED ? 1300 * KSPEED : 1300;
-const lerpFactor = 0.05;
+const MAX_UNTRIGGERED_STEPS = 100;
 
 function preload() {
 
@@ -54,7 +54,7 @@ function draw() {
     background(calibrate[0], calibrate[1], calibrate[2]);
     fill(255);
     textSize(100);
-    text(calibrate[0]+","+calibrate[1]+","+calibrate[2],width/2,height/2);
+    text(calibrate[0] + "," + calibrate[1] + "," + calibrate[2], width / 2, height / 2);
     return;
   }
 
@@ -95,27 +95,29 @@ function onNewTarget(nextWord, med, numStrokes) {
   let chars = nextWord.characters;
   console.log((typer.steps) + ') ' + (lastWord ? lastWord.literal : "''") + " -> "
     + nextWord.literal, med + util.lang.substring(0, 1), "'" + nextWord.definition
-    + "' (" + chars[0].definition + ' :: ' + chars[1].definition + ') ');// + millis());
+    + "' (" + chars[0].definition + ' :: ' + chars[1].definition + ') ' + stepsSinceTrigger);// + millis());
 }
 
 function onAction(completedWord, nextWord, nextWordIsTrigger) {
 
-  0 && console.log((strokeIdx + 1) + "/" + strokeCount + " "
+  /*console.log((strokeIdx + 1) + "/" + strokeCount + " "
     + (completedWord ? completedWord.literal : typer.target.literal)
-    + " " + (timer / changeMs));
-  //+ " " + round(((millis() - changeTs) / changeMs) * 100) + "%");
+    + " " + (timer / changeMs));*/
 
   //console.log('onAction', nextWordIsTrigger);
   if (completedWord) { // word complete
 
-    if (nextWordIsTrigger) console.log('[TRIGGER1] "'
-      + nextWord.literal + "': " + nextWord.definition + "'");
+    if (nextWordIsTrigger) {
+      console.log('[TRIGGER] "' + nextWord.literal + "': " + nextWord.definition + "'");
+      stepsSinceTrigger = 0;
+    }
+    else if (++stepsSinceTrigger >= MAX_UNTRIGGERED_STEPS) {
+      typer.forceTrigger();
+    }
 
-    /*     if () console.log('[PAIR] "');
-          //+ nextWord.literal + "': " + nextWord.definition + "'");
-     */
     pausePending = triggered ? TRIGGER_PAUSE : NON_TRIGGER_PAUSE;
     isTriggerPair = completedWord.definition === nextWord.definition;
+
     flashColors();
     playStroke(true);
     playBell();
@@ -258,8 +260,7 @@ function keyReleased() {
   }
 
   if (key === 't') {
-    console.log('[MANUAL]');
-    typer.manualTrigger = true;
+    typer.forceTrigger(true);
   }
 
   if (key === 'm') {
@@ -386,10 +387,11 @@ let bell, trig, strk, conf, lastWord, tid, util, typer;
 let timer = 0, strokeCount = 0, firstRun = true;
 let scayl = 1, aspectW = 4, aspectH = 3;
 
-let rgb = [0, 0, 0], strokeDelay,  showDefs = true, charDefs = true;
+let rgb = [0, 0, 0], strokeDelay, showDefs = true, charDefs = true;
 let isTriggerPair, strokeIdx = 0, changeMs, changeTs, host;
 let initalResize = false, border = 10, memt = -15;
 let triggered = 0, navOpen = false, calibrate = false;
+let lerpFactor = 0.05, stepsSinceTrigger = 0;
 
 const bgcol = [255, 255, 255], hitcol = [76, 87, 96];
 const txtcol = [0, 0, 0], trgcol = [150, 0, 0];
