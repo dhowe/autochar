@@ -157,21 +157,21 @@ class Autochar {
 
   pickNextTarget() {
 
-    //console.log('pickNextTarget() ' + lastTrigger);// +"  -> "+(this.memory.peek() === 'trigger'))
+    //console.log('pickNextTarget() ' + lastTrigger);
     let result, triggered = false;
 
     let ctrigs = Object.keys(this.triggers[this.util.lang]);
 
     if (this.manualTrigger) {
       this.manualTrigger = false;
-      for (let tries = 0; result == null; tries++) {
+      for (let tries = 0; result === null; tries++) {
         let trig = ctrigs[(Math.random() * ctrigs.length) << 0];
-        //     try {
-        result = this.util.getWord(trig);
-        /*         }
-                catch (e) {
-                  console.log("FAIL #" + (tries + 1), e.message);
-                } */
+        try {
+          result = this.util.getWord(trig);
+        }
+        catch (e) {
+          console.warn("FAIL #" + (tries + 1), e.message);
+        }
       }
       triggered = true;
     }
@@ -179,8 +179,11 @@ class Autochar {
     // if last was a trigger, use its counterpart
     if (this.targetIsTrigger) {
       let pair = this.triggers[this.util.lang][this.target.literal];
-      result = this.util.getWord(pair, this.util.invertLang());
-      if (!result) throw Error("No pair for " + this.target.literal);
+      try {
+        result = this.util.getWord(pair, this.util.invertLang());
+      } catch (e) {
+        console.warn("[WARN] No pair for " + this.target.literal+" [crand]");
+      }
       0 && console.log("[TRIGGER2] " + this.target.literal + " -> "
         + pair + " " + result.definition);
       this.leftStatics = this.rightStatics = 0; // reset statics
@@ -189,8 +192,6 @@ class Autochar {
     if (!result) { // normal case, pick the best candidates in lang
 
       let opts = this.candidates(); // get candidates with lowest MED
-
-      //console.log(this.word.literal+" ->",opts);
 
       // select any trigger words if we have them
       if (this.useTriggers && !this.memory.contains('trigger')) {
