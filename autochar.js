@@ -34,7 +34,7 @@ class Autochar {
     this.triggers = triggers;
 
     this.word = util.randWord();
-    this.memory = new util.HistQ(10);
+    this.memory = new util.HistQ(100);
     this.memory.add('trigger');  // make sure no triggers at start
     this.memory.add(this.word.literal);
     this.pickNextTarget();
@@ -182,7 +182,7 @@ class Autochar {
       try {
         result = this.util.getWord(pair, this.util.invertLang());
       } catch (e) {
-        console.warn("[WARN] No pair for " + this.target.literal+" [crand]");
+        console.warn("[WARN] No pair for " + this.target.literal + " [crand]");
       }
       0 && console.log("[TRIGGER2] " + this.target.literal + " -> "
         + pair + " " + result.definition);
@@ -194,7 +194,7 @@ class Autochar {
       let opts = this.candidates(); // get candidates with lowest MED
 
       // select any trigger words if we have them
-      if (this.useTriggers && !this.memory.contains('trigger')) {
+      if ( this.useTriggers && !this.memory.slice(-10).includes('trigger')) {
         let startIdx = (Math.random() * opts.length) << 0;
         for (let i = startIdx; i < opts.length + startIdx; i++) {
           let cand = opts[i % opts.length];
@@ -207,11 +207,17 @@ class Autochar {
         }
       }
 
-      // we have a trigger we've chosen, or we choose randomly from the rest
+      // either we've chosen a trigger, or we choose randomly from the rest
       if (!result) {
-        let triggerless = opts.filter(o => !ctrigs.includes(o));
-        let cands = triggerless.length ? triggerless : opts;
-        result = this.util.getWord(cands[(Math.random() * cands.length) << 0]);
+        let triggerless = opts.filter(o => !(ctrigs.includes(o) || o === 'trigger'));
+        if (triggerless.length > 0) {
+          let cands = triggerless.length ? triggerless : opts;
+          result = this.util.getWord(cands[(Math.random() * cands.length) << 0]);
+        }
+        else {
+          console.warn("No options for: " + this.word.literal +" [crand]");
+          result = this.util.randWord();
+        }
       }
 
       // increment the count for the character (l/r) staying the same

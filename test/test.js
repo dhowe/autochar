@@ -1,15 +1,10 @@
+// from root: $ mocha test/test
 
-if (typeof module !== 'undefined') {
-  expect = require('chai').expect;
-  med = require('fast-levenshtein');
-  chars = require('../chardata.json');
-  defs = require('../definitions.json');
-  CharUtils = require('../cutils');
-}
-else {
-  med = window.Levenshtein;
-  expect = chai.expect;
-}
+const expect = require('chai').expect;
+const med = require('fast-levenshtein');
+const chars = require('../generated/chardata.json');
+const defs = require('../generated/definitions.json');
+const CharUtils = require('../cutils');
 
 if (typeof Path2D == 'undefined') Path2D = (class Path2DMock { });
 let util = new CharUtils(chars, defs, med, true);
@@ -99,6 +94,13 @@ describe('HistQ', () => {
     expect(hq.test(cand => cand.id === 3)).eq(true);
   });
 
+  it('should slice subhistories', () => {
+    let hq = new util.HistQ(5);
+    for (var i = 0; i < 5; i++) {
+      hq.add({ name: 'foo' + i, id: i });
+    }
+  });
+
 });
 
 describe('Utils', () => {
@@ -155,14 +157,14 @@ describe('Utils', () => {
     expect(util.minEditDistance('拒', '三')).to.equal(3); // nothing
   }); */
 
-/*   it('should compute the best edit dist for a 2-char words', () => {
-    let lit = '脫然';
-    let word = util.getWord(lit);
-    expect(word.literal).eq(lit);
-    let bets = util.bestEditDistance(word.literal);
-    //console.log(bets.length);
-    expect(bets.length).eq(1);
-  }); */
+  /*   it('should compute the best edit dist for a 2-char words', () => {
+      let lit = '脫然';
+      let word = util.getWord(lit);
+      expect(word.literal).eq(lit);
+      let bets = util.bestEditDistance(word.literal);
+      //console.log(bets.length);
+      expect(bets.length).eq(1);
+    }); */
 
   it('should compute the custom edit dist for 2-char words', () => {
     expect(util.minEditDistance('上杆', '上杆', 'simp')).to.equal(0); // exact
@@ -201,12 +203,12 @@ describe('Utils', () => {
     expect(bet.length).to.equal(2);
     expect(util.minEditDistance(word.literal, bet[0])).to.equal(2);
 
-    bet = util.bestEditDistance(word.literal, { words, minMed: 3});
+    bet = util.bestEditDistance(word.literal, { words, minMed: 3 });
     expect(bet.length).to.equal(1);
     expect(util.minEditDistance(word.literal, bet[0])).to.equal(3);
   });
 
-  it('should get bestEditDistance for unconstrained words', function() {
+  it('should get bestEditDistance for unconstrained words', function () {
     //this.timeout(10000);
     let lit = '脫然', bets;
     let word = util.getWord(lit);
@@ -216,8 +218,8 @@ describe('Utils', () => {
     expect(bets.length).eq(93);
     expect(util.minEditDistance(word.literal, bets[0])).to.equal(2);
 
-    bets = util.bestEditDistance(word.literal, {minMed:3});
-    expect(bets.length).eq(69);
+    bets = util.bestEditDistance(word.literal, { minMed: 3 });
+    expect(bets.length).eq(70);
     expect(util.minEditDistance(word.literal, bets[0])).to.equal(3);
   });
 
@@ -267,28 +269,28 @@ describe('Utils', () => {
     expect(bet).to.eql([]);
   }); */
 
-/*   it('should return word object for literal', () => {
-    let word = util.getWord('拒');
-    let wstr = JSON.stringify(word);
-    //console.log(wstr);
-
-    let word2 = util.getWord('拒');
-    let wstr2 = JSON.stringify(word2);
-
-    expect(wstr).to.equal(wstr2);
-    expect(word.literal).to.equal(word2.literal);
-    expect(word.length).to.equal(word2.length);
-    expect(word.characters.length).to.equal(word2.characters.length);
-    expect(word.characters[0].cstrokes.length).to.equal(word2.characters[0].cstrokes.length);
-    for (var i = 0; i < word.characters[0].cstrokes.length; i++) {
-      var stroke1 = word.characters[0].cstrokes[i];
-      var stroke2 = word2.characters[0].cstrokes[i];
-      //console.log(stroke1, stroke2);
-      expect(stroke1).to.equal(stroke1);
-    }
-
-    word = util.getWord("三價");
-    expect(word.literal).to.equal("三價");
-  }); */
+  /*   it('should return word object for literal', () => {
+      let word = util.getWord('拒');
+      let wstr = JSON.stringify(word);
+      //console.log(wstr);
+  
+      let word2 = util.getWord('拒');
+      let wstr2 = JSON.stringify(word2);
+  
+      expect(wstr).to.equal(wstr2);
+      expect(word.literal).to.equal(word2.literal);
+      expect(word.length).to.equal(word2.length);
+      expect(word.characters.length).to.equal(word2.characters.length);
+      expect(word.characters[0].cstrokes.length).to.equal(word2.characters[0].cstrokes.length);
+      for (var i = 0; i < word.characters[0].cstrokes.length; i++) {
+        var stroke1 = word.characters[0].cstrokes[i];
+        var stroke2 = word2.characters[0].cstrokes[i];
+        //console.log(stroke1, stroke2);
+        expect(stroke1).to.equal(stroke1);
+      }
+  
+      word = util.getWord("三價");
+      expect(word.literal).to.equal("三價");
+    }); */
 
 });

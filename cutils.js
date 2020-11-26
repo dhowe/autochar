@@ -9,7 +9,7 @@ class CharUtils {
 
     this.lang = 'trad';
     this.silent = silent;
-    this.charData = chars; // char-paths
+    this.charData = chars;
     this.editDist = levenshtein;
     this.wordCache = { simp: {}, trad: {} };
 
@@ -93,7 +93,7 @@ class CharUtils {
         continue;
       }
 
-      if (opts.history && opts.history.contains(literals[i])) {
+      if (opts.history && opts.history.includes(literals[i])) {
         dbug && console.log(i, '*** Skip: in history:', literals[i]);
         continue;
       }
@@ -207,6 +207,9 @@ class HistQ {
       this.q.shift();
     }
   }
+  slice() {
+    return this.q.slice(...arguments);
+  }
   // test if cand has prop === val
   query(prop, val) {
     return this.test(c => c[prop] === val);
@@ -214,7 +217,7 @@ class HistQ {
   test(fun) { // test against supplied func
     return this.q.filter(fun).length > 0;
   }
-  contains(item) {
+  includes(item) {
     return this.q.indexOf(item) > -1;
   }
   peek() {
