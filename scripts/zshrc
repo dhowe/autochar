@@ -1,0 +1,77 @@
+alias vi=vim
+alias ls='ls -FGOp'
+alias la='ls -FGOla'
+alias lsg='ls -a | grep -ie '
+alias lsl='ls | less'
+alias h='history'
+alias hg='history | grep '
+alias scs='source ~/.zshrc'
+alias seecs='vi ~/.zshrc'
+alias psg='ps aux | grep ' # ??
+
+# Hosts
+alias red='ssh ${RED}'
+alias lab='ssh -p 8022 danihowe@lab-lamp.scm.cityu.edu.hk'
+alias txl='ssh dhowe@144.214.222.24'
+alias scpl='scp -P 8022 '
+alias labp='ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -p8022 danihowe@lab-lamp.scm.cityu.edu.hk'
+
+# git ##############
+alias gpb='git push -u origin ' 
+alias grhs='git reset HEAD~1 --soft'
+alias stash-to-branch='git stash && git stash branch '
+alias gd='git diff '
+alias gd-up='git diff remotes/upstream/master master '
+alias glog='git log --stat'
+alias gtheirs-all='git checkout --theirs .'
+alias gours='git checkout --ours '
+
+alias gups='git fetch upstream && git merge upstream/master' 
+alias gcon='cat .git/config'
+alias vcon='vi .git/config'
+alias gconf='vi ~/.gitconfig'
+alias gadu='git add -u '
+alias gada='git add -A '
+alias gfu='git fetch upstream'
+alias gmu='git merge upstream/master'
+alias gfo='git fetch origin'
+alias gmo='git merge origin/master'
+alias gad='git add '
+alias gst='git status'
+alias gstl='git status | less'
+alias gcl='git clone '
+alias grh='git reset HEAD '
+alias grb='git rebase -i ' #interactive rebase (squash)
+alias grm='git rm --cached ' # remove but dont delete
+alias gcm='git commit ' #commit changed files to current branch
+alias gcmu='gadu;gcm'
+alias ucm='gcmu'
+alias glb='git branch -a -v | less' #list branches
+alias gcb='git checkout -b ' # switch to newbranch
+alias gc='git checkout ' # switch to branch
+alias gcmaster='git checkout master ' # switch to branch
+alias gcweb='git checkout gh-pages ' # switch to branch
+alias gmer='git merge '  # merge one branch into another (often master)
+alias gdel='git branch -d ' # safely delete branch
+alias gpl='git pull'
+alias gp='git push'
+alias glg="git -c core.pager='less -SRF' log --oneline --graph --decorate"
+
+alias www='cd /Library/WebServer/Documents/'
+alias ac='cd /Library/WebServer/Documents/autochar'
+alias o='open -a finder .'
+
+export SCM1=192.168.1.7
+export SCM2=192.168.1.2
+export SCM3=192.168.1.3
+export SCM4=192.168.1.4
+export SCM5=192.168.1.5
+export SCM6=192.168.1.6
+alias scm1='ssh -t $SCM1 "cd /Library/WebServer/Documents/autochar; zsh"'
+alias scm2='ssh -t $SCM2 "cd /Library/WebServer/Documents/autochar; zsh"'
+alias scm3='ssh -t $SCM3 "cd /Library/WebServer/Documents/autochar; zsh"'
+alias scm4='ssh -t $SCM4 "cd /Library/WebServer/Documents/autochar; zsh"'
+alias scm5='ssh -t $SCM5 "cd /Library/WebServer/Documents/autochar; zsh"'
+alias scm6='ssh -t $SCM6 "cd /Library/WebServer/Documents/autochar; zsh"'
+
+alias lsdir='ls | grep /'

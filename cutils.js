@@ -8,9 +8,8 @@ class CharUtils {
     this.HistQ = HistQ; // class 
 
     this.lang = 'trad';
-    //this.defs = defs; // {simp,trad,chars}
     this.silent = silent;
-    this.charData = chars; // char-paths
+    this.charData = chars;
     this.editDist = levenshtein;
     this.wordCache = { simp: {}, trad: {} };
 
@@ -26,7 +25,7 @@ class CharUtils {
     if (!this.charData) throw Error('no char-data');
     if (!defs) throw Error('no definition data');
     Object.keys(defs).forEach(lang => {
-      if (lang === 'chars') return;
+      if (lang === 'chars' || lang === 'triggers') return;
       const data = defs[lang];
       Object.keys(data).forEach(word => {
         if (word.length !== 2) return;
@@ -34,11 +33,12 @@ class CharUtils {
           for (let k = 0; k < word.length; k++) {
             const ch = word[k];
             if (!this.charData[ch]) {
-              throw Error('no char-data for ' + ch + ' in ' + word);
+              //throw Error('no char-data for ' + ch + ' in ' + word);
+              console.warn('no char-data for ' + ch + ' in ' + word
+                + (defs.triggers[lang][word] ? (" [TRIGGER] "+data[word]) : ""));
+              return;
             }
-            if (!defs.chars[ch]) {
-              throw Error('no def entry for ' + ch);
-            }
+            if (!defs.chars[ch]) throw Error('no def entry for ' + ch);
             this.charData[ch].definition = defs.chars[ch] || '-';
           }
           this.wordCache[lang][word] = this._createWord(word, data);
@@ -58,8 +58,10 @@ class CharUtils {
   bestEditDistance(input, opts = {}) {
 
     if (!input || !input.length) throw Error('no input');
-
     let lang = opts.lang || this.lang;
+
+    //console.log('searching ' + input + " (" + lang + ")");
+
     let minAllowed = opts.minMed || 1, dbug = 0;
     let data = this.wordCache[lang];
     if (!data || !Object.keys(data).length) {
@@ -72,7 +74,7 @@ class CharUtils {
     let med, meds = [], bestMed = Number.MAX_SAFE_INTEGER;
     let word = this.wordCache[lang][input];
     if (!word) {
-      //console.log('lookup2: ' + input, this.invertLang());
+      // console.log('lookup2: ' + input, this.invertLang());
       word = this.wordCache[this.invertLang()][input];
       if (!word) throw Error('no word for: ' + input);
     }
@@ -91,7 +93,7 @@ class CharUtils {
         continue;
       }
 
-      if (opts.history && opts.history.contains(literals[i])) {
+      if (opts.history && opts.history.includes(literals[i])) {
         dbug && console.log(i, '*** Skip: in history:', literals[i]);
         continue;
       }
@@ -153,33 +155,27 @@ class CharUtils {
     return new Word(literal, chars, defs[literal]);
   }
 
-  getWord(literal, angostic) {
-    let res = this.wordCache[this.lang][literal];
-    if (!res) {
-      if (angostic) res = this.wordCache[this.invertLang()][literal];
-      if (!res) throw Error('no ' + this.lang 
-        + '. word for: ' + literal, 'angostic='+angostic);
+  getWord(literal, lang) {
+    lang = lang || this.lang;
+    let res = this.wordCache[lang][literal];
+    if (typeof res === 'undefined') {
+      throw Error('no "' + lang + '" word for ' + literal);
     }
     return res;
   }
 
-  definition(literal, lang) {
+  definition(literal) {
+    if (literal === 'trigger') return 'NA';
     let word = this.wordCache[this.lang][literal];
     if (!word) word = this.wordCache[this.invertLang()][literal];
-    return word && word.definition || '---';
+    if (!word) throw Error('no definition for "' + literal + "'");
+    return word.definition;
   }
 
   currentWords(lang) {
-
     lang = lang || this.lang;
-
     if (!this.wordCache) throw Error('No word cache');
     if (!this.wordCache[lang]) throw Error('No word cache for ' + lang);
-    //if (!nk(this.wordCache[lang])) 
-    //throw Error('No entries in wordCache[' + lang + ']');
-
-    //return this.defs[this.lang];
-    //console.log(lang, Object.keys(this.wordCache[lang]).length);
     return this.wordCache[lang]; // {simp, trad}
   }
 
@@ -211,6 +207,9 @@ class HistQ {
       this.q.shift();
     }
   }
+  slice() {
+    return this.q.slice(...arguments);
+  }
   // test if cand has prop === val
   query(prop, val) {
     return this.test(c => c[prop] === val);
@@ -218,7 +217,7 @@ class HistQ {
   test(fun) { // test against supplied func
     return this.q.filter(fun).length > 0;
   }
-  contains(item) {
+  includes(item) {
     return this.q.indexOf(item) > -1;
   }
   peek() {
@@ -329,6 +328,7 @@ class Word {
     if (typeof partIdx === 'undefined') throw Error('no partIdx');
 
     let chr = this.characters[charIdx];
+    if (!chr) throw Error("this.characters[" + charIdx + "]=null -> " + this.characters);
     partIdx = this.constrain(partIdx, 0, chr.parts.length - 1);
 
     if (partIdx < 0 || partIdx >= chr.parts.length) {

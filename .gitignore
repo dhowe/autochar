@@ -1,4 +1,5 @@
 #misc
+testone.html
 data/old
 chardata.js
 definitions.js
@@ -7,6 +8,10 @@ word-vis-tests.txt
 words-trad-hr.json
 words-simp-hr.json
 
+generated/_*
+
+.DS_STORE
+**/.DS_STORE
 
 # Logs
 logs
